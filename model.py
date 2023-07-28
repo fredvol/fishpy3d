@@ -141,7 +141,13 @@ import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 
-fig = px.scatter_polar(df, r="apparent_watter_pct", theta="true_wind_angle", labels='toto')
+fig = px.line_polar(df, r="apparent_watter_pct", theta="true_wind_angle", 
+        range_theta=[-90,90],  
+    
+        )
+
+# fig.update_polars(gridshape='linear')
+
 
 
 # add wind
@@ -149,19 +155,58 @@ fig.add_trace(go.Scatterpolar(
         mode = "lines",
         r = [0,100],
         theta = [0,180],
-    ))
+        name='Wind_vector',
+        line=dict(
+            width =6,)
+    
+        )
+    )
 
-# trajectory :
+# trajectory 
+vr=fk.fluid_velocity_ratio()
+current_apparent_watter_pct = fk.apparent_watter(vr)/fk.wind_speed *100
+current_true_wind_angle = fk.true_wind_angle(vr)
+
+
 fig.add_trace(go.Scatterpolar(
         mode = "lines",
-        r = [0,100],
-        theta = [0,180],
-    ))
+        r = [0,current_apparent_watter_pct],
+        theta = [0,current_true_wind_angle],
+        name='Traj_vector',
+        )
+    )
 
+
+fig.add_trace(go.Scatterpolar(
+        mode = "lines",
+        r = [100,current_apparent_watter_pct],
+        theta = [180,current_true_wind_angle],
+        #legendgroup="vector",
+        name='Apparent_wind_vector',
+        line=dict(
+            dash ='dot',)
+        )
+    )
+
+
+# fig.update_polars( bgcolor="rgba(223, 223, 223, 0)")
+# fig.add_layout_image(
+#         dict(
+#             source="polar_background.png",
+#             xref="x",
+#             yref="y",
+#             x=0,
+#             y=0,
+#             sizex=4,
+#             sizey=4,
+#             sizing="stretch",
+#             xanchor="left",
+#             yanchor="middle",
+#             opacity=0.7,
+#             layer="below")
+# )
 
 fig.show()
-
-
 
 
 #%% 
