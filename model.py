@@ -11,7 +11,16 @@ import plotly.graph_objects as go
 RHO_AIR = 1.29  # kg/m3
 RHO_WATER = 1025  # kg/m3
 
+# %% plot data
 COLOR_palette = px.colors.qualitative.Plotly
+
+bckgrd_imge_dim = {
+    "width": 700,
+    "height": 636,
+    "zero_x": 31,
+    "zero_y": 265,
+    "source": "polar_background.png",
+}
 
 # %%  Functions
 
@@ -29,7 +38,9 @@ def pol2cart(rho, phi, start=90):
     return (x, y)
 
 
-def add_line(pt1, pt2, m_name, group_name=None, extra_dict=None):
+def add_line(
+    pt1, pt2, m_name, group_name=None, legendgrouptitle_text=None, extra_dict=None
+):
     based_dict = dict(
         color=None,
     )
@@ -42,6 +53,7 @@ def add_line(pt1, pt2, m_name, group_name=None, extra_dict=None):
         x=[pt1[0], pt2[0]],
         y=[pt1[1], pt2[1]],
         legendgroup=group_name,
+        legendgrouptitle_text=legendgrouptitle_text,
         name=m_name,
         line=based_dict,
     )
@@ -215,17 +227,22 @@ class FishKite:
             "polar_pts": polar_pts,
         }
 
-    def plot(self, add_background_image=False, m_height=600):
+    def plot(self, add_background_image=False):
         fig = go.Figure(
             layout=go.Layout(
                 title=go.layout.Title(text=f"Polar for: {self.name}"),
                 autosize=False,
-                height=m_height,
-                xaxis_range=[-10, 500],
-                yaxis_range=[-300, 300],
-                xaxis=dict(showgrid=False),
-                yaxis=dict(showgrid=False),
-            )
+                height=bckgrd_imge_dim["height"],
+                xaxis_range=[-5, 550],
+                yaxis_range=[-300, 240],
+                legend=dict(
+                    yanchor="top",
+                    y=-0.1,
+                    xanchor="left",
+                    x=0.01,
+                    groupclick="toggleitem",
+                ),
+            ),
         )
 
         self.add_plot_elements(fig, add_legend_name=False)
@@ -236,19 +253,23 @@ class FishKite:
         )  # to keep square ratio
 
         if add_background_image:
+            fig.update_layout(
+                xaxis=dict(showgrid=False, visible=False),
+                yaxis=dict(showgrid=False, visible=False),
+            )
             fig.add_layout_image(
                 dict(
                     source="polar_background.png",
                     xref="x",
                     yref="y",
-                    x=1,
-                    y=0,
-                    sizex=600,
-                    sizey=600,
+                    x=-bckgrd_imge_dim["zero_x"],
+                    y=bckgrd_imge_dim["zero_y"],
+                    sizex=bckgrd_imge_dim["width"] - bckgrd_imge_dim["zero_x"],
+                    sizey=bckgrd_imge_dim["height"] - 10,  # TODO why -10?
                     sizing="stretch",
                     xanchor="left",
-                    yanchor="middle",
-                    opacity=0.8,
+                    yanchor="top",
+                    opacity=0.4,
                     layer="below",
                 )
             )
@@ -261,17 +282,6 @@ class FishKite:
         if add_legend_name:
             legend_name = "_" + self.name
 
-        fig.add_trace(
-            (
-                go.Scatter(
-                    x=data_plot["polar_pts"]["x_watter_pct"],
-                    y=data_plot["polar_pts"]["y_watter_pct"],
-                    mode="lines",
-                    name=f"Polar{legend_name}",
-                )
-            )
-        )
-
         # Wind
         fig.add_trace(
             add_line(
@@ -282,6 +292,18 @@ class FishKite:
                 extra_dict=dict(width=4, color="red"),
             )
         )
+        fig.add_trace(
+            (
+                go.Scatter(
+                    x=data_plot["polar_pts"]["x_watter_pct"],
+                    y=data_plot["polar_pts"]["y_watter_pct"],
+                    mode="lines",
+                    legendgrouptitle_text=self.name,
+                    name=f"Polar{legend_name}",
+                    line_color=m_color,
+                )
+            )
+        )
 
         # trajectory
         fig.add_trace(
@@ -289,6 +311,7 @@ class FishKite:
                 data_plot["anchor"],
                 data_plot["op_point"],
                 m_name=f"trajectory{legend_name} ",
+                group_name=self.name,
                 extra_dict=dict(dash="dash", color=m_color),
             )
         )
@@ -299,6 +322,7 @@ class FishKite:
                 data_plot["wind"],
                 data_plot["op_point"],
                 m_name=f"Apparent_wind_vector{legend_name}",
+                group_name=self.name,
                 extra_dict=dict(dash="dot", color=m_color),
             )
         )
@@ -321,24 +345,26 @@ class Project:
             detail_str += str(i)
         return detail_str
 
-    def plot(self, add_background_image=False, m_height=600):
-        list_data_to_plot = [fk.data_to_plot_polar() for fk in self.lst_fishkite]
-
+    def plot(self, add_background_image=False):
         fig = go.Figure(
             layout=go.Layout(
                 title=go.layout.Title(text=f"Polar for: {self.name}"),
                 autosize=False,
-                height=m_height,
-                xaxis_range=[-10, 500],
-                yaxis_range=[-300, 300],
-                xaxis=dict(showgrid=False),
-                yaxis=dict(showgrid=False),
-            )
+                height=bckgrd_imge_dim["height"],
+                xaxis_range=[-5, 550],
+                yaxis_range=[-300, 240],
+                legend=dict(
+                    yanchor="top",
+                    y=-0.1,
+                    xanchor="left",
+                    x=0.01,
+                    groupclick="toggleitem",
+                ),
+            ),
         )
-
-        for i, fk in enumerate(self.lst_fishkite):
+        for i, fki in enumerate(self.lst_fishkite):
             color = COLOR_palette[i]
-            fk.add_plot_elements(fig, m_color=color, add_legend_name=True)
+            fki.add_plot_elements(fig, m_color=color, add_legend_name=True)
 
         fig.update_yaxes(
             scaleanchor="x",
@@ -346,19 +372,23 @@ class Project:
         )  # to keep square ratio
 
         if add_background_image:
+            fig.update_layout(
+                xaxis=dict(showgrid=False, visible=False),
+                yaxis=dict(showgrid=False, visible=False),
+            )
             fig.add_layout_image(
                 dict(
                     source="polar_background.png",
                     xref="x",
                     yref="y",
-                    x=1,
-                    y=0,
-                    sizex=600,
-                    sizey=600,
+                    x=-bckgrd_imge_dim["zero_x"],
+                    y=bckgrd_imge_dim["zero_y"],
+                    sizex=bckgrd_imge_dim["width"] - bckgrd_imge_dim["zero_x"],
+                    sizey=bckgrd_imge_dim["height"] - 10,  # TODO why -10?
                     sizing="stretch",
                     xanchor="left",
-                    yanchor="middle",
-                    opacity=0.8,
+                    yanchor="top",
+                    opacity=0.4,
                     layer="below",
                 )
             )
@@ -398,15 +428,15 @@ if __name__ == "__main__":
     proj2 = Project([fk1, fk2, fk3])
 
     # %%
+    fig2 = fk1.plot(add_background_image=True)
+    fig2.show()
+    # %%
 
-    fig1 = proj1.plot()
+    fig1 = proj1.plot(add_background_image=True)
     fig1.show()
 
     # %%
     fig2 = proj2.plot()
-    fig2.show()
-    # %%
-    fig2 = fk1.plot()
     fig2.show()
     # %%
     print(f"{d_kite2.glide_ratio() =:.3f}")
@@ -425,5 +455,8 @@ if __name__ == "__main__":
 
 # %%
 
+
 # 32 , 265
 # 700 , 636
+
+# %%
