@@ -168,7 +168,6 @@ class FishKite:
         velocity_range = np.linspace(
             velocity_max_min["min"], velocity_max_min["max"], nb_value
         )
-        print(list(velocity_range))
 
         list_result = []
         for velocity_ratio in velocity_range:
@@ -280,7 +279,7 @@ class FishKite:
                 data_plot["wind"],
                 m_name="wind",
                 group_name="Wind",
-                extra_dict=dict(width=6, color="red"),
+                extra_dict=dict(width=4, color="red"),
             )
         )
 
@@ -290,7 +289,6 @@ class FishKite:
                 data_plot["anchor"],
                 data_plot["op_point"],
                 m_name=f"trajectory{legend_name} ",
-                m_color=m_color,
                 extra_dict=dict(dash="dash", color=m_color),
             )
         )
@@ -317,10 +315,11 @@ class Project:
         return f"{self.name}"
 
     def detail(self):
-        print(f"Project conatains {len(self.lst_fishkite)} FiskKite(s):")
+        detail_str = f"Project conatains {len(self.lst_fishkite)} FiskKite(s):"
         for i in self.lst_fishkite:
-            print("-")
-            print(i)
+            detail_str += "\n-\n"
+            detail_str += str(i)
+        return detail_str
 
     def plot(self, add_background_image=False, m_height=600):
         list_data_to_plot = [fk.data_to_plot_polar() for fk in self.lst_fishkite]
@@ -337,11 +336,8 @@ class Project:
             )
         )
 
-        print(fig)
-
         for i, fk in enumerate(self.lst_fishkite):
             color = COLOR_palette[i]
-            print(f"adding for : {fk}")
             fk.add_plot_elements(fig, m_color=color, add_legend_name=True)
 
         fig.update_yaxes(
@@ -370,46 +366,62 @@ class Project:
 
 
 # %% Parameter
+if __name__ == "__main__":
+    wind_speed_i = 15  # kt
+    rising_angle_1 = 33  # deg
+    rising_angle_2 = 20  # deg
 
+    d_kite1 = Deflector(
+        "kite1", cl=0.4, cl_range=(0.4, 0.9), area=24, efficiency_angle=12
+    )
+    d_fish1 = Deflector(
+        "fish1", cl=0.2, cl_range=(0.2, 0.4), area=0.1, efficiency_angle=14
+    )
 
-wind_speed_i = 15  # kt
-rising_angle_1 = 33  # deg
-rising_angle_2 = 20  # deg
+    d_kite2 = Deflector(
+        "kite2", cl=0.6, cl_range=(0.4, 0.9), area=25, efficiency_angle=4
+    )
+    d_fish2 = Deflector(
+        "fish2", cl=0.4, cl_range=(0.2, 0.4), area=0.07, efficiency_angle=8
+    )
 
-d_kite1 = Deflector("kite1", cl=0.4, cl_range=(0.4, 0.9), area=24, efficiency_angle=12)
-d_fish1 = Deflector("fish1", cl=0.2, cl_range=(0.2, 0.4), area=0.1, efficiency_angle=14)
+    d_kite3 = Deflector("kite3", cl=1, cl_range=(0.4, 0.9), area=12, efficiency_angle=4)
+    # d_fish3 = Deflector(
+    #     "fish3", cl=0.7, cl_range=(0.2, 0.4), area=0.07, efficiency_angle=8
+    # )
 
-d_kite2 = Deflector("kite2", cl=0.6, cl_range=(0.4, 0.9), area=25, efficiency_angle=4)
-d_fish2 = Deflector("fish2", cl=0.4, cl_range=(0.2, 0.4), area=0.07, efficiency_angle=8)
+    fk1 = FishKite("fk1", wind_speed_i, rising_angle_1, fish=d_fish1, kite=d_kite1)
+    fk2 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite2)
+    fk3 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite3)
 
-fk1 = FishKite("fk1", wind_speed_i, rising_angle_1, fish=d_fish1, kite=d_kite1)
-fk2 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite2)
+    proj1 = Project([fk1, fk2])
+    proj2 = Project([fk1, fk2, fk3])
 
-proj = Project([fk1, fk2])
+    # %%
 
+    fig1 = proj1.plot()
+    fig1.show()
 
-# %%
-
-
-fig1 = proj.plot()
-fig1.show()
-# %%
-fig2 = fk1.plot()
-fig2.show()
-# %%
-print(f"{d_kite2.glide_ratio() =:.3f}")
-print(f"{d_fish2.glide_ratio() =:.3f}")
-print(f"{d_kite2.projected_efficiency_angle(43) =:.3f}")
-print(f"{d_fish2.projected_efficiency_angle(43) =:.3f}")
-print(f"- fisk kite-")
-print(f"{fk2.projected_efficiency_angle('kite') =:.3f}")
-print(f"{fk2.total_efficiency() =:.3f}")
-print("----")
-print(f"{fk2.fluid_velocity_ratio() =}")
-vr = fk2.fluid_velocity_ratio()
-print(f"{fk2.true_wind_angle(vr) =}")
-print(f"{fk2.apparent_wind(vr) =}")
-print(f"{fk2.apparent_watter(vr) =}")
+    # %%
+    fig2 = proj2.plot()
+    fig2.show()
+    # %%
+    fig2 = fk1.plot()
+    fig2.show()
+    # %%
+    print(f"{d_kite2.glide_ratio() =:.3f}")
+    print(f"{d_fish2.glide_ratio() =:.3f}")
+    print(f"{d_kite2.projected_efficiency_angle(43) =:.3f}")
+    print(f"{d_fish2.projected_efficiency_angle(43) =:.3f}")
+    print(f"- fisk kite-")
+    print(f"{fk2.projected_efficiency_angle('kite') =:.3f}")
+    print(f"{fk2.total_efficiency() =:.3f}")
+    print("----")
+    print(f"{fk2.fluid_velocity_ratio() =}")
+    vr = fk2.fluid_velocity_ratio()
+    print(f"{fk2.true_wind_angle(vr) =}")
+    print(f"{fk2.apparent_wind(vr) =}")
+    print(f"{fk2.apparent_watter(vr) =}")
 
 # %%
 
