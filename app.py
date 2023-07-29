@@ -32,45 +32,86 @@ fk2 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite2)
 
 proj = Project([fk1, fk2])
 
+
+# %% create input
+def create_input(i, fishkite):
+    input_list = [
+        html.H6(f"{fishkite.name}"),
+        html.Label("rising Angle (deg)"),
+        dcc.Slider(
+            id=f"slider-rising_angle_{i}",
+            min=1,
+            max=90,
+            step=1,
+            value=25,
+            marks={i: str(i) for i in range(0, 90, 5)},
+            tooltip={"placement": "bottom", "always_visible": True},
+        ),
+        html.Label("Area"),
+        dcc.Slider(
+            id=f"slider-area_{i}",
+            min=1,
+            max=40,
+            step=1,
+            value=20,
+            marks={i: str(i) for i in range(0, 40, 5)},
+            tooltip={"placement": "bottom", "always_visible": True},
+        ),
+        html.Label("Cl"),
+        dcc.Slider(
+            id=f"slider-cl_{i}",
+            min=0,
+            max=1,
+            step=0.1,
+            value=0.4,
+            marks={i: str(i) for i in range(0, 1, 1)},
+            tooltip={"placement": "bottom", "always_visible": True},
+        ),
+        html.Label("efficiency_angle"),
+        dcc.Slider(
+            id=f"slider-efficiency_angle_{i}",
+            min=0,
+            max=90,
+            step=1,
+            value=18,
+            marks={i: str(i) for i in range(0, 90, 5)},
+            tooltip={"placement": "bottom", "always_visible": True},
+        ),
+        html.Br(),
+    ]
+
+    input_div = html.Div(
+        children=input_list,
+        style={"padding": 10, "flex": 1},
+    )
+    return input_div
+
+
 # %%"
 app = dash.Dash(__name__)
 
 
 fig = proj.plot()
 
+list_of_controls = []
+
+output_items = html.Div(
+    children=[
+        html.Label("Outputs"),
+        html.Div(id="my-output"),
+        dcc.Graph(id="fig1", figure=fig),
+    ],
+    style={"padding": 10, "flex": 1},
+)
+
+for i, fk in enumerate(proj.lst_fishkite):
+    list_of_controls.append(create_input(i, fk))
+
+list_of_controls.append(output_items)
 
 app.layout = html.Div(
-    [
-        html.H2("FishPy"),
-        html.Div(
-            [
-                "Inputs: ",
-                html.H6("Area"),
-                dcc.Slider(
-                    id="slider-AREA",
-                    min=1,
-                    max=50,
-                    step=1,
-                    value=20,
-                    marks={i: str(i) for i in range(0, 50, 5)},
-                    tooltip={"placement": "bottom", "always_visible": True},
-                ),
-                html.H6("Cl"),
-                dcc.Slider(
-                    id="sliderAR",
-                    min=0.2,
-                    max=1,
-                    step=0.1,
-                    value=0.7,
-                    marks={i: str(i) for i in range(0, 20, 1)},
-                    tooltip={"placement": "bottom", "always_visible": True},
-                ),
-                dcc.Graph(id="fig1", figure=fig),
-            ]
-        ),
-        html.Br(),
-        html.Div(id="my-output"),
-    ]
+    list_of_controls,
+    style={"display": "flex", "flex-direction": "column"},
 )
 
 
@@ -93,13 +134,26 @@ app.layout = html.Div(
     Output("fig1", "figure"),
     Output(component_id="my-output", component_property="children"),
     [
-        Input(component_id="sliderAR", component_property="value"),
-        Input(component_id="slider-AREA", component_property="value"),
+        Input(component_id="slider-rising_angle_0", component_property="value"),
+        Input(component_id="slider-area_0", component_property="value"),
+        Input(component_id="slider-cl_0", component_property="value"),
+        Input(component_id="slider-efficiency_angle_0", component_property="value"),
+        Input(component_id="slider-rising_angle_1", component_property="value"),
+        Input(component_id="slider-area_1", component_property="value"),
+        Input(component_id="slider-cl_1", component_property="value"),
+        Input(component_id="slider-efficiency_angle_1", component_property="value"),
     ],
 )
-def update(AR, area):
-    proj.lst_fishkite[1].kite.area = area
-    proj.lst_fishkite[1].kite.cl = AR
+def update(risingA0, area0, cl0, ef0, risingA1, area1, cl1, ef1):
+    proj.lst_fishkite[0].rising_angle = risingA0
+    proj.lst_fishkite[0].kite.area = area0
+    proj.lst_fishkite[0].kite.cl = cl0
+    proj.lst_fishkite[0].kite.efficiency_angle = ef0
+
+    proj.lst_fishkite[1].rising_angle = risingA1
+    proj.lst_fishkite[1].kite.area = area1
+    proj.lst_fishkite[1].kite.cl = cl1
+    proj.lst_fishkite[1].kite.efficiency_angle = ef1
     fig = proj.plot()
 
     text_detail = f"Compute for : {proj.detail()}  "
