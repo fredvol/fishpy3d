@@ -363,6 +363,7 @@ class Project:
                     x=0.01,
                     groupclick="toggleitem",
                 ),
+                margin=dict(l=50, r=50, b=5, t=30, pad=3),
             ),
         )
         for i, fki in enumerate(self.lst_fishkite):
@@ -445,7 +446,7 @@ if __name__ == "__main__":
     # fig2.show()
     # %%
 
-    fig1 = proj1.plot(add_background_image=True)
+    fig1 = proj1.plot(add_background_image=False)
     fig1.show()
 
     # %%

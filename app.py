@@ -73,8 +73,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                # FishPy
-                V1
+                ## FishPy      V1
                 """
                         )
                     ],
@@ -233,15 +232,29 @@ def toggle_shape_collapse(n_clicks, is_open):
             },
             0: {
                 "rising_angle": Input("slider-rising_angle_0", "value"),
-                "area": Input("slider-area_0", "value"),
-                "cl": Input("slider-cl_0", "value"),
-                "efficiency_angle": Input("slider-efficiency_angle_0", "value"),
+                "kite_area": Input("slider-kite_area_0", "value"),
+                "kite_cl": Input("slider-kite_cl_0", "value"),
+                "kite_efficiency_angle": Input(
+                    "slider-kite_efficiency_angle_0", "value"
+                ),
+                "fish_area": Input("slider-fish_area_0", "value"),
+                "fish_cl": Input("slider-fish_cl_0", "value"),
+                "fish_efficiency_angle": Input(
+                    "slider-fish_efficiency_angle_0", "value"
+                ),
             },
             1: {
                 "rising_angle": Input("slider-rising_angle_1", "value"),
-                "area": Input("slider-area_1", "value"),
-                "cl": Input("slider-cl_1", "value"),
-                "efficiency_angle": Input("slider-efficiency_angle_1", "value"),
+                "kite_area": Input("slider-kite_area_1", "value"),
+                "kite_cl": Input("slider-kite_cl_1", "value"),
+                "kite_efficiency_angle": Input(
+                    "slider-kite_efficiency_angle_1", "value"
+                ),
+                "fish_area": Input("slider-fish_area_1", "value"),
+                "fish_cl": Input("slider-fish_cl_1", "value"),
+                "fish_efficiency_angle": Input(
+                    "slider-fish_efficiency_angle_1", "value"
+                ),
             },
         }
     },
@@ -255,14 +268,20 @@ def update(all_inputs):
     proj.lst_fishkite[1].wind_speed = c["general"]["wind_speed"]["value"]
 
     proj.lst_fishkite[0].rising_angle = c[0]["rising_angle"]["value"]
-    proj.lst_fishkite[0].kite.area = c[0]["area"]["value"]
-    proj.lst_fishkite[0].kite.cl = c[0]["cl"]["value"]
-    proj.lst_fishkite[0].kite.efficiency_angle = c[0]["efficiency_angle"]["value"]
+    proj.lst_fishkite[0].kite.area = c[0]["kite_area"]["value"]
+    proj.lst_fishkite[0].kite.cl = c[0]["kite_cl"]["value"]
+    proj.lst_fishkite[0].kite.efficiency_angle = c[0]["kite_efficiency_angle"]["value"]
+    proj.lst_fishkite[0].fish.area = c[0]["fish_area"]["value"]
+    proj.lst_fishkite[0].fish.cl = c[0]["fish_cl"]["value"]
+    proj.lst_fishkite[0].fish.efficiency_angle = c[0]["fish_efficiency_angle"]["value"]
 
     proj.lst_fishkite[1].rising_angle = c[1]["rising_angle"]["value"]
-    proj.lst_fishkite[1].kite.area = c[1]["area"]["value"]
-    proj.lst_fishkite[1].kite.cl = c[1]["cl"]["value"]
-    proj.lst_fishkite[1].kite.efficiency_angle = c[1]["efficiency_angle"]["value"]
+    proj.lst_fishkite[1].kite.area = c[1]["kite_area"]["value"]
+    proj.lst_fishkite[1].kite.cl = c[1]["kite_cl"]["value"]
+    proj.lst_fishkite[1].kite.efficiency_angle = c[1]["kite_efficiency_angle"]["value"]
+    proj.lst_fishkite[1].fish.area = c[1]["fish_area"]["value"]
+    proj.lst_fishkite[1].fish.cl = c[1]["fish_cl"]["value"]
+    proj.lst_fishkite[1].fish.efficiency_angle = c[1]["fish_efficiency_angle"]["value"]
 
     fig = proj.plot(add_background_image=will_use_background_img)
 

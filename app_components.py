@@ -1,5 +1,6 @@
 from dash import dcc
 from dash import html
+import numpy as np
 
 ### Operating things
 operating_slider_components = [
@@ -45,9 +46,10 @@ def create_fk_sliders(id):
                         "always_visible": True,
                     },
                 ),
+                html.H6(html.B(f"Kite:")),
                 html.Label("Area"),
                 dcc.Slider(
-                    id=f"slider-area_{id}",
+                    id=f"slider-kite_area_{id}",
                     min=1,
                     max=40,
                     step=1,
@@ -60,7 +62,7 @@ def create_fk_sliders(id):
                 ),
                 html.Label("Cl"),
                 dcc.Slider(
-                    id=f"slider-cl_{id}",
+                    id=f"slider-kite_cl_{id}",
                     min=0,
                     max=1,
                     step=0.1,
@@ -73,7 +75,7 @@ def create_fk_sliders(id):
                 ),
                 html.Label("efficiency_angle"),
                 dcc.Slider(
-                    id=f"slider-efficiency_angle_{id}",
+                    id=f"slider-kite_efficiency_angle_{id}",
                     min=0,
                     max=90,
                     step=1,
@@ -85,6 +87,46 @@ def create_fk_sliders(id):
                     },
                 ),
                 html.Br(),
+                html.H6(html.B(f"Fish:")),
+                html.Label("Area"),
+                dcc.Slider(
+                    id=f"slider-fish_area_{id}",
+                    min=0.01,
+                    max=1.2,
+                    step=0.01,
+                    value=0.1,
+                    marks={i: f"{i:.2f}" for i in np.arange(0, 1.4, 0.2)},
+                    tooltip={
+                        "placement": "bottom",
+                        "always_visible": True,
+                    },
+                ),
+                html.Label("Cl"),
+                dcc.Slider(
+                    id=f"slider-fish_cl_{id}",
+                    min=0,
+                    max=1,
+                    step=0.1,
+                    value=0.4,
+                    marks={i: str(i) for i in np.arange(0, 1.1, 1)},
+                    tooltip={
+                        "placement": "bottom",
+                        "always_visible": True,
+                    },
+                ),
+                html.Label("efficiency_angle"),
+                dcc.Slider(
+                    id=f"slider-fish_efficiency_angle_{id}",
+                    min=0,
+                    max=90,
+                    step=1,
+                    value=18,
+                    marks={i: str(i) for i in range(0, 90, 5)},
+                    tooltip={
+                        "placement": "bottom",
+                        "always_visible": True,
+                    },
+                ),
             ]
         ),
     )
