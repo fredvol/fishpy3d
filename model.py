@@ -1,10 +1,13 @@
 # %% FISH Kite model
+import os
 import numpy as np
 import pandas as pd
 
 import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
+
+from PIL import Image
 
 
 # %% constants
@@ -19,7 +22,7 @@ bckgrd_imge_dim = {
     "height": 636,
     "zero_x": 31,
     "zero_y": 265,
-    "source": "polar_background.png",
+    "source": "assets\\polar_background.png",
 }
 
 # %%  Functions
@@ -372,13 +375,23 @@ class Project:
         )  # to keep square ratio
 
         if add_background_image:
+            print(f"{os.listdir() =}")
+            print(f"{bckgrd_imge_dim['source'] =}")
+
+            # im = Image.open(bckgrd_imge_dim["source"])
+
+            # print(im.size)
+            # print(type(im.size))
+            # print("+++")
+
+            path_img = os.path.join(os.getcwd(), "assets", "polar_background.png")
             fig.update_layout(
                 xaxis=dict(showgrid=False, visible=False),
                 yaxis=dict(showgrid=False, visible=False),
             )
             fig.add_layout_image(
                 dict(
-                    source="polar_background.png",
+                    source=bckgrd_imge_dim["source"],
                     xref="x",
                     yref="y",
                     x=-bckgrd_imge_dim["zero_x"],
@@ -428,8 +441,8 @@ if __name__ == "__main__":
     proj2 = Project([fk1, fk2, fk3])
 
     # %%
-    fig2 = fk1.plot(add_background_image=True)
-    fig2.show()
+    # fig2 = fk1.plot(add_background_image=True)
+    # fig2.show()
     # %%
 
     fig1 = proj1.plot(add_background_image=True)
