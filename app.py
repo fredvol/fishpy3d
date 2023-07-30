@@ -1,6 +1,7 @@
 # plotly app
 
 # %% import
+#  http://127.0.0.1:8050/
 
 from model import Deflector, FishKite, Project
 
@@ -13,6 +14,9 @@ from dash.dependencies import Input, Output, State
 import numpy as np
 import copy
 import pandas as pd
+
+from app_components import *
+from dash import ctx
 
 # %% Initial set up
 
@@ -33,102 +37,189 @@ fk2 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite2)
 proj = Project([fk1, fk2])
 
 
-# %% create input
-def create_input(i, fishkite):
-    input_list = [
-        html.H6(f"{fishkite.name}"),
-        html.Label("rising Angle (deg)"),
-        dcc.Slider(
-            id=f"slider-rising_angle_{i}",
-            min=1,
-            max=90,
-            step=1,
-            value=25,
-            marks={i: str(i) for i in range(0, 90, 5)},
-            tooltip={"placement": "bottom", "always_visible": True},
-        ),
-        html.Label("Area"),
-        dcc.Slider(
-            id=f"slider-area_{i}",
-            min=1,
-            max=40,
-            step=1,
-            value=20,
-            marks={i: str(i) for i in range(0, 40, 5)},
-            tooltip={"placement": "bottom", "always_visible": True},
-        ),
-        html.Label("Cl"),
-        dcc.Slider(
-            id=f"slider-cl_{i}",
-            min=0,
-            max=1,
-            step=0.1,
-            value=0.4,
-            marks={i: str(i) for i in range(0, 1, 1)},
-            tooltip={"placement": "bottom", "always_visible": True},
-        ),
-        html.Label("efficiency_angle"),
-        dcc.Slider(
-            id=f"slider-efficiency_angle_{i}",
-            min=0,
-            max=90,
-            step=1,
-            value=18,
-            marks={i: str(i) for i in range(0, 90, 5)},
-            tooltip={"placement": "bottom", "always_visible": True},
-        ),
-        html.Br(),
-    ]
-
-    input_div = html.Div(
-        children=input_list,
-        style={"padding": 10, "flex": 1},
-    )
-    return input_div
-
-
 # %%"
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
 fig = proj.plot()
 
-list_of_controls = []
 
-output_items = html.Div(
-    children=[
-        html.Label("Outputs"),
-        html.Div(id="my-output"),
-        dcc.Graph(id="fig1", figure=fig),
+# output_items = html.Div(
+#     children=[
+#         html.Label("Outputs"),
+#         html.Div(id="my-output"),
+#         dcc.Graph(id="fig1", figure=fig),
+#     ],
+#     style={"padding": 10, "flex": 1},
+# )
+
+# list_of_controls = []
+# for i, fk in enumerate(proj.lst_fishkite):
+#     list_of_controls.append(create_input(i, fk))
+
+
+# list_of_controls.append(output_items)
+
+# app.layout = html.Div(
+#     list_of_controls,
+#     style={"display": "flex", "flex-direction": "row"},
+# )
+
+app.layout = dbc.Container(
+    [
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        dcc.Markdown(
+                            """
+                # FishPy
+                V1
+                """
+                        )
+                    ],
+                    width=True,
+                ),
+            ],
+            align="end",
+        ),
+        html.Hr(),
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        dbc.Button(
+                            "Modify Operating Conditions", id="operating_button"
+                        ),
+                        dbc.Collapse(
+                            dbc.Card(
+                                dbc.CardBody(
+                                    operating_slider_components,
+                                )
+                            ),
+                            id="operating_collapse",
+                            is_open=False,
+                        ),
+                        html.Hr(),
+                        dbc.Button("Modify FishKite_1 Parameters", id="shape1_button"),
+                        dbc.Collapse(
+                            dbc.Card(
+                                dbc.CardBody(
+                                    create_fk_sliders(0),
+                                    # dcc.Markdown("bidon")
+                                )
+                            ),
+                            id="shape1_collapse",
+                            is_open=False,
+                        ),
+                        html.Hr(),
+                        dbc.Button("Modify FishKite_2 Parameters", id="shape2_button"),
+                        dbc.Collapse(
+                            dbc.Card(
+                                dbc.CardBody(
+                                    create_fk_sliders(1),
+                                    # dcc.Markdown("bidon")
+                                )
+                            ),
+                            id="shape2_collapse",
+                            is_open=False,
+                        ),
+                        html.Hr(),
+                        dbc.Button(
+                            "Show Raw Coordinates (*.dat format)",
+                            id="coordinates_button",
+                        ),
+                        dbc.Collapse(
+                            dbc.Card(
+                                dbc.CardBody(dcc.Markdown(id="coordinates_output"))
+                            ),
+                            id="coordinates_collapse",
+                            is_open=False,
+                        ),
+                        html.Hr(),
+                        # dcc.Markdown("##### Commands"),
+                        # dbc.Button(
+                        #     "Analyze",
+                        #     id="analyze", color="primary", style={"margin": "5px"}),
+                        html.Hr(),
+                        dcc.Markdown("##### Aerodynamic Performance"),
+                        dbc.Spinner(
+                            html.P(id="my-output"),
+                            color="primary",
+                        ),
+                    ],
+                    width=3,
+                ),
+                dbc.Col(
+                    [
+                        # html.Div(id='display')
+                        dbc.Spinner(
+                            dcc.Graph(id="fig1", figure=fig, style={"height": "100vh"})
+                        )
+                    ],
+                    width=9,
+                ),
+            ]
+        ),
+        html.Hr(),
+        dcc.Markdown(
+            """
+        To hel the design
+        """
+        ),
     ],
-    style={"padding": 10, "flex": 1},
+    fluid=True,
 )
-
-for i, fk in enumerate(proj.lst_fishkite):
-    list_of_controls.append(create_input(i, fk))
-
-list_of_controls.append(output_items)
-
-app.layout = html.Div(
-    list_of_controls,
-    style={"display": "flex", "flex-direction": "column"},
-)
-
 
 ## callback
-# @app.callback(
-#     Output(component_id="my-output", component_property="children"),
-#     [
-#         Input(component_id="sliderAR", component_property="value"),
-#         Input(component_id="slider-AREA", component_property="value"),
-#     ],
-# )
-# def update_output_div(AR, area):
-#     proj.lst_fishkite[1].kite.area = area
-#     proj.lst_fishkite[1].kite.cl = AR
 
-#     return f"Compute for : {proj.detail()}  "
-from dash import ctx
+
+### Callback to make shape parameters menu expand
+@app.callback(
+    Output("shape1_collapse", "is_open"),
+    [Input("shape1_button", "n_clicks")],
+    [State("shape1_collapse", "is_open")],
+)
+def toggle_shape_collapse(n_clicks, is_open):
+    if n_clicks:
+        return not is_open
+    return is_open
+
+
+### Callback to make shape parameters menu expand
+@app.callback(
+    Output("shape2_collapse", "is_open"),
+    [Input("shape2_button", "n_clicks")],
+    [State("shape2_collapse", "is_open")],
+)
+def toggle_shape_collapse(n_clicks, is_open):
+    if n_clicks:
+        return not is_open
+    return is_open
+
+
+### Callback to make operating parameters menu expand
+@app.callback(
+    Output("operating_collapse", "is_open"),
+    [Input("operating_button", "n_clicks")],
+    [State("operating_collapse", "is_open")],
+)
+def toggle_shape_collapse(n_clicks, is_open):
+    if n_clicks:
+        return not is_open
+    return is_open
+
+
+### Callback to make coordinates menu expand
+@app.callback(
+    Output("coordinates_collapse", "is_open"),
+    [Input("coordinates_button", "n_clicks")],
+    [State("coordinates_collapse", "is_open")],
+)
+def toggle_shape_collapse(n_clicks, is_open):
+    if n_clicks:
+        return not is_open
+    return is_open
 
 
 @app.callback(
@@ -136,6 +227,10 @@ from dash import ctx
     Output(component_id="my-output", component_property="children"),
     inputs={
         "all_inputs": {
+            "general": {
+                "wind_speed": Input("slider-wind_speed", "value"),
+                "back_ground_img": Input("back_ground_image_checklist", "value"),
+            },
             0: {
                 "rising_angle": Input("slider-rising_angle_0", "value"),
                 "area": Input("slider-area_0", "value"),
@@ -154,6 +249,8 @@ from dash import ctx
 def update(all_inputs):
     c = ctx.args_grouping.all_inputs
 
+    will_use_background_img = len(c["general"]["back_ground_img"]["value"])
+
     proj.lst_fishkite[0].rising_angle = c[0]["rising_angle"]["value"]
     proj.lst_fishkite[0].kite.area = c[0]["area"]["value"]
     proj.lst_fishkite[0].kite.cl = c[0]["cl"]["value"]
@@ -164,7 +261,7 @@ def update(all_inputs):
     proj.lst_fishkite[1].kite.cl = c[1]["cl"]["value"]
     proj.lst_fishkite[1].kite.efficiency_angle = c[1]["efficiency_angle"]["value"]
 
-    fig = proj.plot()
+    fig = proj.plot(add_background_image=will_use_background_img)
 
     text_detail = f"Compute for : {proj.detail()}  "
 
