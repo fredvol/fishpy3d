@@ -128,32 +128,42 @@ app.layout = html.Div(
 #     proj.lst_fishkite[1].kite.cl = AR
 
 #     return f"Compute for : {proj.detail()}  "
+from dash import ctx
 
 
 @app.callback(
     Output("fig1", "figure"),
     Output(component_id="my-output", component_property="children"),
-    [
-        Input(component_id="slider-rising_angle_0", component_property="value"),
-        Input(component_id="slider-area_0", component_property="value"),
-        Input(component_id="slider-cl_0", component_property="value"),
-        Input(component_id="slider-efficiency_angle_0", component_property="value"),
-        Input(component_id="slider-rising_angle_1", component_property="value"),
-        Input(component_id="slider-area_1", component_property="value"),
-        Input(component_id="slider-cl_1", component_property="value"),
-        Input(component_id="slider-efficiency_angle_1", component_property="value"),
-    ],
+    inputs={
+        "all_inputs": {
+            0: {
+                "rising_angle": Input("slider-rising_angle_0", "value"),
+                "area": Input("slider-area_0", "value"),
+                "cl": Input("slider-cl_0", "value"),
+                "efficiency_angle": Input("slider-efficiency_angle_0", "value"),
+            },
+            1: {
+                "rising_angle": Input("slider-rising_angle_1", "value"),
+                "area": Input("slider-area_1", "value"),
+                "cl": Input("slider-cl_1", "value"),
+                "efficiency_angle": Input("slider-efficiency_angle_1", "value"),
+            },
+        }
+    },
 )
-def update(risingA0, area0, cl0, ef0, risingA1, area1, cl1, ef1):
-    proj.lst_fishkite[0].rising_angle = risingA0
-    proj.lst_fishkite[0].kite.area = area0
-    proj.lst_fishkite[0].kite.cl = cl0
-    proj.lst_fishkite[0].kite.efficiency_angle = ef0
+def update(all_inputs):
+    c = ctx.args_grouping.all_inputs
 
-    proj.lst_fishkite[1].rising_angle = risingA1
-    proj.lst_fishkite[1].kite.area = area1
-    proj.lst_fishkite[1].kite.cl = cl1
-    proj.lst_fishkite[1].kite.efficiency_angle = ef1
+    proj.lst_fishkite[0].rising_angle = c[0]["rising_angle"]["value"]
+    proj.lst_fishkite[0].kite.area = c[0]["area"]["value"]
+    proj.lst_fishkite[0].kite.cl = c[0]["cl"]["value"]
+    proj.lst_fishkite[0].kite.efficiency_angle = c[0]["efficiency_angle"]["value"]
+
+    proj.lst_fishkite[1].rising_angle = c[1]["rising_angle"]["value"]
+    proj.lst_fishkite[1].kite.area = c[1]["area"]["value"]
+    proj.lst_fishkite[1].kite.cl = c[1]["cl"]["value"]
+    proj.lst_fishkite[1].kite.efficiency_angle = c[1]["efficiency_angle"]["value"]
+
     fig = proj.plot()
 
     text_detail = f"Compute for : {proj.detail()}  "
