@@ -376,16 +376,6 @@ class Project:
         )  # to keep square ratio
 
         if add_background_image:
-            print(f"{os.listdir() =}")
-            print(f"{bckgrd_imge_dim['source'] =}")
-
-            # im = Image.open(bckgrd_imge_dim["source"])
-
-            # print(im.size)
-            # print(type(im.size))
-            # print("+++")
-
-            path_img = os.path.join(os.getcwd(), "assets", "polar_background.png")
             fig.update_layout(
                 xaxis=dict(showgrid=False, visible=False),
                 yaxis=dict(showgrid=False, visible=False),

@@ -125,7 +125,7 @@ app.layout = dbc.Container(
                         ),
                         html.Hr(),
                         dbc.Button(
-                            "Show Raw Coordinates (*.dat format)",
+                            "Export data (txt format)",
                             id="coordinates_button",
                         ),
                         dbc.Collapse(
@@ -153,10 +153,10 @@ app.layout = dbc.Container(
                     [
                         # html.Div(id='display')
                         dbc.Spinner(
-                            dcc.Graph(id="fig1", figure=fig, style={"height": "100vh"})
+                            dcc.Graph(id="fig1", figure=fig, style={"height": "80vh"})
                         )
                     ],
-                    width=9,
+                    width=8,
                 ),
             ]
         ),
@@ -168,6 +168,7 @@ app.layout = dbc.Container(
         ),
     ],
     fluid=True,
+    style={"height": "80vh"},
 )
 
 ## callback
@@ -294,3 +295,10 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 # %%
+
+
+# fig.update_layout(
+#     autosize=False,
+#     minreducedheight=750,
+#     height=750,
+# )
