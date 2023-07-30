@@ -251,6 +251,9 @@ def update(all_inputs):
 
     will_use_background_img = len(c["general"]["back_ground_img"]["value"])
 
+    proj.lst_fishkite[0].wind_speed = c["general"]["wind_speed"]["value"]
+    proj.lst_fishkite[1].wind_speed = c["general"]["wind_speed"]["value"]
+
     proj.lst_fishkite[0].rising_angle = c[0]["rising_angle"]["value"]
     proj.lst_fishkite[0].kite.area = c[0]["area"]["value"]
     proj.lst_fishkite[0].kite.cl = c[0]["cl"]["value"]
