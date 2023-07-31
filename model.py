@@ -355,10 +355,8 @@ class Project:
                 xaxis_range=[-5, 550],
                 yaxis_range=[-300, 240],
                 legend=dict(
-                    yanchor="top",
-                    y=-0.1,
-                    xanchor="left",
-                    x=0.01,
+                    y=1,
+                    x=0.8,
                     groupclick="toggleitem",
                 ),
                 margin=dict(l=50, r=50, b=5, t=30, pad=3),
@@ -372,6 +370,14 @@ class Project:
             scaleanchor="x",
             scaleratio=1,
         )  # to keep square ratio
+
+        # fig.update_layout(
+        #     legend=dict(
+        #         x=1,
+        #         y=1,
+        #         groupclick="toggleitem",
+        #     )
+        # )
 
         if add_background_image:
             fig.update_layout(
