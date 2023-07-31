@@ -44,27 +44,6 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 fig = proj.plot()
 
 
-# output_items = html.Div(
-#     children=[
-#         html.Label("Outputs"),
-#         html.Div(id="my-output"),
-#         dcc.Graph(id="fig1", figure=fig),
-#     ],
-#     style={"padding": 10, "flex": 1},
-# )
-
-# list_of_controls = []
-# for i, fk in enumerate(proj.lst_fishkite):
-#     list_of_controls.append(create_input(i, fk))
-
-
-# list_of_controls.append(output_items)
-
-# app.layout = html.Div(
-#     list_of_controls,
-#     style={"display": "flex", "flex-direction": "row"},
-# )
-
 app.layout = dbc.Container(
     [
         dbc.Row(
@@ -73,7 +52,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                ## FishPy      V1
+                ## FishPy      V0.9
                 """
                         )
                     ],
@@ -165,7 +144,7 @@ app.layout = dbc.Container(
         html.Hr(),
         dcc.Markdown(
             """
-        To hel the design
+        To help the design
         """
         ),
     ],
@@ -271,18 +250,26 @@ def update(all_inputs):
 
     proj.lst_fishkite[0].rising_angle = c[0]["rising_angle"]["value"]
     proj.lst_fishkite[0].kite.area = c[0]["kite_area"]["value"]
-    proj.lst_fishkite[0].kite.cl = c[0]["kite_cl"]["value"]
+    proj.lst_fishkite[0].kite.cl = c[0]["kite_cl"]["value"][1]
+    proj.lst_fishkite[0].kite.cl_range["min"] = c[0]["kite_cl"]["value"][0]
+    proj.lst_fishkite[0].kite.cl_range["max"] = c[0]["kite_cl"]["value"][2]
     proj.lst_fishkite[0].kite.efficiency_angle = c[0]["kite_efficiency_angle"]["value"]
     proj.lst_fishkite[0].fish.area = c[0]["fish_area"]["value"]
-    proj.lst_fishkite[0].fish.cl = c[0]["fish_cl"]["value"]
+    proj.lst_fishkite[0].fish.cl = c[0]["fish_cl"]["value"][1]
+    proj.lst_fishkite[0].fish.cl_range["min"] = c[0]["fish_cl"]["value"][0]
+    proj.lst_fishkite[0].fish.cl_range["max"] = c[0]["fish_cl"]["value"][2]
     proj.lst_fishkite[0].fish.efficiency_angle = c[0]["fish_efficiency_angle"]["value"]
 
     proj.lst_fishkite[1].rising_angle = c[1]["rising_angle"]["value"]
     proj.lst_fishkite[1].kite.area = c[1]["kite_area"]["value"]
-    proj.lst_fishkite[1].kite.cl = c[1]["kite_cl"]["value"]
+    proj.lst_fishkite[1].kite.cl = c[1]["kite_cl"]["value"][1]
+    proj.lst_fishkite[1].kite.cl_range["min"] = c[1]["kite_cl"]["value"][0]
+    proj.lst_fishkite[1].kite.cl_range["max"] = c[1]["kite_cl"]["value"][2]
     proj.lst_fishkite[1].kite.efficiency_angle = c[1]["kite_efficiency_angle"]["value"]
     proj.lst_fishkite[1].fish.area = c[1]["fish_area"]["value"]
-    proj.lst_fishkite[1].fish.cl = c[1]["fish_cl"]["value"]
+    proj.lst_fishkite[1].fish.cl = c[1]["fish_cl"]["value"][1]
+    proj.lst_fishkite[1].fish.cl_range["min"] = c[1]["fish_cl"]["value"][0]
+    proj.lst_fishkite[1].fish.cl_range["max"] = c[1]["fish_cl"]["value"][2]
     proj.lst_fishkite[1].fish.efficiency_angle = c[1]["fish_efficiency_angle"]["value"]
 
     fig = proj.plot(add_background_image=will_use_background_img)

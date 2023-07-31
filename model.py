@@ -20,8 +20,16 @@ bckgrd_imge_dim = {
     "height": 636,
     "zero_x": 31,
     "zero_y": 265,
-    "source": "assets\\polar_background.png",
+    "source": "assets\\polar_background_small.png",
 }
+
+# bckgrd_imge_dim = {
+#     "width": 1083,
+#     "height": 1000,
+#     "zero_x": 82,
+#     "zero_y": 416,
+#     "source": "assets\\polar_background.jpeg",
+# }
 
 # %%  Functions
 
@@ -176,7 +184,7 @@ class FishKite:
         )
         return apparent_water_kt
 
-    def compute_polar(self, nb_value=21):
+    def compute_polar(self, nb_value=30):
         velocity_max_min = self.fluid_velocity_ratio_range()
         velocity_range = np.linspace(
             velocity_max_min["min"], velocity_max_min["max"], nb_value
@@ -440,7 +448,7 @@ if __name__ == "__main__":
     # fig2.show()
     # %%
 
-    fig1 = proj1.plot(add_background_image=False)
+    fig1 = proj1.plot(add_background_image=True)
     fig1.show()
 
     # %%
