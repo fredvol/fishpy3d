@@ -152,11 +152,13 @@ app.layout = dbc.Container(
                 dbc.Col(
                     [
                         # html.Div(id='display')
-                        dbc.Spinner(
-                            dcc.Graph(id="fig1", figure=fig, style={"height": "80vh"})
+                        dcc.Graph(
+                            id="fig1",
+                            figure=fig,
                         )
                     ],
-                    width=8,
+                    width=9,
+                    align="start",
                 ),
             ]
         ),
@@ -168,7 +170,6 @@ app.layout = dbc.Container(
         ),
     ],
     fluid=True,
-    style={"height": "80vh"},
 )
 
 ## callback
@@ -292,8 +293,8 @@ def update(all_inputs):
 
 
 if __name__ == "__main__":
-    # app.run( debug=True)
-    app.run(host="0.0.0.0", debug=True)
+    app.run(debug=True)
+    # app.run(host="0.0.0.0", debug=True)
 
 # %%
 
