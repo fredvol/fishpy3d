@@ -7,8 +7,6 @@ import plotly.express as px
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 
-from PIL import Image
-
 
 # %% constants
 RHO_AIR = 1.29  # kg/m3
