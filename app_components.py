@@ -40,6 +40,7 @@ def create_fk_sliders(id):
                     max=90,
                     step=1,
                     value=25,
+                    updatemode="drag",
                     marks={i: str(i) for i in range(0, 90, 5)},
                     tooltip={
                         "placement": "bottom",
@@ -54,6 +55,7 @@ def create_fk_sliders(id):
                     max=40,
                     step=1,
                     value=20,
+                    updatemode="drag",
                     marks={i: str(i) for i in range(0, 40, 5)},
                     tooltip={
                         "placement": "bottom",
@@ -61,13 +63,15 @@ def create_fk_sliders(id):
                     },
                 ),
                 html.Label("Cl"),
-                dcc.Slider(
+                dcc.RangeSlider(
                     id=f"slider-kite_cl_{id}",
                     min=0,
-                    max=1,
+                    max=1.5,
                     step=0.1,
-                    value=0.4,
-                    marks={i: str(i) for i in range(0, 1, 1)},
+                    value=[0.2, 0.4, 1.5],
+                    updatemode="drag",
+                    marks={i: str(i) for i in [0, 0.5, 1, 1.5]},
+                    pushable=0,
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,
@@ -80,6 +84,7 @@ def create_fk_sliders(id):
                     max=90,
                     step=1,
                     value=18,
+                    updatemode="drag",
                     marks={i: str(i) for i in range(0, 90, 5)},
                     tooltip={
                         "placement": "bottom",
@@ -95,6 +100,7 @@ def create_fk_sliders(id):
                     max=1.2,
                     step=0.01,
                     value=0.1,
+                    updatemode="drag",
                     marks={i: f"{i:.2f}" for i in np.arange(0, 1.4, 0.2)},
                     tooltip={
                         "placement": "bottom",
@@ -102,13 +108,15 @@ def create_fk_sliders(id):
                     },
                 ),
                 html.Label("Cl"),
-                dcc.Slider(
+                dcc.RangeSlider(
                     id=f"slider-fish_cl_{id}",
-                    min=0,
+                    min=0.1,
                     max=1,
                     step=0.1,
-                    value=0.4,
-                    marks={i: str(i) for i in np.arange(0, 1.1, 1)},
+                    value=[0.1, 0.4, 1],
+                    pushable=0,
+                    updatemode="drag",
+                    marks={i: str(i) for i in [0, 0.5, 1]},
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,
@@ -121,6 +129,7 @@ def create_fk_sliders(id):
                     max=90,
                     step=1,
                     value=18,
+                    updatemode="drag",
                     marks={i: str(i) for i in range(0, 90, 5)},
                     tooltip={
                         "placement": "bottom",
