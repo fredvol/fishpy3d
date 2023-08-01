@@ -39,7 +39,7 @@ proj = Project([fk1, fk2])
 
 # %%"
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
+server = app.server
 
 fig = proj.plot()
 
