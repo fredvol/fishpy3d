@@ -85,7 +85,7 @@ def create_fk_sliders(id):
                     step=1,
                     value=18,
                     updatemode="drag",
-                    marks={i: str(i) for i in range(0, 90, 5)},
+                    marks={i: str(i) for i in range(0, 45, 5)},
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,
@@ -130,7 +130,7 @@ def create_fk_sliders(id):
                     step=1,
                     value=18,
                     updatemode="drag",
-                    marks={i: str(i) for i in range(0, 90, 5)},
+                    marks={i: str(i) for i in range(0, 45, 5)},
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,
