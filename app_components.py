@@ -1,5 +1,6 @@
 from dash import dcc
 from dash import html
+import dash_daq as daq
 import numpy as np
 
 ### Operating things
@@ -17,10 +18,17 @@ operating_slider_components = [
             "always_visible": True,
         },
     ),
-    dcc.Checklist(
-        id="back_ground_image_checklist",
-        options=[{"label": " Back ground image", "value": "OK"}],
-        value=[],
+    daq.BooleanSwitch(
+        id="bool_orthogrid", on=True, label="Ortho grid", labelPosition="right"
+    ),
+    daq.BooleanSwitch(
+        id="bool_backgrdimg", on=False, label="Background image", labelPosition="right"
+    ),
+    daq.BooleanSwitch(
+        id="bool_isospeed", on=True, label="Iso speed", labelPosition="right"
+    ),
+    daq.BooleanSwitch(
+        id="bool_isoeft", on=True, label="Iso efficiency total", labelPosition="right"
     ),
 ]
 
@@ -32,6 +40,7 @@ def create_fk_sliders(id):
         html.Div(
             [
                 html.H5(f"FishKite {id +1}"),
+                daq.BooleanSwitch(id=f"boolean_{id}", on=True),
                 # list_of_controls
                 html.Label("rising Angle (deg)"),
                 dcc.Slider(
@@ -81,11 +90,11 @@ def create_fk_sliders(id):
                 dcc.Slider(
                     id=f"slider-kite_efficiency_angle_{id}",
                     min=0,
-                    max=90,
+                    max=45,
                     step=1,
                     value=18,
                     updatemode="drag",
-                    marks={i: str(i) for i in range(0, 45, 5)},
+                    marks={i: str(i) for i in range(0, 50, 5)},
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,
@@ -126,11 +135,11 @@ def create_fk_sliders(id):
                 dcc.Slider(
                     id=f"slider-fish_efficiency_angle_{id}",
                     min=0,
-                    max=90,
+                    max=45,
                     step=1,
-                    value=18,
+                    value=12,
                     updatemode="drag",
-                    marks={i: str(i) for i in range(0, 45, 5)},
+                    marks={i: str(i) for i in range(0, 50, 5)},
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,

@@ -23,6 +23,19 @@ bckgrd_imge_dim = {
     "source": "assets\\polar_background_small.png",
 }
 
+data_background = {
+    "iso_speed": {
+        "step": range(100, 600, 100),
+        "color": "PaleTurquoise",
+        "opacity": 0.6,
+    },
+    "iso_eft": {
+        "step": range(100, 600, 100),
+        "color": "black",
+        "opacity": 0.1,
+    },
+}
+
 # bckgrd_imge_dim = {
 #     "width": 1083,
 #     "height": 1000,
@@ -32,6 +45,16 @@ bckgrd_imge_dim = {
 # }
 
 # %%  Functions
+
+
+def centers(y1, y2, r, x1=0, x2=0):
+    q = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+    x3 = (x1 + x2) / 2
+    y3 = (y1 + y2) / 2
+
+    xx = (r**2 - (q / 2) ** 2) ** 0.5 * (y1 - y2) / q
+    yy = (r**2 - (q / 2) ** 2) ** 0.5 * (x2 - x1) / q
+    return (x3 + xx, y3 + yy)
 
 
 def cart2pol(x, y):
@@ -66,6 +89,139 @@ def add_line(
         name=m_name,
         line=based_dict,
     )
+
+
+def ellipse_arc(
+    x_center=0,
+    y_center=0,
+    a=1,
+    b=1,
+    start_angle=0,
+    end_angle=2 * np.pi,
+    N=100,
+    closed=False,
+):
+    t = np.linspace(start_angle, end_angle, N)
+    x = x_center + a * np.cos(t)
+    y = y_center + b * np.sin(t)
+    path = f"M {x[0]}, {y[0]}"
+    for k in range(1, len(t)):
+        path += f"L{x[k]}, {y[k]}"
+    if closed:
+        path += " Z"
+    return path
+
+
+def create_iso_eft(dict_param):
+    isoeft = []
+    for s in dict_param["step"]:
+        center_x, center_y = centers(0, -100, s)
+        angle = np.pi - np.tan(50 / s)
+
+        isoeft.append(
+            dict(
+                type="path",
+                path=ellipse_arc(
+                    x_center=center_x,
+                    y_center=center_y,
+                    a=s,
+                    b=s,
+                    start_angle=-angle,
+                    end_angle=angle,
+                    N=60,
+                ),
+                line_color=dict_param["color"],
+                opacity=dict_param["opacity"],
+                layer="below",
+            )
+        )
+    return isoeft
+
+
+def create_iso_speed(dict_param):
+    isospeed = []
+    for s in dict_param["step"]:
+        isospeed.append(
+            dict(
+                type="path",
+                path=ellipse_arc(
+                    a=s, b=s, start_angle=-np.pi / 2, end_angle=np.pi / 2, N=60
+                ),
+                line_color=dict_param["color"],
+                opacity=dict_param["opacity"],
+                layer="below",
+            )
+        )
+    return isospeed
+
+
+def plot_cases(
+    list_of_cases,
+    draw_ortho_grid=True,
+    draw_iso_speed=True,
+    draw_iso_eft=True,
+    add_background_image=False,
+):
+    shape_list = []
+
+    if draw_iso_speed:
+        shape_list.extend(create_iso_speed(data_background["iso_speed"]))
+
+    if draw_iso_eft:
+        shape_list.extend(create_iso_eft(data_background["iso_eft"]))
+
+    title_cases = ", ".join([fk.name for fk in list_of_cases])
+    fig = go.Figure(
+        layout=go.Layout(
+            title=go.layout.Title(text=f"Polar for: {title_cases}"),
+            autosize=False,
+            height=bckgrd_imge_dim["height"],
+            xaxis_range=[-5, 550],
+            yaxis_range=[-300, 240],
+            xaxis=dict(showgrid=False, visible=False),
+            yaxis=dict(showgrid=False, visible=False),
+            legend=dict(
+                y=1,
+                x=0.8,
+                groupclick="toggleitem",
+            ),
+            margin=dict(l=50, r=50, b=5, t=30, pad=3),
+            shapes=shape_list,
+        ),
+    )
+    for i, fki in enumerate(list_of_cases):
+        color = COLOR_palette[i]
+        fki.add_plot_elements(fig, m_color=color, add_legend_name=True)
+
+    fig.update_yaxes(
+        scaleanchor="x",
+        scaleratio=1,
+    )  # to keep square ratio
+
+    if draw_ortho_grid:
+        fig.update_layout(
+            xaxis=dict(showgrid=True, visible=True),
+            yaxis=dict(showgrid=True, visible=True),
+        )
+
+    if add_background_image:
+        fig.add_layout_image(
+            dict(
+                source=bckgrd_imge_dim["source"],
+                xref="x",
+                yref="y",
+                x=-bckgrd_imge_dim["zero_x"],
+                y=bckgrd_imge_dim["zero_y"],
+                sizex=bckgrd_imge_dim["width"] - bckgrd_imge_dim["zero_x"],
+                sizey=bckgrd_imge_dim["height"] - 10,  # TODO why -10?
+                sizing="stretch",
+                xanchor="left",
+                yanchor="top",
+                opacity=0.4,
+                layer="below",
+            )
+        )
+    return fig
 
 
 # %% Class
@@ -236,52 +392,8 @@ class FishKite:
             "polar_pts": polar_pts,
         }
 
-    def plot(self, add_background_image=False):
-        fig = go.Figure(
-            layout=go.Layout(
-                title=go.layout.Title(text=f"Polar for: {self.name}"),
-                autosize=False,
-                height=bckgrd_imge_dim["height"],
-                xaxis_range=[-5, 550],
-                yaxis_range=[-300, 240],
-                legend=dict(
-                    yanchor="top",
-                    y=-0.1,
-                    xanchor="left",
-                    x=0.01,
-                    groupclick="toggleitem",
-                ),
-            ),
-        )
-
-        self.add_plot_elements(fig, add_legend_name=False)
-
-        fig.update_yaxes(
-            scaleanchor="x",
-            scaleratio=1,
-        )  # to keep square ratio
-
-        if add_background_image:
-            fig.update_layout(
-                xaxis=dict(showgrid=False, visible=False),
-                yaxis=dict(showgrid=False, visible=False),
-            )
-            fig.add_layout_image(
-                dict(
-                    source="polar_background.png",
-                    xref="x",
-                    yref="y",
-                    x=-bckgrd_imge_dim["zero_x"],
-                    y=bckgrd_imge_dim["zero_y"],
-                    sizex=bckgrd_imge_dim["width"] - bckgrd_imge_dim["zero_x"],
-                    sizey=bckgrd_imge_dim["height"] - 10,  # TODO why -10?
-                    sizing="stretch",
-                    xanchor="left",
-                    yanchor="top",
-                    opacity=0.4,
-                    layer="below",
-                )
-            )
+    def plot(self, draw_ortho_grid=True, add_background_image=False):
+        fig = plot_cases(self, [self], draw_ortho_grid, add_background_image)
         return fig
 
     def add_plot_elements(self, fig, m_color=None, add_legend_name=False):
@@ -354,60 +466,8 @@ class Project:
             detail_str += str(i)
         return detail_str
 
-    def plot(self, add_background_image=False):
-        fig = go.Figure(
-            layout=go.Layout(
-                title=go.layout.Title(text=f"Polar for: {self.name}"),
-                autosize=False,
-                height=bckgrd_imge_dim["height"],
-                xaxis_range=[-5, 550],
-                yaxis_range=[-300, 240],
-                legend=dict(
-                    y=1,
-                    x=0.8,
-                    groupclick="toggleitem",
-                ),
-                margin=dict(l=50, r=50, b=5, t=30, pad=3),
-            ),
-        )
-        for i, fki in enumerate(self.lst_fishkite):
-            color = COLOR_palette[i]
-            fki.add_plot_elements(fig, m_color=color, add_legend_name=True)
-
-        fig.update_yaxes(
-            scaleanchor="x",
-            scaleratio=1,
-        )  # to keep square ratio
-
-        # fig.update_layout(
-        #     legend=dict(
-        #         x=1,
-        #         y=1,
-        #         groupclick="toggleitem",
-        #     )
-        # )
-
-        if add_background_image:
-            fig.update_layout(
-                xaxis=dict(showgrid=False, visible=False),
-                yaxis=dict(showgrid=False, visible=False),
-            )
-            fig.add_layout_image(
-                dict(
-                    source=bckgrd_imge_dim["source"],
-                    xref="x",
-                    yref="y",
-                    x=-bckgrd_imge_dim["zero_x"],
-                    y=bckgrd_imge_dim["zero_y"],
-                    sizex=bckgrd_imge_dim["width"] - bckgrd_imge_dim["zero_x"],
-                    sizey=bckgrd_imge_dim["height"] - 10,  # TODO why -10?
-                    sizing="stretch",
-                    xanchor="left",
-                    yanchor="top",
-                    opacity=0.4,
-                    layer="below",
-                )
-            )
+    def plot(self, draw_ortho_grid=True, add_background_image=False):
+        fig = plot_cases(self.lst_fishkite, draw_ortho_grid, add_background_image)
         return fig
 
 
@@ -438,21 +498,23 @@ if __name__ == "__main__":
 
     fk1 = FishKite("fk1", wind_speed_i, rising_angle_1, fish=d_fish1, kite=d_kite1)
     fk2 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite2)
-    fk3 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite3)
+    fk3 = FishKite("fk3", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite3)
 
     proj1 = Project([fk1, fk2])
     proj2 = Project([fk1, fk2, fk3])
 
     # %%
-    # fig2 = fk1.plot(add_background_image=True)
-    # fig2.show()
+    fig2 = plot_cases(
+        list_of_cases=[fk1, fk2], draw_ortho_grid=False, add_background_image=False
+    )
+    fig2.show()
     # %%
 
     fig1 = proj1.plot(add_background_image=True)
     fig1.show()
 
     # %%
-    fig2 = proj2.plot()
+    fig2 = proj2.plot(draw_ortho_grid=False, add_background_image=True)
     fig2.show()
     # %%
     print(f"{d_kite2.glide_ratio() =:.3f}")

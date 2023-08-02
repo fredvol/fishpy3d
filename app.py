@@ -3,7 +3,7 @@
 # %% import
 #  http://127.0.0.1:8050/
 
-from model import Deflector, FishKite, Project
+from model import Deflector, FishKite, Project, plot_cases
 
 import dash
 from dash import dcc  # import dash_core_components as dcc   # from dash import dcc
@@ -52,7 +52,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                ## FishPy      V0.9
+                ## FishPy      V0.9.1
                 """
                         )
                     ],
@@ -209,9 +209,13 @@ def toggle_shape_collapse(n_clicks, is_open):
         "all_inputs": {
             "general": {
                 "wind_speed": Input("slider-wind_speed", "value"),
-                "back_ground_img": Input("back_ground_image_checklist", "value"),
+                "bool_orthogrid": Input("bool_orthogrid", "on"),
+                "bool_backgrdimg": Input("bool_backgrdimg", "on"),
+                "bool_isospeed": Input("bool_isospeed", "on"),
+                "bool_isoeft": Input("bool_isoeft", "on"),
             },
             0: {
+                "bool_fk": Input("boolean_0", "on"),
                 "rising_angle": Input("slider-rising_angle_0", "value"),
                 "kite_area": Input("slider-kite_area_0", "value"),
                 "kite_cl": Input("slider-kite_cl_0", "value"),
@@ -225,6 +229,7 @@ def toggle_shape_collapse(n_clicks, is_open):
                 ),
             },
             1: {
+                "bool_fk": Input("boolean_1", "on"),
                 "rising_angle": Input("slider-rising_angle_1", "value"),
                 "kite_area": Input("slider-kite_area_1", "value"),
                 "kite_cl": Input("slider-kite_cl_1", "value"),
@@ -243,7 +248,10 @@ def toggle_shape_collapse(n_clicks, is_open):
 def update(all_inputs):
     c = ctx.args_grouping.all_inputs
 
-    will_use_background_img = len(c["general"]["back_ground_img"]["value"])
+    bool_orthogrid = c["general"]["bool_orthogrid"]["value"]
+    bool_backgrdimg = c["general"]["bool_backgrdimg"]["value"]
+    bool_isospeed = c["general"]["bool_isospeed"]["value"]
+    bool_isoeft = c["general"]["bool_isoeft"]["value"]
 
     proj.lst_fishkite[0].wind_speed = c["general"]["wind_speed"]["value"]
     proj.lst_fishkite[1].wind_speed = c["general"]["wind_speed"]["value"]
@@ -272,7 +280,20 @@ def update(all_inputs):
     proj.lst_fishkite[1].fish.cl_range["max"] = c[1]["fish_cl"]["value"][2]
     proj.lst_fishkite[1].fish.efficiency_angle = c[1]["fish_efficiency_angle"]["value"]
 
-    fig = proj.plot(add_background_image=will_use_background_img)
+    case_to_plot = []
+
+    if c[0]["bool_fk"]["value"]:
+        case_to_plot.append(proj.lst_fishkite[0])
+    if c[1]["bool_fk"]["value"]:
+        case_to_plot.append(proj.lst_fishkite[1])
+
+    fig = plot_cases(
+        list_of_cases=case_to_plot,
+        draw_ortho_grid=bool_orthogrid,
+        draw_iso_speed=bool_isospeed,
+        draw_iso_eft=bool_isoeft,
+        add_background_image=bool_backgrdimg,
+    )
 
     text_detail = f"Compute for : {proj.detail()}  "
 
