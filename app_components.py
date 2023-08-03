@@ -2,6 +2,7 @@ from dash import dcc
 from dash import html
 import dash_daq as daq
 import numpy as np
+import dash_bootstrap_components as dbc
 
 ### Operating things
 operating_slider_components = [
@@ -39,9 +40,14 @@ def create_fk_sliders(id):
     s = (
         html.Div(
             [
-                html.H5(f"FishKite {id +1}"),
-                daq.BooleanSwitch(id=f"boolean_{id}", on=True),
-                # list_of_controls
+                html.Tr(
+                    [
+                        html.Td(html.H5(f"FishKite {id +1}")),
+                        html.Td(
+                            daq.BooleanSwitch(id=f"boolean_{id}", on=True),
+                        ),
+                    ]
+                ),
                 html.Label("rising Angle (deg)"),
                 dcc.Slider(
                     id=f"slider-rising_angle_{id}",
@@ -86,7 +92,12 @@ def create_fk_sliders(id):
                         "always_visible": True,
                     },
                 ),
-                html.Label("efficiency_angle"),
+                html.Tr(
+                    [
+                        html.Td("efficiency_angle:    >"),
+                        html.Div(id=f"label-kite_eff_LD_{id}"),
+                    ]
+                ),
                 dcc.Slider(
                     id=f"slider-kite_efficiency_angle_{id}",
                     min=0,
@@ -131,7 +142,12 @@ def create_fk_sliders(id):
                         "always_visible": True,
                     },
                 ),
-                html.Label("efficiency_angle"),
+                html.Tr(
+                    [
+                        html.Td("efficiency_angle:    >"),
+                        html.Div(id=f"label-fish_eff_LD_{id}"),
+                    ]
+                ),
                 dcc.Slider(
                     id=f"slider-fish_efficiency_angle_{id}",
                     min=0,

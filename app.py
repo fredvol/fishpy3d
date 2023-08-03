@@ -202,6 +202,29 @@ def toggle_shape_collapse(n_clicks, is_open):
     return is_open
 
 
+### Callback to display L/D
+@app.callback(
+    Output("label-kite_eff_LD_0", "children"),
+    Output("label-kite_eff_LD_1", "children"),
+    Output("label-fish_eff_LD_0", "children"),
+    Output("label-fish_eff_LD_1", "children"),
+    [
+        Input("slider-kite_efficiency_angle_0", "value"),
+        Input("slider-kite_efficiency_angle_1", "value"),
+        Input("slider-fish_efficiency_angle_0", "value"),
+        Input("slider-fish_efficiency_angle_1", "value"),
+    ],
+)
+def compute_LD_from_efficiency_angle(
+    kite_ef_angle_0, kite_ef_angle_1, fish_ef_angle_0, fish_ef_angle_1
+):
+    LD_kite_0 = f"\t L/D= {1/np.arctan(np.radians(kite_ef_angle_0)):.2f}"
+    LD_kite_1 = f"\t L/D= {1/np.arctan(np.radians(kite_ef_angle_1)):.2f}"
+    LD_fish_0 = f"\t L/D= {1/np.arctan(np.radians(fish_ef_angle_0)):.2f}"
+    LD_fish_1 = f"\t L/D= {1/np.arctan(np.radians(fish_ef_angle_1)):.2f}"
+    return LD_kite_0, LD_kite_1, LD_fish_0, LD_fish_1
+
+
 @app.callback(
     Output("fig1", "figure"),
     Output(component_id="my-output", component_property="children"),
