@@ -18,6 +18,7 @@ import pandas as pd
 from app_components import *
 from dash import ctx
 
+
 # %% Initial set up
 
 
@@ -52,7 +53,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                ## FishPy      V0.9.2
+                ## FishPy      V0.9.3
                 """
                         )
                     ],
@@ -92,6 +93,7 @@ app.layout = dbc.Container(
                         ),
                         html.Hr(),
                         dbc.Button("Modify FishKite_2 Parameters", id="shape2_button"),
+                        html.Hr(),
                         dbc.Collapse(
                             dbc.Card(
                                 dbc.CardBody(
@@ -134,6 +136,9 @@ app.layout = dbc.Container(
                         dcc.Graph(
                             id="fig1",
                             figure=fig,
+                            style={
+                                "position": "fixed",  # that imobilised the graph
+                            },
                         )
                     ],
                     width=9,
@@ -225,6 +230,50 @@ def compute_LD_from_efficiency_angle(
     return LD_kite_0, LD_kite_1, LD_fish_0, LD_fish_1
 
 
+# call back sync FK
+# TODO could be done using :Output dict grouping, for bidirectional
+@app.callback(
+    [
+        Output("slider-rising_angle_1", "value"),
+        Output("slider-kite_area_1", "value"),
+        Output("slider-kite_cl_1", "value"),
+        Output("slider-kite_efficiency_angle_1", "value"),
+        Output("slider-fish_area_1", "value"),
+        Output("slider-fish_cl_1", "value"),
+        Output("slider-fish_efficiency_angle_1", "value"),
+    ],
+    inputs=[Input("copy_FK0toFK1", "n_clicks")],
+)
+def fk2_param_to_fk1(n_clicks):
+    fk_from = 0
+
+    if n_clicks:
+        t = (
+            proj.lst_fishkite[fk_from].rising_angle,
+            proj.lst_fishkite[fk_from].kite.area,
+            # cl kite list
+            [
+                proj.lst_fishkite[fk_from].kite.cl_range["min"],
+                proj.lst_fishkite[fk_from].kite.cl,
+                proj.lst_fishkite[fk_from].kite.cl_range["max"],
+            ],
+            proj.lst_fishkite[fk_from].kite.efficiency_angle,
+            proj.lst_fishkite[fk_from].fish.area,
+            # cl fish list
+            [
+                proj.lst_fishkite[fk_from].fish.cl_range["min"],
+                proj.lst_fishkite[fk_from].fish.cl,
+                proj.lst_fishkite[fk_from].fish.cl_range["max"],
+            ],
+            proj.lst_fishkite[fk_from].fish.efficiency_angle,
+        )
+    else:
+        t = [dash.no_update] * 7
+
+    return t
+
+
+## main collaback
 @app.callback(
     Output("fig1", "figure"),
     Output(component_id="my-output", component_property="children"),

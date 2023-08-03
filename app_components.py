@@ -31,6 +31,12 @@ operating_slider_components = [
     daq.BooleanSwitch(
         id="bool_isoeft", on=True, label="Iso efficiency total", labelPosition="right"
     ),
+    dbc.Button(
+        "copy parameters : Fk1 -> Fk2",
+        color="secondary",
+        size="sm",
+        id="copy_FK0toFK1",
+    ),
 ]
 
 ### FishKite
