@@ -52,7 +52,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                ## FishPy      V0.9.1
+                ## FishPy      V0.9.2
                 """
                         )
                     ],
