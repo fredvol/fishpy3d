@@ -27,12 +27,12 @@ data_background = {
     "iso_speed": {
         "step": range(100, 600, 100),
         "color": "PaleTurquoise",
-        "opacity": 0.6,
+        "opacity": 0.9,
     },
     "iso_eft": {
-        "step": range(100, 600, 100),
+        "step": list(range(90, 0, -10)),
         "color": "black",
-        "opacity": 0.1,
+        "opacity": 0.08,
     },
 }
 
@@ -112,20 +112,38 @@ def ellipse_arc(
     return path
 
 
-def create_iso_eft(dict_param):
+def create_iso_eft(dict_param, position_angle_label=30):
+    wind_speed = 100  # assuming wins speed = 100
     isoeft = []
-    for s in dict_param["step"]:
-        center_x, center_y = centers(0, -100, s)
-        angle = np.pi - np.tan(50 / s)
+    isoeft_label = []
 
+    for s in dict_param["step"]:
+        half_s_rad = np.radians(s) / 2
+        r = (wind_speed / 2) / (np.sin(half_s_rad))
+        center_x, center_y = centers(0, -wind_speed, r)
+        angle = np.pi - (half_s_rad)
+
+        x_label = r * np.cos(np.radians(position_angle_label)) + center_x
+        y_label = r * np.sin(np.radians(position_angle_label)) + center_y
+        label_s = {
+            "x": x_label,
+            "y": y_label,
+            "text": f"Et={s}°",
+            "angle": position_angle_label,
+            "color": dict_param["color"],
+            "opacity": dict_param["opacity"],
+        }
+
+        print(f"{s= } {center_x= } {r= } {r*np.cos(half_s_rad)= }")
+        isoeft_label.append(label_s)
         isoeft.append(
             dict(
                 type="path",
                 path=ellipse_arc(
                     x_center=center_x,
                     y_center=center_y,
-                    a=s,
-                    b=s,
+                    a=r,
+                    b=r,
                     start_angle=-angle,
                     end_angle=angle,
                     N=60,
@@ -135,7 +153,8 @@ def create_iso_eft(dict_param):
                 layer="below",
             )
         )
-    return isoeft
+    df_label = pd.DataFrame(isoeft_label)
+    return isoeft, df_label
 
 
 def create_iso_speed(dict_param):
@@ -168,7 +187,10 @@ def plot_cases(
         shape_list.extend(create_iso_speed(data_background["iso_speed"]))
 
     if draw_iso_eft:
-        shape_list.extend(create_iso_eft(data_background["iso_eft"]))
+        shapes, labels_eft = create_iso_eft(
+            data_background["iso_eft"], position_angle_label=-45
+        )
+        shape_list.extend(shapes)
 
     title_cases = ", ".join([fk.name for fk in list_of_cases])
     fig = go.Figure(
@@ -221,6 +243,24 @@ def plot_cases(
                 layer="below",
             )
         )
+
+    # add labels
+    if draw_iso_eft:
+        for i, row in labels_eft.iterrows():
+            fig.add_annotation(
+                go.layout.Annotation(
+                    x=row["x"],
+                    y=row["y"],
+                    text=row["text"],
+                    hovertext=row["text"],
+                    # textposition="bottom center"
+                    textangle=row["angle"],
+                    arrowsize=0.3,
+                    # for color use font dict
+                    opacity=row["opacity"],
+                )
+            )
+
     return fig
 
 
@@ -505,7 +545,10 @@ if __name__ == "__main__":
 
     # %%
     fig2 = plot_cases(
-        list_of_cases=[fk1, fk2], draw_ortho_grid=False, add_background_image=False
+        list_of_cases=[fk1, fk2],
+        draw_ortho_grid=True,
+        draw_iso_speed=False,
+        add_background_image=False,
     )
     fig2.show()
     # %%
