@@ -131,10 +131,9 @@ def create_iso_eft(dict_param, position_angle_label=30):
             "text": f"Et={s}°",
             "angle": position_angle_label,
             "color": dict_param["color"],
-            "opacity": dict_param["opacity"],
+            "opacity": dict_param["opacity"] + 0.1,
         }
 
-        print(f"{s= } {center_x= } {r= } {r*np.cos(half_s_rad)= }")
         isoeft_label.append(label_s)
         isoeft.append(
             dict(
