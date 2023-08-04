@@ -6,6 +6,23 @@ import dash_bootstrap_components as dbc
 
 ### Operating things
 operating_slider_components = [
+    html.Div(
+        [
+            html.Label("Graph size:"),
+            dcc.Slider(
+                id=f"slider-graph_size",
+                min=500,
+                max=1000,
+                step=50,
+                value=800,
+                marks={i: f"{i} px" for i in range(500, 1100, 100)},
+                tooltip={
+                    "placement": "bottom",
+                    "always_visible": True,
+                },
+            ),
+        ],
+    ),
     html.Label("Wind speed (knots)"),
     dcc.Slider(
         id=f"slider-wind_speed",

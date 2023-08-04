@@ -16,7 +16,7 @@ import copy
 import pandas as pd
 
 from app_components import *
-from dash import ctx
+from dash import ctx, dash_table
 
 
 # %% Initial set up
@@ -43,6 +43,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
 fig = proj.plot()
+df_table = proj.perf_table()
 
 
 app.layout = dbc.Container(
@@ -53,7 +54,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                ## FishPy      V0.9.3
+                ## FishPy      V0.9.5
                 """
                         )
                     ],
@@ -111,7 +112,12 @@ app.layout = dbc.Container(
                         ),
                         dbc.Collapse(
                             dbc.Card(
-                                dbc.CardBody(dcc.Markdown(id="coordinates_output"))
+                                dbc.CardBody(
+                                    dbc.Spinner(
+                                        html.P(id="my-output"),
+                                        color="primary",
+                                    ),
+                                )
                             ),
                             id="coordinates_collapse",
                             is_open=False,
@@ -123,9 +129,10 @@ app.layout = dbc.Container(
                         #     id="analyze", color="primary", style={"margin": "5px"}),
                         html.Hr(),
                         dcc.Markdown("##### Aerodynamic Performance"),
-                        dbc.Spinner(
-                            html.P(id="my-output"),
-                            color="primary",
+                        dash_table.DataTable(
+                            df_table.to_dict("records"),
+                            [{"name": i, "id": i} for i in df_table.columns],
+                            id="perf_table",
                         ),
                     ],
                     width=3,
@@ -146,9 +153,9 @@ app.layout = dbc.Container(
                 ),
             ]
         ),
-        html.Hr(),
         dcc.Markdown(
             """
+            
         To help the design
         """
         ),
@@ -277,6 +284,7 @@ def fk2_param_to_fk1(n_clicks):
 @app.callback(
     Output("fig1", "figure"),
     Output(component_id="my-output", component_property="children"),
+    Output(component_id="perf_table", component_property="data"),
     inputs={
         "all_inputs": {
             "general": {
@@ -285,6 +293,7 @@ def fk2_param_to_fk1(n_clicks):
                 "bool_backgrdimg": Input("bool_backgrdimg", "on"),
                 "bool_isospeed": Input("bool_isospeed", "on"),
                 "bool_isoeft": Input("bool_isoeft", "on"),
+                "graph_size": Input("slider-graph_size", "value"),
             },
             0: {
                 "bool_fk": Input("boolean_0", "on"),
@@ -365,11 +374,14 @@ def update(all_inputs):
         draw_iso_speed=bool_isospeed,
         draw_iso_eft=bool_isoeft,
         add_background_image=bool_backgrdimg,
+        height_size=c["general"]["graph_size"]["value"],
     )
 
     text_detail = f"Compute for : {proj.detail()}  "
 
-    return fig, text_detail
+    perf_data = proj.perf_table().round(2).to_dict(orient="records")
+
+    return fig, text_detail, perf_data
 
 
 if __name__ == "__main__":
