@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 
 # %% plot data
 COLOR_palette = px.colors.qualitative.Plotly
+del COLOR_palette[1]
 
 # bckgrd_imge_dim = {
 #     "width": 700,
