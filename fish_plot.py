@@ -26,8 +26,9 @@ data_background = {
     },
     "iso_eft": {
         "step": [90, 80, 70, 60, 50, 40, 30, 20, 15, 12, 10],
+        "extra_step": [15, 12],
         "color": "black",
-        "opacity": 0.08,
+        "opacity": 0.2,
     },
 }
 
@@ -128,9 +129,15 @@ def create_iso_eft(dict_param, position_angle_label=30):
                     end_angle=angle,
                     N=60,
                 ),
-                line_color=dict_param["color"],
+                # line_color=dict_param["color"],
                 opacity=dict_param["opacity"],
                 layer="below",
+                line=dict(
+                    color=dict_param["color"],
+                    width=1,
+                    dash="dot" if s in dict_param["extra_step"] else None,
+                ),
+                # dash="dashdot" if s in dict_param["extra_step"] else None,
             )
         )
     df_label = pd.DataFrame(isoeft_label)
@@ -160,7 +167,10 @@ def create_iso_speed(dict_param, position_angle_label=30):
                 path=ellipse_arc(
                     a=s, b=s, start_angle=-np.pi / 2, end_angle=np.pi / 2, N=60
                 ),
-                line_color=dict_param["color"],
+                line=dict(
+                    color=dict_param["color"],
+                    width=1,
+                ),
                 opacity=dict_param["opacity"],
                 layer="below",
             )
@@ -215,6 +225,18 @@ def plot_cases(
             shapes=shape_list,
         ),
     )
+
+    # Wind
+    fig.add_trace(
+        add_line(
+            (0, 0),
+            (0, -100),
+            m_name="wind",
+            group_name="Wind",
+            extra_dict=dict(width=3, color="red"),
+        )
+    )
+    # Fish kite
     for i, fki in enumerate(list_of_cases):
         color = COLOR_palette[i]
         fki.add_plot_elements(fig, m_color=color, add_legend_name=True)

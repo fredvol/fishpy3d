@@ -54,7 +54,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                ## FishPy      V0.9.6
+                ## FishPy      V0.9.7
                 """
                         )
                     ],
@@ -135,7 +135,7 @@ app.layout = dbc.Container(
                         #     "Analyze",
                         #     id="analyze", color="primary", style={"margin": "5px"}),
                         html.Hr(),
-                        dcc.Markdown("##### Aerodynamic Performance"),
+                        dcc.Markdown("##### Performance"),
                         dash_table.DataTable(
                             df_table.to_dict("records"),
                             [{"name": i, "id": i} for i in df_table.columns],
@@ -237,10 +237,10 @@ def toggle_shape_collapse(n_clicks, is_open):
 def compute_LD_from_efficiency_angle(
     kite_ef_angle_0, kite_ef_angle_1, fish_ef_angle_0, fish_ef_angle_1
 ):
-    LD_kite_0 = f"\t L/D= {1/np.arctan(np.radians(kite_ef_angle_0)):.2f}"
-    LD_kite_1 = f"\t L/D= {1/np.arctan(np.radians(kite_ef_angle_1)):.2f}"
-    LD_fish_0 = f"\t L/D= {1/np.arctan(np.radians(fish_ef_angle_0)):.2f}"
-    LD_fish_1 = f"\t L/D= {1/np.arctan(np.radians(fish_ef_angle_1)):.2f}"
+    LD_kite_0 = f"\t (L/D= {1/np.arctan(np.radians(kite_ef_angle_0)):.2f})"
+    LD_kite_1 = f"\t (L/D= {1/np.arctan(np.radians(kite_ef_angle_1)):.2f})"
+    LD_fish_0 = f"\t (L/D= {1/np.arctan(np.radians(fish_ef_angle_0)):.2f})"
+    LD_fish_1 = f"\t (L/D= {1/np.arctan(np.radians(fish_ef_angle_1)):.2f})"
     return LD_kite_0, LD_kite_1, LD_fish_0, LD_fish_1
 
 
