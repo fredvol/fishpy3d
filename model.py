@@ -12,6 +12,7 @@ from fish_plot import plot_cases, add_line
 # %% constants
 RHO_AIR = 1.29  # kg/m3
 RHO_WATER = 1025  # kg/m3
+CONV_KTS_MS = 0.514444
 
 
 # %%  Functions
@@ -140,13 +141,28 @@ class FishKite:
         )
         return apparent_wind_kt
 
-    def apparent_watter(self, velocity_ratio):
+    def apparent_watter(self, velocity_ratio=None):
+        if velocity_ratio is None:
+            velocity_ratio = self.fluid_velocity_ratio()
+
         apparent_water_kt = self.fluid_velocity_ratio() * self.apparent_wind(
             velocity_ratio
         )
         return apparent_water_kt
 
-    def compute_polar(self, nb_value=50):
+    def cable_tension(self, velocity_ratio=None):
+        if velocity_ratio is None:
+            velocity_ratio = self.fluid_velocity_ratio()
+        cable_tension_dan = (
+            0.5
+            * RHO_WATER
+            * self.fish.area
+            * self.fish.cl
+            * (self.apparent_watter(velocity_ratio) * CONV_KTS_MS) ** 2
+        )
+        return cable_tension_dan
+
+    def compute_polar(self, nb_value=70):
         velocity_max_min = self.fluid_velocity_ratio_range()
         velocity_range = np.linspace(
             velocity_max_min["min"], velocity_max_min["max"], nb_value
@@ -178,16 +194,30 @@ class FishKite:
         df_polar["y_watter_pct"] = df_polar["apparent_watter_pct"] * np.cos(
             np.radians(df_polar["true_wind_angle"])
         )
+        df_polar["y_watter_kt"] = df_polar["apparent_watter_kt"] * np.cos(
+            np.radians(df_polar["true_wind_angle"])
+        )
 
+        df_polar["name"] = self.name
+
+        # add special points
+        df_polar["note"] = ""
+        df_polar.loc[
+            df_polar["apparent_watter_kt"].idxmax(), "note"
+        ] += " Max Watter_speed"
+        df_polar.loc[df_polar["y_watter_kt"].idxmax(), "note"] += " Vmg UpW"
+        df_polar.loc[df_polar["y_watter_kt"].idxmin(), "note"] += " Vmg downW"
         return df_polar
 
     def perf_table(self):
         df = self.compute_polar()
         dict_stats = {
-            "efficiency_tot": self.total_efficiency(),
-            "Max_%TrueWind": df["apparent_watter_pct"].max(),
-            "UpWind_speed": df["y_watter_pct"].max(),
-            "DownWind_speed": df["y_watter_pct"].max(),
+            "Total Efficiency [°]": self.total_efficiency(),
+            "Max Watter speed [kt]": df["apparent_watter_kt"].max(),
+            "OP Watter speed [kt]": self.apparent_watter(),
+            "VMG UpWind [kt]": df["y_watter_kt"].max(),
+            "VMG DownWind [kt]": df["y_watter_kt"].min(),
+            "Cable tension [DaN]": self.cable_tension(),
         }
         return pd.DataFrame(dict_stats, index=[self.name])
 
@@ -200,12 +230,14 @@ class FishKite:
         wind = [0, -100]
         op_point = pol2cart(current_apparent_watter_pct, current_true_wind_angle)
         polar_pts = self.compute_polar()
+        watter_speed_kt = self.apparent_watter()
 
         return {
             "anchor": anchor,
             "wind": wind,
             "op_point": op_point,
             "polar_pts": polar_pts,
+            "watter_speed_kt": watter_speed_kt,
         }
 
     def plot(self, draw_ortho_grid=True, add_background_image=False):
@@ -214,30 +246,39 @@ class FishKite:
 
     def add_plot_elements(self, fig, m_color=None, add_legend_name=False):
         data_plot = self.data_to_plot_polar()
+        df_polar = data_plot["polar_pts"]
 
+        def generate_hover_text(row):
+            return (
+                f"{row['name']}: {round(row['apparent_watter_kt'],1)} kts {row['note']}"
+            )
+
+        def generate_marker_size(row):
+            return 9 if len(row["note"]) else 1
+
+        df_polar["text_hover"] = df_polar.apply(generate_hover_text, axis=1)
+        df_polar["marker_size"] = df_polar.apply(generate_marker_size, axis=1)
         legend_name = ""
         if add_legend_name:
             legend_name = "_" + self.name
 
-        # Wind
-        fig.add_trace(
-            add_line(
-                data_plot["anchor"],
-                data_plot["wind"],
-                m_name="wind",
-                group_name="Wind",
-                extra_dict=dict(width=4, color="red"),
-            )
-        )
+        # add polar
         fig.add_trace(
             (
                 go.Scatter(
-                    x=data_plot["polar_pts"]["x_watter_pct"],
-                    y=data_plot["polar_pts"]["y_watter_pct"],
-                    mode="lines",
+                    x=df_polar["x_watter_pct"],
+                    y=df_polar["y_watter_pct"],
+                    # mode="lines",
                     legendgrouptitle_text=self.name,
                     name=f"Polar{legend_name}",
-                    line_color=m_color,
+                    text=df_polar["text_hover"],
+                    marker_size=df_polar["marker_size"],
+                    mode="lines+markers",
+                    hoverinfo="text",
+                    line=dict(
+                        color=m_color,
+                        width=3,
+                    ),
                 )
             )
         )
@@ -247,10 +288,21 @@ class FishKite:
             add_line(
                 data_plot["anchor"],
                 data_plot["op_point"],
-                m_name=f"trajectory{legend_name} ",
+                m_name=f"Water speed {legend_name} ",
                 group_name=self.name,
                 extra_dict=dict(dash="dash", color=m_color),
             )
+        )
+
+        fig.add_annotation(
+            x=data_plot["op_point"][0],
+            y=data_plot["op_point"][1],
+            text=f'{round(data_plot["watter_speed_kt"],1)} kts',
+            showarrow=True,
+            arrowhead=1,
+            font=dict(color=m_color, size=12),
+            arrowcolor=m_color,
+            arrowsize=0.3,
         )
 
         # Apparent_wind_vector
@@ -258,7 +310,7 @@ class FishKite:
             add_line(
                 data_plot["wind"],
                 data_plot["op_point"],
-                m_name=f"Apparent_wind_vector{legend_name}",
+                m_name=f"Apparent wind speed {legend_name}",
                 group_name=self.name,
                 extra_dict=dict(dash="dot", color=m_color),
             )
@@ -276,7 +328,7 @@ class Project:
         return f"{self.name}"
 
     def detail(self):
-        detail_str = f"Project conatains {len(self.lst_fishkite)} FiskKite(s):"
+        detail_str = f"Project contains {len(self.lst_fishkite)} FiskKite(s):"
         for i in self.lst_fishkite:
             detail_str += "\n-\n"
             detail_str += str(i)
@@ -329,6 +381,8 @@ if __name__ == "__main__":
     proj1 = Project([fk1, fk2])
     proj2 = Project([fk1, fk2, fk3])
 
+    # %%
+    df_polar = fk1.data_to_plot_polar()["polar_pts"]
     # %%
     fig2 = plot_cases(
         list_of_cases=[fk1, fk2],

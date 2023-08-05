@@ -54,7 +54,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                ## FishPy      V0.9.6
+                ## FishPy      V0.9.7
                 """
                         )
                     ],
@@ -69,7 +69,9 @@ app.layout = dbc.Container(
                 dbc.Col(
                     [
                         dbc.Button(
-                            "Modify Operating Conditions", id="operating_button"
+                            "Modify Operating Conditions",
+                            color="danger",
+                            id="operating_button",
                         ),
                         dbc.Collapse(
                             dbc.Card(
@@ -93,7 +95,11 @@ app.layout = dbc.Container(
                             is_open=False,
                         ),
                         html.Hr(),
-                        dbc.Button("Modify FishKite_2 Parameters", id="shape2_button"),
+                        dbc.Button(
+                            "Modify FishKite_2 Parameters",
+                            color="success",
+                            id="shape2_button",
+                        ),
                         html.Hr(),
                         dbc.Collapse(
                             dbc.Card(
@@ -108,6 +114,7 @@ app.layout = dbc.Container(
                         html.Hr(),
                         dbc.Button(
                             "Export data (txt format)",
+                            color="info",
                             id="coordinates_button",
                         ),
                         dbc.Collapse(
@@ -128,7 +135,7 @@ app.layout = dbc.Container(
                         #     "Analyze",
                         #     id="analyze", color="primary", style={"margin": "5px"}),
                         html.Hr(),
-                        dcc.Markdown("##### Aerodynamic Performance"),
+                        dcc.Markdown("##### Performance"),
                         dash_table.DataTable(
                             df_table.to_dict("records"),
                             [{"name": i, "id": i} for i in df_table.columns],
@@ -230,10 +237,10 @@ def toggle_shape_collapse(n_clicks, is_open):
 def compute_LD_from_efficiency_angle(
     kite_ef_angle_0, kite_ef_angle_1, fish_ef_angle_0, fish_ef_angle_1
 ):
-    LD_kite_0 = f"\t L/D= {1/np.arctan(np.radians(kite_ef_angle_0)):.2f}"
-    LD_kite_1 = f"\t L/D= {1/np.arctan(np.radians(kite_ef_angle_1)):.2f}"
-    LD_fish_0 = f"\t L/D= {1/np.arctan(np.radians(fish_ef_angle_0)):.2f}"
-    LD_fish_1 = f"\t L/D= {1/np.arctan(np.radians(fish_ef_angle_1)):.2f}"
+    LD_kite_0 = f"\t (L/D= {1/np.arctan(np.radians(kite_ef_angle_0)):.2f})"
+    LD_kite_1 = f"\t (L/D= {1/np.arctan(np.radians(kite_ef_angle_1)):.2f})"
+    LD_fish_0 = f"\t (L/D= {1/np.arctan(np.radians(fish_ef_angle_0)):.2f})"
+    LD_fish_1 = f"\t (L/D= {1/np.arctan(np.radians(fish_ef_angle_1)):.2f})"
     return LD_kite_0, LD_kite_1, LD_fish_0, LD_fish_1
 
 
@@ -379,7 +386,7 @@ def update(all_inputs):
 
     text_detail = f"Compute for : {proj.detail()}  "
 
-    perf_data = proj.perf_table().round(2).to_dict(orient="records")
+    perf_data = proj.perf_table().round(1).to_dict(orient="records")
 
     return fig, text_detail, perf_data
 
