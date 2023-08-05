@@ -23,7 +23,7 @@ operating_slider_components = [
             ),
         ],
     ),
-    html.Label("Wind speed (knots)"),
+    html.Label("Wind speed [knots]"),
     dcc.Slider(
         id=f"slider-wind_speed",
         min=1,
@@ -71,7 +71,7 @@ def create_fk_sliders(id):
                         ),
                     ]
                 ),
-                html.Label("rising Angle (deg)"),
+                html.Label("rising Angle [deg]"),
                 dcc.Slider(
                     id=f"slider-rising_angle_{id}",
                     min=1,
@@ -86,21 +86,21 @@ def create_fk_sliders(id):
                     },
                 ),
                 html.H6(html.B(f"Kite:")),
-                html.Label("Area"),
+                html.Label("Kite Area [m2]"),
                 dcc.Slider(
                     id=f"slider-kite_area_{id}",
                     min=1,
-                    max=40,
+                    max=50,
                     step=1,
                     value=20,
                     updatemode="drag",
-                    marks={i: str(i) for i in range(0, 40, 5)},
+                    marks={i: str(i) for i in range(0, 55, 5)},
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,
                     },
                 ),
-                html.Label("Cl"),
+                html.Label("Kite Force Coeficient"),
                 dcc.RangeSlider(
                     id=f"slider-kite_cl_{id}",
                     min=0,
@@ -117,7 +117,7 @@ def create_fk_sliders(id):
                 ),
                 html.Tr(
                     [
-                        html.Td("efficiency_angle:    >"),
+                        html.Td("Kite efficiency_angle [deg]:    "),
                         html.Div(id=f"label-kite_eff_LD_{id}"),
                     ]
                 ),
@@ -136,7 +136,7 @@ def create_fk_sliders(id):
                 ),
                 html.Br(),
                 html.H6(html.B(f"Fish:")),
-                html.Label("Area"),
+                html.Label("Fish Area [m2]"),
                 dcc.Slider(
                     id=f"slider-fish_area_{id}",
                     min=0.01,
@@ -150,7 +150,7 @@ def create_fk_sliders(id):
                         "always_visible": True,
                     },
                 ),
-                html.Label("Cl"),
+                html.Label("Fish Force Coeficient"),
                 dcc.RangeSlider(
                     id=f"slider-fish_cl_{id}",
                     min=0.1,
@@ -167,7 +167,7 @@ def create_fk_sliders(id):
                 ),
                 html.Tr(
                     [
-                        html.Td("efficiency_angle:    >"),
+                        html.Td("Fish efficiency_angle [deg]:    >"),
                         html.Div(id=f"label-fish_eff_LD_{id}"),
                     ]
                 ),
