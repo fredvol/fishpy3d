@@ -1,9 +1,28 @@
 from dash import dcc
 from dash import html
+import dash_daq as daq
 import numpy as np
+import dash_bootstrap_components as dbc
 
 ### Operating things
 operating_slider_components = [
+    html.Div(
+        [
+            html.Label("Graph size:"),
+            dcc.Slider(
+                id=f"slider-graph_size",
+                min=500,
+                max=1000,
+                step=50,
+                value=800,
+                marks={i: f"{i} px" for i in range(500, 1100, 100)},
+                tooltip={
+                    "placement": "bottom",
+                    "always_visible": True,
+                },
+            ),
+        ],
+    ),
     html.Label("Wind speed (knots)"),
     dcc.Slider(
         id=f"slider-wind_speed",
@@ -17,10 +36,23 @@ operating_slider_components = [
             "always_visible": True,
         },
     ),
-    dcc.Checklist(
-        id="back_ground_image_checklist",
-        options=[{"label": " Back ground image", "value": "OK"}],
-        value=[],
+    daq.BooleanSwitch(
+        id="bool_orthogrid", on=True, label="Ortho grid", labelPosition="right"
+    ),
+    daq.BooleanSwitch(
+        id="bool_backgrdimg", on=False, label="Background image", labelPosition="right"
+    ),
+    daq.BooleanSwitch(
+        id="bool_isospeed", on=True, label="Iso speed", labelPosition="right"
+    ),
+    daq.BooleanSwitch(
+        id="bool_isoeft", on=True, label="Iso efficiency total", labelPosition="right"
+    ),
+    dbc.Button(
+        "copy parameters : Fk1 -> Fk2",
+        color="secondary",
+        size="sm",
+        id="copy_FK0toFK1",
     ),
 ]
 
@@ -31,8 +63,14 @@ def create_fk_sliders(id):
     s = (
         html.Div(
             [
-                html.H5(f"FishKite {id +1}"),
-                # list_of_controls
+                html.Tr(
+                    [
+                        html.Td(html.H5(f"FishKite {id +1}")),
+                        html.Td(
+                            daq.BooleanSwitch(id=f"boolean_{id}", on=True),
+                        ),
+                    ]
+                ),
                 html.Label("rising Angle (deg)"),
                 dcc.Slider(
                     id=f"slider-rising_angle_{id}",
@@ -77,15 +115,20 @@ def create_fk_sliders(id):
                         "always_visible": True,
                     },
                 ),
-                html.Label("efficiency_angle"),
+                html.Tr(
+                    [
+                        html.Td("efficiency_angle:    >"),
+                        html.Div(id=f"label-kite_eff_LD_{id}"),
+                    ]
+                ),
                 dcc.Slider(
                     id=f"slider-kite_efficiency_angle_{id}",
                     min=0,
-                    max=90,
+                    max=45,
                     step=1,
                     value=18,
                     updatemode="drag",
-                    marks={i: str(i) for i in range(0, 90, 5)},
+                    marks={i: str(i) for i in range(0, 50, 5)},
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,
@@ -122,15 +165,20 @@ def create_fk_sliders(id):
                         "always_visible": True,
                     },
                 ),
-                html.Label("efficiency_angle"),
+                html.Tr(
+                    [
+                        html.Td("efficiency_angle:    >"),
+                        html.Div(id=f"label-fish_eff_LD_{id}"),
+                    ]
+                ),
                 dcc.Slider(
                     id=f"slider-fish_efficiency_angle_{id}",
                     min=0,
-                    max=90,
+                    max=45,
                     step=1,
-                    value=18,
+                    value=12,
                     updatemode="drag",
-                    marks={i: str(i) for i in range(0, 90, 5)},
+                    marks={i: str(i) for i in range(0, 50, 5)},
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,
