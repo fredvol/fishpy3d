@@ -54,7 +54,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                ## FishPy      V0.9.5
+                ## FishPy      V0.9.6
                 """
                         )
                     ],
@@ -389,10 +389,3 @@ if __name__ == "__main__":
     # app.run(host="0.0.0.0", debug=True)
 
 # %%
-
-
-# fig.update_layout(
-#     autosize=False,
-#     minreducedheight=750,
-#     height=750,
-# )
