@@ -69,7 +69,9 @@ app.layout = dbc.Container(
                 dbc.Col(
                     [
                         dbc.Button(
-                            "Modify Operating Conditions", id="operating_button"
+                            "Modify Operating Conditions",
+                            color="danger",
+                            id="operating_button",
                         ),
                         dbc.Collapse(
                             dbc.Card(
@@ -93,7 +95,11 @@ app.layout = dbc.Container(
                             is_open=False,
                         ),
                         html.Hr(),
-                        dbc.Button("Modify FishKite_2 Parameters", id="shape2_button"),
+                        dbc.Button(
+                            "Modify FishKite_2 Parameters",
+                            color="success",
+                            id="shape2_button",
+                        ),
                         html.Hr(),
                         dbc.Collapse(
                             dbc.Card(
@@ -108,6 +114,7 @@ app.layout = dbc.Container(
                         html.Hr(),
                         dbc.Button(
                             "Export data (txt format)",
+                            color="info",
                             id="coordinates_button",
                         ),
                         dbc.Collapse(
@@ -379,7 +386,7 @@ def update(all_inputs):
 
     text_detail = f"Compute for : {proj.detail()}  "
 
-    perf_data = proj.perf_table().round(2).to_dict(orient="records")
+    perf_data = proj.perf_table().round(1).to_dict(orient="records")
 
     return fig, text_detail, perf_data
 

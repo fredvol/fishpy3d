@@ -276,7 +276,7 @@ class Project:
         return f"{self.name}"
 
     def detail(self):
-        detail_str = f"Project conatains {len(self.lst_fishkite)} FiskKite(s):"
+        detail_str = f"Project contains {len(self.lst_fishkite)} FiskKite(s):"
         for i in self.lst_fishkite:
             detail_str += "\n-\n"
             detail_str += str(i)
