@@ -133,7 +133,9 @@ class FishKite:
         else:
             return 180 - (180 + value)
 
-    def apparent_wind(self, velocity_ratio):
+    def apparent_wind(self, velocity_ratio=None):
+        if velocity_ratio is None:
+            velocity_ratio = self.fluid_velocity_ratio()
         apparent_wind_kt = (
             self.wind_speed
             * np.sin(np.radians(180 - self.true_wind_angle(velocity_ratio)))
@@ -262,6 +264,16 @@ class FishKite:
         if add_legend_name:
             legend_name = "_" + self.name
 
+        # add speed wind label /!\ warning if different fishkite wind speed
+        fig.add_annotation(
+            x=-10,
+            y=-50,
+            text=f"{round(self.wind_speed,1)} kts",
+            showarrow=False,
+            font=dict(color="red", size=12),
+            textangle=-90,
+        )
+
         # add polar
         fig.add_trace(
             (
@@ -283,7 +295,7 @@ class FishKite:
             )
         )
 
-        # trajectory
+        # trajectory  ( TODO chage to  fig.add_shape(type="line",) for label  )
         fig.add_trace(
             add_line(
                 data_plot["anchor"],
@@ -346,6 +358,7 @@ class Project:
             draw_iso_speed=True,
             add_background_image=add_background_image,
         )
+
         return fig
 
 
@@ -394,7 +407,7 @@ if __name__ == "__main__":
     fig2.show()
     # %%
 
-    fig1 = proj1.plot(add_background_image=True)
+    fig1 = proj1.plot(add_background_image=False)
     fig1.show()
 
     # %%

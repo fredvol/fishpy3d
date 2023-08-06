@@ -54,7 +54,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                ## FishPy      V0.9.7
+                ## FishPy      V0.9.9
                 """
                         )
                     ],
@@ -300,6 +300,7 @@ def fk2_param_to_fk1(n_clicks):
                 "bool_backgrdimg": Input("bool_backgrdimg", "on"),
                 "bool_isospeed": Input("bool_isospeed", "on"),
                 "bool_isoeft": Input("bool_isoeft", "on"),
+                "bool_isofluid": Input("bool_isofluid", "on"),
                 "graph_size": Input("slider-graph_size", "value"),
             },
             0: {
@@ -340,6 +341,7 @@ def update(all_inputs):
     bool_backgrdimg = c["general"]["bool_backgrdimg"]["value"]
     bool_isospeed = c["general"]["bool_isospeed"]["value"]
     bool_isoeft = c["general"]["bool_isoeft"]["value"]
+    bool_isofluid = c["general"]["bool_isofluid"]["value"]
 
     proj.lst_fishkite[0].wind_speed = c["general"]["wind_speed"]["value"]
     proj.lst_fishkite[1].wind_speed = c["general"]["wind_speed"]["value"]
@@ -380,6 +382,7 @@ def update(all_inputs):
         draw_ortho_grid=bool_orthogrid,
         draw_iso_speed=bool_isospeed,
         draw_iso_eft=bool_isoeft,
+        draw_iso_fluid=bool_isofluid,
         add_background_image=bool_backgrdimg,
         height_size=c["general"]["graph_size"]["value"],
     )
