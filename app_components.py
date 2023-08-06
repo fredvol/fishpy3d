@@ -48,6 +48,9 @@ operating_slider_components = [
     daq.BooleanSwitch(
         id="bool_isoeft", on=True, label="Iso efficiency total", labelPosition="right"
     ),
+    daq.BooleanSwitch(
+        id="bool_isofluid", on=True, label="Iso fluid ratio", labelPosition="right"
+    ),
     dbc.Button(
         "copy parameters : Fk1 -> Fk2",
         color="secondary",

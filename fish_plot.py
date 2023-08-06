@@ -6,9 +6,13 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+
 # %% plot data
 COLOR_palette = px.colors.qualitative.Plotly
-del COLOR_palette[1]
+
+if "#AB63FA" in COLOR_palette:
+    COLOR_palette.remove("#AB63FA")
+
 
 # bckgrd_imge_dim = {
 #     "width": 700,
@@ -29,6 +33,13 @@ data_background = {
         "extra_step": [15, 12],
         "color": "black",
         "opacity": 0.2,
+    },
+    "iso_fluid": {
+        # "step": [10.0, 5.0, 3.34, 2.5, 2.0, 1.67, 1.43, 1.25, 1.12],
+        "step": [10.0, 5.0, 3.34, 2.5, 2.0, 1.67, 1.43, 1.25, 1.12],
+        "extra_step": [],  # [0.95, 0.98],
+        "color": "green",
+        "opacity": 0.3,
     },
 }
 
@@ -53,14 +64,19 @@ def centers(y1, y2, r, x1=0, x2=0):
 
 
 def add_line(
-    pt1, pt2, m_name, group_name=None, legendgrouptitle_text=None, extra_dict=None
+    pt1,
+    pt2,
+    m_name,
+    group_name=None,
+    legendgrouptitle_text=None,
+    extra_dict=None,
 ):
-    based_dict = dict(
+    base_line_dict = dict(
         color=None,
     )
 
     if extra_dict is not None:
-        based_dict.update(extra_dict)
+        base_line_dict.update(extra_dict)
 
     return go.Scatter(
         mode="lines",
@@ -69,7 +85,7 @@ def add_line(
         legendgroup=group_name,
         legendgrouptitle_text=legendgrouptitle_text,
         name=m_name,
-        line=based_dict,
+        line=base_line_dict,
     )
 
 
@@ -95,7 +111,7 @@ def ellipse_arc(
 
 
 def create_iso_eft(dict_param, position_angle_label=30):
-    wind_speed = 100  # assuming wins speed = 100
+    wind_speed = 100  # assuming wins speed = 100%
     isoeft = []
     isoeft_label = []
 
@@ -179,11 +195,129 @@ def create_iso_speed(dict_param, position_angle_label=30):
     return isospeed, df_label
 
 
+def create_iso_fluid(dict_param, position_angle_label=10):
+    wind_speed = 100  # assuming wins speed = 100%
+    isofluid = []
+    isofluid_label = []
+
+    # add straight line
+    isofluid.append(
+        dict(
+            type="line",
+            x0=1,
+            y0=-wind_speed / 2,
+            x1=550,
+            y1=-wind_speed / 2,
+            opacity=dict_param["opacity"],
+            layer="below",
+            line=dict(
+                color=dict_param["color"],
+                width=1,
+            ),
+        )
+    )
+    label_straight = {
+        "x": 535,
+        "y": -44,
+        "text": f"ratio:1",
+        "angle": 0,
+        "color": dict_param["color"],
+        "opacity": dict_param["opacity"],
+    }
+
+    isofluid_label.append(label_straight)
+
+    # add others
+
+    for k in dict_param["step"] + dict_param["extra_step"]:
+        r = (wind_speed) * k / (k**2 - 1)
+        center_x = 0
+        center_y = -wind_speed - (wind_speed / (k**2 - 1))
+
+        if (center_y - r - 5) > -300:  # to sort the label position
+            x_label = 5
+            y_label = center_y - r - 5
+        else:
+            dict_x_position = {1.12: 420, 1.25: 240, 1.43: 105}
+
+            x_label = dict_x_position[k]
+            y_label = -300
+
+        label_f = {
+            "x": x_label,
+            "y": y_label,
+            "text": f"ratio:{round(k,2)}",
+            "angle": 0,
+            "color": dict_param["color"],
+            "opacity": dict_param["opacity"],
+        }
+
+        isofluid_label.append(label_f)
+
+        isofluid.append(
+            dict(
+                type="path",
+                path=ellipse_arc(
+                    x_center=center_x,
+                    y_center=center_y,
+                    a=r,
+                    b=r,
+                    start_angle=np.pi / 2,
+                    end_angle=-np.pi / 2,
+                    N=60,
+                ),
+                line=dict(
+                    color=dict_param["color"],
+                    width=1,
+                ),
+                opacity=dict_param["opacity"],
+                layer="below",
+            )
+        )
+
+        # Miror
+
+        label_fs = {
+            "x": x_label,
+            "y": -y_label - wind_speed,
+            "text": f"ratio: {round(1/k,2)}",
+            "angle": position_angle_label,
+            "color": dict_param["color"],
+            "opacity": dict_param["opacity"],
+        }
+
+        isofluid_label.append(label_fs)
+
+        isofluid.append(
+            dict(
+                type="path",
+                path=ellipse_arc(
+                    x_center=center_x,
+                    y_center=-center_y - wind_speed,
+                    a=r,
+                    b=r,
+                    start_angle=np.pi / 2,
+                    end_angle=-np.pi / 2,
+                    N=60,
+                ),
+                line=dict(
+                    color=dict_param["color"],
+                    width=1,
+                ),
+                opacity=dict_param["opacity"],
+                layer="below",
+            )
+        )
+    df_label = pd.DataFrame(isofluid_label)
+    return isofluid, df_label
+
+
 def plot_cases(
     list_of_cases,
     draw_ortho_grid=True,
     draw_iso_speed=True,
     draw_iso_eft=True,
+    draw_iso_fluid=True,
     add_background_image=False,
     height_size=800,
 ):
@@ -202,6 +336,12 @@ def plot_cases(
         )
         shape_list.extend(shapes_eft)
 
+    if draw_iso_fluid:
+        shapes_isofluid, labels_isofluid = create_iso_fluid(
+            data_background["iso_fluid"], position_angle_label=15
+        )
+        shape_list.extend(shapes_isofluid)
+
     title_cases = ", ".join([fk.name for fk in list_of_cases])
 
     graph_size = bckgrd_imge_dim["height"] if add_background_image else height_size
@@ -212,7 +352,7 @@ def plot_cases(
             plot_bgcolor="rgba(240,240,240,0.7)",
             height=graph_size,
             width=graph_size * 1.1,
-            xaxis_range=[-5, 550],
+            xaxis_range=[-15, 550],
             yaxis_range=[-300, 240],
             xaxis=dict(showgrid=False, visible=False),
             yaxis=dict(showgrid=False, visible=False),
@@ -236,6 +376,7 @@ def plot_cases(
             extra_dict=dict(width=3, color="red"),
         )
     )
+
     # Fish kite
     for i, fki in enumerate(list_of_cases):
         color = COLOR_palette[i]
@@ -310,5 +451,50 @@ def plot_cases(
                     opacity=row["opacity"],
                 )
             )
+    if draw_iso_fluid:
+        for i, row in labels_isofluid.iterrows():
+            fig.add_annotation(
+                go.layout.Annotation(
+                    x=row["x"],
+                    y=row["y"],
+                    text=row["text"],
+                    hovertext=row["text"],
+                    textangle=0,
+                    showarrow=False,
+                    font=dict(color=row["color"], size=7),
+                    opacity=row["opacity"],
+                )
+            )
 
     return fig
+
+
+# %%
+if __name__ == "__main__":
+    from model import Deflector, FishKite
+
+    wind_speed_i = 15  # kt
+    rising_angle_1 = 33  # deg
+    rising_angle_2 = 20  # deg
+
+    d_kite1 = Deflector(
+        "kite1", cl=0.4, cl_range=(0.4, 0.9), area=24, efficiency_angle=12
+    )
+    d_fish1 = Deflector(
+        "fish1", cl=0.2, cl_range=(0.2, 0.4), area=0.1, efficiency_angle=14
+    )
+
+    fk1 = FishKite("fk1", wind_speed_i, rising_angle_1, fish=d_fish1, kite=d_kite1)
+
+    # %%
+    fig = plot_cases(
+        [fk1],
+        draw_ortho_grid=True,
+        draw_iso_eft=False,
+        draw_iso_speed=False,
+        draw_iso_fluid=True,
+        add_background_image=False,
+    )
+
+    fig.show()
+    # %%
