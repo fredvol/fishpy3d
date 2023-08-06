@@ -54,7 +54,7 @@ app.layout = dbc.Container(
                     [
                         dcc.Markdown(
                             """
-                ## FishPy      V0.9.9
+                ## FishPy      V0.9.10
                 """
                         )
                     ],
@@ -135,7 +135,7 @@ app.layout = dbc.Container(
                         #     "Analyze",
                         #     id="analyze", color="primary", style={"margin": "5px"}),
                         html.Hr(),
-                        dcc.Markdown("##### Performance"),
+                        dcc.Markdown("##### Numerical Results"),
                         dash_table.DataTable(
                             df_table.to_dict("records"),
                             [{"name": i, "id": i} for i in df_table.columns],

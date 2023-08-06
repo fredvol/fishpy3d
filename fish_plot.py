@@ -9,9 +9,10 @@ import plotly.graph_objects as go
 
 # %% plot data
 COLOR_palette = px.colors.qualitative.Plotly
+COLOR_palette[2] = "#28a745"
 
-if "#AB63FA" in COLOR_palette:
-    COLOR_palette.remove("#AB63FA")
+if "#EF553B" in COLOR_palette:
+    COLOR_palette.remove("#EF553B")  # "#AB63FA"
 
 
 # bckgrd_imge_dim = {
