@@ -18,7 +18,7 @@ import pandas as pd
 from app_components import *
 from dash import ctx, dash_table
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 # %% Initial set up
 
@@ -167,10 +167,12 @@ app.layout = dbc.Container(
 
         **Hypothesis:**
          * No pilot mass
-         * No drag reduction at polar end
+         * constant efficiency along the polar, drags proportional to V²
 
         **Legend:**
          * OP = Operation point
+         * fk = Fish-Kite
+         * Fluid ratio = Apparent Water Speed / Apparent wind Speed
         """
         ),
     ],
@@ -304,7 +306,7 @@ def fk2_param_to_fk1(n_clicks):
             "general": {
                 "wind_speed": Input("slider-wind_speed", "value"),
                 "bool_orthogrid": Input("bool_orthogrid", "on"),
-                "bool_backgrdimg": Input("bool_backgrdimg", "on"),
+                # "bool_backgrdimg": Input("bool_backgrdimg", "on"),
                 "bool_isospeed": Input("bool_isospeed", "on"),
                 "bool_isoeft": Input("bool_isoeft", "on"),
                 "bool_isofluid": Input("bool_isofluid", "on"),
@@ -345,7 +347,7 @@ def update(all_inputs):
     c = ctx.args_grouping.all_inputs
 
     bool_orthogrid = c["general"]["bool_orthogrid"]["value"]
-    bool_backgrdimg = c["general"]["bool_backgrdimg"]["value"]
+    # bool_backgrdimg = c["general"]["bool_backgrdimg"]["value"]
     bool_isospeed = c["general"]["bool_isospeed"]["value"]
     bool_isoeft = c["general"]["bool_isoeft"]["value"]
     bool_isofluid = c["general"]["bool_isofluid"]["value"]
@@ -390,7 +392,7 @@ def update(all_inputs):
         draw_iso_speed=bool_isospeed,
         draw_iso_eft=bool_isoeft,
         draw_iso_fluid=bool_isofluid,
-        add_background_image=bool_backgrdimg,
+        add_background_image=False,
         height_size=c["general"]["graph_size"]["value"],
     )
 

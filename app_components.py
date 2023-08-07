@@ -39,9 +39,9 @@ operating_slider_components = [
     daq.BooleanSwitch(
         id="bool_orthogrid", on=True, label="Ortho grid", labelPosition="right"
     ),
-    daq.BooleanSwitch(
-        id="bool_backgrdimg", on=False, label="Background image", labelPosition="right"
-    ),
+    # daq.BooleanSwitch(
+    #     id="bool_backgrdimg", on=False, label="Background image", labelPosition="right"
+    # ),
     daq.BooleanSwitch(
         id="bool_isospeed", on=True, label="Iso speed", labelPosition="right"
     ),
@@ -95,7 +95,7 @@ def create_fk_sliders(id):
                     min=1,
                     max=50,
                     step=1,
-                    value=20,
+                    value=22,
                     updatemode="drag",
                     marks={i: str(i) for i in range(0, 55, 5)},
                     tooltip={
@@ -109,7 +109,7 @@ def create_fk_sliders(id):
                     min=0,
                     max=1.5,
                     step=0.05,
-                    value=[0.2, 0.4, 1.5],
+                    value=[0.2, 0.8, 1.5],
                     updatemode="drag",
                     marks={i: str(i) for i in [0, 0.5, 1, 1.5]},
                     pushable=0,
@@ -129,7 +129,7 @@ def create_fk_sliders(id):
                     min=1,
                     max=45,
                     step=1,
-                    value=18,
+                    value=12,
                     updatemode="drag",
                     marks={i: str(i) for i in range(0, 50, 5)},
                     tooltip={
@@ -179,7 +179,7 @@ def create_fk_sliders(id):
                     min=1,
                     max=45,
                     step=1,
-                    value=12,
+                    value=9,
                     updatemode="drag",
                     marks={i: str(i) for i in range(0, 50, 5)},
                     tooltip={
