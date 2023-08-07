@@ -18,6 +18,7 @@ import pandas as pd
 from app_components import *
 from dash import ctx, dash_table
 
+__version__ = "1.0.0"
 
 # %% Initial set up
 
@@ -53,8 +54,8 @@ app.layout = dbc.Container(
                 dbc.Col(
                     [
                         dcc.Markdown(
-                            """
-                ## FishPy      V0.9.10
+                            f"""
+                ## FishPy      V{__version__}
                 """
                         )
                     ],
