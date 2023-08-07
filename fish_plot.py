@@ -9,9 +9,10 @@ import plotly.graph_objects as go
 
 # %% plot data
 COLOR_palette = px.colors.qualitative.Plotly
+COLOR_palette[2] = "#28a745"
 
-if "#AB63FA" in COLOR_palette:
-    COLOR_palette.remove("#AB63FA")
+if "#EF553B" in COLOR_palette:
+    COLOR_palette.remove("#EF553B")  # "#AB63FA"
 
 
 # bckgrd_imge_dim = {
@@ -25,8 +26,8 @@ if "#AB63FA" in COLOR_palette:
 data_background = {
     "iso_speed": {
         "step": range(100, 600, 100),
-        "color": "PaleTurquoise",
-        "opacity": 0.9,
+        "color": "#00FFFF",
+        "opacity": 0.4,
     },
     "iso_eft": {
         "step": [90, 80, 70, 60, 50, 40, 30, 20, 15, 12, 10],
@@ -461,7 +462,7 @@ def plot_cases(
                     hovertext=row["text"],
                     textangle=0,
                     showarrow=False,
-                    font=dict(color=row["color"], size=7),
+                    font=dict(color=row["color"], size=8),
                     opacity=row["opacity"],
                 )
             )
