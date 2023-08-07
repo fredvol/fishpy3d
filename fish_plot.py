@@ -26,8 +26,8 @@ if "#EF553B" in COLOR_palette:
 data_background = {
     "iso_speed": {
         "step": range(100, 600, 100),
-        "color": "PaleTurquoise",
-        "opacity": 0.9,
+        "color": "#00FFFF",
+        "opacity": 0.4,
     },
     "iso_eft": {
         "step": [90, 80, 70, 60, 50, 40, 30, 20, 15, 12, 10],
