@@ -462,7 +462,7 @@ def plot_cases(
                     hovertext=row["text"],
                     textangle=0,
                     showarrow=False,
-                    font=dict(color=row["color"], size=7),
+                    font=dict(color=row["color"], size=8),
                     opacity=row["opacity"],
                 )
             )

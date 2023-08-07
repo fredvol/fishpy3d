@@ -161,6 +161,7 @@ class FishKite:
             * self.fish.area
             * self.fish.cl
             * (self.apparent_watter(velocity_ratio) * CONV_KTS_MS) ** 2
+            / 10  # to convert to DaN
         )
         return cable_tension_dan
 
