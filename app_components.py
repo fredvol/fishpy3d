@@ -103,7 +103,7 @@ def create_fk_sliders(id):
                         "always_visible": True,
                     },
                 ),
-                html.Label("Kite Force Coeficient range an OP"),
+                html.Label("Kite Force Coeficient range and OP"),
                 dcc.RangeSlider(
                     id=f"slider-kite_cl_{id}",
                     min=0,
@@ -153,7 +153,7 @@ def create_fk_sliders(id):
                         "always_visible": True,
                     },
                 ),
-                html.Label("Fish Force Coeficient range an OP"),
+                html.Label("Fish Force Coeficient range and OP"),
                 dcc.RangeSlider(
                     id=f"slider-fish_cl_{id}",
                     min=0.1,
