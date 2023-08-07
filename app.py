@@ -18,7 +18,7 @@ import pandas as pd
 from app_components import *
 from dash import ctx, dash_table
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # %% Initial set up
 
@@ -163,8 +163,14 @@ app.layout = dbc.Container(
         ),
         dcc.Markdown(
             """
-            
-        To help the design
+        ......................................  
+
+        **Hypothesis:**
+         * No pilot mass
+         * No drag reduction at polar end
+
+        **Legend:**
+         * OP = Operation point
         """
         ),
     ],
