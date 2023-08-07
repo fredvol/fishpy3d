@@ -161,6 +161,7 @@ class FishKite:
             * self.fish.area
             * self.fish.cl
             * (self.apparent_watter(velocity_ratio) * CONV_KTS_MS) ** 2
+            / 10  # to convert to DaN
         )
         return cable_tension_dan
 
@@ -215,11 +216,11 @@ class FishKite:
         df = self.compute_polar()
         dict_stats = {
             "Total Efficiency [°]": self.total_efficiency(),
-            "Max Watter speed [kt]": df["apparent_watter_kt"].max(),
-            "OP Watter speed [kt]": self.apparent_watter(),
+            "Max Water speed [kt]": df["apparent_watter_kt"].max(),
             "VMG UpWind [kt]": df["y_watter_kt"].max(),
             "VMG DownWind [kt]": df["y_watter_kt"].min(),
-            "Cable tension [DaN]": self.cable_tension(),
+            "OP Water speed [kt]": self.apparent_watter(),
+            "OP Cable tension [DaN]": self.cable_tension(),
         }
         return pd.DataFrame(dict_stats, index=[self.name])
 
@@ -268,7 +269,7 @@ class FishKite:
         fig.add_annotation(
             x=-10,
             y=-50,
-            text=f"{round(self.wind_speed,1)} kts",
+            text=f"True Wind:{round(self.wind_speed,1)} kt",
             showarrow=False,
             font=dict(color="red", size=12),
             textangle=-90,
@@ -311,10 +312,16 @@ class FishKite:
             y=data_plot["op_point"][1],
             text=f'{round(data_plot["watter_speed_kt"],1)} kts',
             showarrow=True,
+            xanchor="center",
             arrowhead=1,
             font=dict(color=m_color, size=12),
             arrowcolor=m_color,
             arrowsize=0.3,
+            bgcolor="#ffffff",
+            bordercolor=m_color,
+            borderwidth=2,
+            ax=10,
+            ay=-30,
         )
 
         # Apparent_wind_vector
