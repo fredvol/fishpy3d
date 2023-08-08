@@ -2,7 +2,10 @@
 
 # %% import
 #  http://127.0.0.1:8050/
+# git push heroku main
+# https://fishpy2d-9143325b137e.herokuapp.com/
 
+# imports
 from model import Deflector, FishKite, Project, plot_cases
 
 import dash
