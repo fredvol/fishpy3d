@@ -18,7 +18,7 @@ import pandas as pd
 from app_components import *
 from dash import ctx, dash_table
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 # %% Initial set up
 
