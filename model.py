@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 from fish_plot import plot_cases, add_line
 
 # %% constants
+GRAVITY = 9.81  # m/s-2
 RHO_AIR = 1.29  # kg/m3
 RHO_WATER = 1025  # kg/m3
 CONV_KTS_MS = 0.514444
@@ -32,6 +33,20 @@ def pol2cart(rho, phi, start=90):
 
 
 # %% Class
+class Pilot:
+    # init method or constructor
+    def __init__(
+        self,
+        name: str,
+        mass: float,
+        pilot_drag: tuple,
+    ):
+        self.name = name
+        self.mass = mass  # kg
+        self.pilot_drag = pilot_drag  # S*Cxp (m²)
+
+    def weight(self):  # Newton
+        return self.mass * GRAVITY
 
 
 class Deflector:
@@ -41,27 +56,104 @@ class Deflector:
         name: str,
         cl: float,
         cl_range: tuple,
-        area: float,
+        flat_area: float,
+        flat_ratio: float,
+        flat_aspect_ratio: float,
+        parasite_drag: float,
         efficiency_angle: float,
     ):
         self.name = name
         self.cl = cl
-        self.area = area  # m2
-        self.efficiency_angle = efficiency_angle  # deg
+        self._flat_area = flat_area  # m2
+        self.flat_ratio = flat_ratio  # m2
+        self.flat_aspect_ratio = flat_aspect_ratio  # m2
+        self._parasite_drag = parasite_drag  # mS*Cxp (m²)
+        self._efficiency_angle = efficiency_angle  # deg
 
         self.cl_range = {"min": cl_range[0], "max": cl_range[1]}
 
+    def flat_area(self):  # m2
+        return self._flat_area
+
+    def projected_area(self):  # m2
+        return self._flat_area * self.flat_ratio
+
+    def flat_span(self):  # m
+        return np.sqrt(self.flat_aspect_ratio * self.projected_area())
+
+    def lift(self):  # S*cl
+        return self.projected_area() * self.cl
+
+    def parasite_drag(self):
+        return self._parasite_drag
+
+    def induced_drag(self):
+        return (
+            self.cl**2 / (np.pi * self.flat_aspect_ratio * 0.95)
+        ) * self.flat_area()
+
+    def total_drag(self):
+        return self._parasite_drag + self.induced_drag()
+
+    def c_force(self):
+        return (
+            np.sqrt(self.total_drag() ** 2 + self.lift() ** 2) / self.projected_area()
+        )
+
+    def efficiency_LD(self):
+        return self.lift() / self.total_drag()
+
+    def efficiency_angle(self):
+        return np.degrees(np.arctan(1 / self.efficiency_LD()))
+
     def __repr__(self):
-        return f"{self.name} Cl:{self.cl} efficiency_angle:{self.efficiency_angle} Area:{self.area} "
+        return f"{self.name} Cl:{self.cl} efficiency_angle:{self.efficiency_angle()} Area:{self.flat_area()} "
 
     # Sample Method
-    def glide_ratio(self) -> float:
-        return 1 / np.tan(np.radians(self.efficiency_angle))
+    # def glide_ratio(self) -> float:
+    #     return 1 / np.tan(np.radians(self.efficiency_angle()))
 
-    def projected_efficiency_angle(self, m_raising_angle) -> float:
-        return np.degrees(
-            np.arctan(1 / (np.cos(np.radians(m_raising_angle)) * self.glide_ratio()))
+
+class Kite(Deflector):
+    def __init__(
+        self,
+        name: str,
+        cl: float,
+        cl_range: tuple,
+        flat_area: float,
+        flat_ratio: float,
+        flat_aspect_ratio: float,
+        parasite_drag: float,
+        efficiency_angle: float,
+        pilot=Pilot,
+    ):
+        super(self.__class__, self).__init__(
+            name,
+            cl,
+            cl_range,
+            flat_area,
+            flat_ratio,
+            flat_aspect_ratio,
+            parasite_drag,
+            efficiency_angle,
         )
+
+        self.pilot = pilot
+
+    def total_drag_with_pilot(self):
+        return self.total_drag() + self.pilot.pilot_drag
+
+    def efficiency_LD(self):
+        return self.lift() / self.total_drag_with_pilot()
+
+    def c_force(self):
+        return (
+            np.sqrt(self.total_drag_with_pilot() ** 2 + self.lift() ** 2)
+            / self.projected_area()
+        )
+
+    def efficiency_angle(self):
+        return np.degrees(np.arctan(1 / self.efficiency_LD()))
 
 
 class FishKite:
@@ -72,50 +164,77 @@ class FishKite:
         rising_angle: float,
         fish: Deflector,
         kite: Deflector,
+        extra_angle: float,
     ):
         self.name = name
         self.wind_speed = wind_speed  # kt
         self.rising_angle = rising_angle  # deg
         self.fish = fish
         self.kite = kite
+        self._extra_angle = extra_angle
 
     def __repr__(self):
         return f"FishKite({self.name}): wind_speed:{self.wind_speed} rising_angle:{self.rising_angle}  \n Kite:{self.kite}  \n Fish:{self.fish}"
 
+    def extra_angle(self):
+        return self._extra_angle
+
     def projected_efficiency_angle(self, what: str) -> float:
         if what == "kite":
-            return self.kite.projected_efficiency_angle(self.rising_angle)
+            return np.degrees(
+                np.arctan(
+                    1
+                    / (
+                        np.cos(np.radians(self.rising_angle))
+                        * self.kite.efficiency_LD()
+                    )
+                )
+            )
         elif what == "fish":
-            return self.fish.projected_efficiency_angle(self.rising_angle)
+            return np.degrees(
+                np.arctan(
+                    1
+                    / (
+                        np.cos(np.radians(self.rising_angle))
+                        * self.fish.efficiency_LD()
+                    )
+                )
+            )
         else:
             print(f" {what} is unkown , waiting for 'fish' or 'kite' ")
 
     def total_efficiency(self):
-        return self.kite.projected_efficiency_angle(
-            self.rising_angle
-        ) + self.fish.projected_efficiency_angle(self.rising_angle)
+        return self.projected_efficiency_angle(
+            "kite"
+        ) + self.projected_efficiency_angle("fish")
+
+    def flat_power_ratio(self):
+        flat_pwr_ratio = (
+            RHO_AIR * self.kite.c_force() * self.kite.projected_area()
+        ) / (RHO_WATER * self.fish.c_force() * self.fish.projected_area())
+        return flat_pwr_ratio
 
     def fluid_velocity_ratio(self):
         current_ratio = (
             RHO_AIR
-            * self.kite.area
+            * self.kite.flat_area()
             * self.kite.cl
-            / (RHO_WATER * self.fish.area * self.fish.cl)
+            / (RHO_WATER * self.fish.flat_area() * self.fish.cl)
         ) ** 0.5
         return current_ratio
 
     def fluid_velocity_ratio_range(self):
         min_ratio = (
             RHO_AIR
-            * self.kite.area
+            * self.kite.flat_area()
             * self.kite.cl_range["min"]
-            / (RHO_WATER * self.fish.area * self.fish.cl_range["max"])
+            / (RHO_WATER * self.fish.flat_area() * self.fish.cl_range["max"])
         ) ** 0.5
         max_ratio = (
             RHO_AIR
-            * self.kite.area
+            * self.kite.flat_area()
             * self.kite.cl_range["max"]
-            / (RHO_WATER * self.fish.area * self.fish.cl_range["min"])
+            / (RHO_WATER * self.fish.flat_area() * self.fish.cl_range["min"])
         ) ** 0.5
 
         return {"max": max_ratio, "min": min_ratio}
@@ -158,7 +277,7 @@ class FishKite:
         cable_tension_dan = (
             0.5
             * RHO_WATER
-            * self.fish.area
+            * self.fish.flat_area()
             * self.fish.cl
             * (self.apparent_watter(velocity_ratio) * CONV_KTS_MS) ** 2
             / 10  # to convert to DaN
@@ -373,39 +492,57 @@ class Project:
 if __name__ == "__main__":
     wind_speed_i = 15  # kt
     rising_angle_1 = 33  # deg
-    rising_angle_2 = 20  # deg
 
-    d_kite1 = Deflector(
-        "kite1", cl=0.4, cl_range=(0.4, 0.9), area=24, efficiency_angle=12
+    d_pilot = Pilot("pilot1", mass=80, pilot_drag=0.49)
+    d_kite1 = Kite(
+        "kite1",
+        cl=0.8,
+        cl_range=(0.4, 0.9),
+        flat_area=18,
+        flat_ratio=0.85,
+        flat_aspect_ratio=6,
+        parasite_drag=0.69,
+        efficiency_angle=12,
+        pilot=d_pilot,
     )
     d_fish1 = Deflector(
-        "fish1", cl=0.2, cl_range=(0.2, 0.4), area=0.1, efficiency_angle=14
+        "fish1",
+        cl=0.6,
+        cl_range=(0.2, 0.4),
+        flat_area=0.1,
+        flat_ratio=0.64,
+        flat_aspect_ratio=8.5,
+        parasite_drag=0.00792,
+        efficiency_angle=14,
     )
 
-    d_kite2 = Deflector(
-        "kite2", cl=0.6, cl_range=(0.4, 0.9), area=25, efficiency_angle=4
+    fk1 = FishKite(
+        "fk1", wind_speed_i, rising_angle_1, fish=d_fish1, kite=d_kite1, extra_angle=20
     )
-    d_fish2 = Deflector(
-        "fish2", cl=0.4, cl_range=(0.2, 0.4), area=0.07, efficiency_angle=8
-    )
+    # %%
+    print(f"{d_kite1.efficiency_LD() =:.3f}")
+    print(f"{d_fish1.efficiency_LD() =:.3f}")
 
-    d_kite3 = Deflector("kite3", cl=1, cl_range=(0.4, 0.9), area=12, efficiency_angle=4)
-    # d_fish3 = Deflector(
-    #     "fish3", cl=0.7, cl_range=(0.2, 0.4), area=0.07, efficiency_angle=8
-    # )
+    print(f"- fisk kite-")
+    print(f"{fk1.projected_efficiency_angle('kite') =:.3f}")
+    print(f"{fk1.projected_efficiency_angle('fish') =:.3f}")
+    print(f"{fk1.total_efficiency() =:.3f}")
+    print("----")
+    print(f"{fk1.fluid_velocity_ratio() =}")
+    vr = fk1.fluid_velocity_ratio()
+    print(f"{fk1.true_wind_angle(vr) =}")
+    print(f"{fk1.apparent_wind(vr) =}")
+    print(f"{fk1.apparent_watter(vr) =}")
 
-    fk1 = FishKite("fk1", wind_speed_i, rising_angle_1, fish=d_fish1, kite=d_kite1)
-    fk2 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite2)
-    fk3 = FishKite("fk3", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite3)
-
-    proj1 = Project([fk1, fk2])
-    proj2 = Project([fk1, fk2, fk3])
+    # %%
+    # proj1 = Project([fk1, fk2])
+    # proj2 = Project([fk1, fk2, fk3])
 
     # %%
     df_polar = fk1.data_to_plot_polar()["polar_pts"]
     # %%
     fig2 = plot_cases(
-        list_of_cases=[fk1, fk2],
+        list_of_cases=[fk1],
         draw_ortho_grid=True,
         draw_iso_speed=False,
         add_background_image=True,
@@ -414,26 +551,6 @@ if __name__ == "__main__":
     fig2.show()
     # %%
 
-    fig1 = proj1.plot(add_background_image=False)
-    fig1.show()
-
-    # %%
-    fig2 = proj2.plot(draw_ortho_grid=False, add_background_image=True)
-    fig2.show()
-    # %%
-    print(f"{d_kite2.glide_ratio() =:.3f}")
-    print(f"{d_fish2.glide_ratio() =:.3f}")
-    print(f"{d_kite2.projected_efficiency_angle(43) =:.3f}")
-    print(f"{d_fish2.projected_efficiency_angle(43) =:.3f}")
-    print(f"- fisk kite-")
-    print(f"{fk2.projected_efficiency_angle('kite') =:.3f}")
-    print(f"{fk2.total_efficiency() =:.3f}")
-    print("----")
-    print(f"{fk2.fluid_velocity_ratio() =}")
-    vr = fk2.fluid_velocity_ratio()
-    print(f"{fk2.true_wind_angle(vr) =}")
-    print(f"{fk2.apparent_wind(vr) =}")
-    print(f"{fk2.apparent_watter(vr) =}")
 
 # %%
 
