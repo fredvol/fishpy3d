@@ -2,8 +2,10 @@
 ## Model to simulate Fish kite VPP ##
 ## 27/07/2023 - frd                ##
 #####################################
-# %%  impot librairies
 
+# Notes:
+#     All angles are store in degrees and convert in rad inside the functions.
+# %%  impot librairies
 import os
 import numpy as np
 import pandas as pd
@@ -14,11 +16,13 @@ import plotly.graph_objects as go
 
 from fish_plot import plot_cases, add_line
 
+import scipy.optimize as opt
+
 # %% constants
 GRAVITY = 9.81  # m/s-2
 RHO_AIR = 1.29  # kg/m3
 RHO_WATER = 1025  # kg/m3
-CONV_KTS_MS = 0.514444
+CONV_KTS_MS = 0.514444  # (m/s)/kt
 
 
 # %%  Functions
@@ -38,6 +42,10 @@ def pol2cart(rho, phi, start=90):
     x = rho * np.cos(phirad)
     y = rho * np.sin(phirad)
     return (x, y)
+
+
+def ms_to_knot(value):
+    return value / CONV_KTS_MS
 
 
 # %% Class
@@ -75,8 +83,8 @@ class Deflector:
         self.name = name
         self.cl = cl  # no unit
         self._flat_area = flat_area  # m2
-        self.flat_ratio = flat_ratio  # m2
-        self.flat_aspect_ratio = flat_aspect_ratio  # m2
+        self.flat_ratio = flat_ratio  # no unit
+        self.flat_aspect_ratio = flat_aspect_ratio  # no unit
         self._parasite_drag_pct = parasite_drag_pct  # % of flat area
         self._efficiency_angle = efficiency_angle  # deg
         self.line_length = line_length  # m
@@ -104,7 +112,7 @@ class Deflector:
         ) * self.flat_area()
 
     def total_drag(self):  # S*Cx
-        return self._parasite_drag + self.induced_drag()
+        return self.parasite_drag() + self.induced_drag()
 
     def c_force(self):  # No unit
         return (
@@ -268,6 +276,7 @@ class FishKite:
         return {"max": max_ratio, "min": min_ratio}
 
     def true_wind_angle(self, velocity_ratio):
+        """From 2D calculation might be obsolete"""
         # TODO to clean
         value = np.degrees(
             np.arctan(
@@ -280,33 +289,53 @@ class FishKite:
         else:
             return 180 - (180 + value)
 
-    def apparent_wind(self, velocity_ratio=None):
-        """This fuunction was used on the 2D version and will be obsolete,"""
-        if velocity_ratio is None:
-            velocity_ratio = self.fluid_velocity_ratio()
-        apparent_wind_kt = (
-            self.wind_speed
-            * np.sin(np.radians(180 - self.true_wind_angle(velocity_ratio)))
-            / np.sin(np.radians(self.total_efficiency()))
-        )
-        return apparent_wind_kt
-
-    def apparent_watter(self, velocity_ratio=None):
-        """This fuunction was used on the 2D version and will be obsolete,"""
-        if velocity_ratio is None:
-            velocity_ratio = self.fluid_velocity_ratio()
-
-        apparent_water_kt = self.fluid_velocity_ratio() * self.apparent_wind(
-            velocity_ratio
-        )
-        return apparent_water_kt
-
-    def fish_total_force(self):
+    def fish_total_force(self):  # N
         """geometrical resolution of the 3 forces"""
-        return self.kite.pilot.weight()
+        return (
+            self.kite.pilot.weight()
+            * np.sin(np.radians(90 - self.kite_roll_angle()))
+            / np.sin(np.radians(self.extra_angle()))
+        )
+
+    def kite_total_force(self):  # N
+        """geometrical resolution of the 3 forces"""
+        return (
+            self.kite.pilot.weight()
+            * np.sin(np.radians(90 - self.rising_angle))
+            / np.sin(np.radians(self.extra_angle()))
+        )
+
+    def apparent_wind_ms(self, velocity_ratio=None):
+        apparent_wind_ms = np.sqrt(
+            self.kite_total_force()
+            / (self.kite.c_force() * 0.5 * RHO_AIR * self.kite.projected_area())
+        )
+        return apparent_wind_ms
+
+    def apparent_watter_ms(self):  # m/s
+        apparent_water_ms = np.sqrt(
+            self.fish_total_force()
+            / (self.fish.c_force() * 0.5 * RHO_WATER * self.fish.projected_area())
+        )
+        return apparent_water_ms
+
+    def true_wind_calculated(self):
+        return np.sqrt(
+            self.apparent_watter_ms() ** 2
+            + self.apparent_wind_ms() ** 2
+            - 2
+            * self.apparent_watter_ms()
+            * self.apparent_wind_ms()
+            * np.cos(np.radians(self.total_efficiency()))
+        )
+
+    def modified_extra_angle(self, angle):
+        self._extra_angle = angle
+        speed = self.true_wind_calculated()
+        return speed
 
     def cable_tension(self, velocity_ratio=None):
-        """This fuunction was used on the 2D version and will be obsolete,
+        """This function was used on the 2D version and will be obsolete,
         it assume assume the watter speed is already been compute
         """
         if velocity_ratio is None:
@@ -560,7 +589,7 @@ if __name__ == "__main__":
     wind_speed_i = 15  # kt
     rising_angle_1 = 20  # deg
 
-    d_pilot = Pilot("pilot1", mass=80, pilot_drag=0.49)
+    d_pilot = Pilot(mass=80, pilot_drag=0.49)
     d_kite1 = Kite(
         "kite1",
         cl=0.8,
@@ -597,11 +626,16 @@ if __name__ == "__main__":
     print(f"{fk1.projected_efficiency_angle('fish') =:.3f}")
     print(f"{fk1.total_efficiency() =:.3f}")
     print("----")
-    print(f"{fk1.fluid_velocity_ratio() =}")
-    vr = fk1.fluid_velocity_ratio()
-    print(f"{fk1.true_wind_angle(vr) =}")
-    print(f"{fk1.apparent_wind(vr) =}")
-    print(f"{fk1.apparent_watter(vr) =}")
+    print(f"{fk1.fish_total_force() =:.3f}")
+    print(f"{fk1.kite_total_force() =:.3f}")
+    print(f"{fk1.apparent_watter_ms() =:.3f}")
+    print(f"{fk1.apparent_wind_ms() =:.3f}")
+    print(f"{fk1.true_wind_calculated() =:.3f}")
+
+    # print(f"{fk1.apparent_watter_kt() =:.3f}")
+    # print(f"{fk1.fluid_velocity_ratio() =}")
+    # vr = fk1.fluid_velocity_ratio()
+    # print(f"{fk1.true_wind_angle(vr) =}")
 
     # %%
     # proj1 = Project([fk1, fk2])
