@@ -1,4 +1,9 @@
-# %% FISH Kite model
+#####################################
+## Model to simulate Fish kite VPP ##
+## 27/07/2023 - frd                ##
+#####################################
+# %%  impot librairies
+
 import os
 import numpy as np
 import pandas as pd
@@ -20,12 +25,15 @@ CONV_KTS_MS = 0.514444
 
 
 def cart2pol(x, y):
+    """Carthesian coordinates to Polar coordinates"""
+
     rho = np.sqrt(x**2 + y**2)
     phi = np.arctan2(y, x)
     return (rho, phi)
 
 
 def pol2cart(rho, phi, start=90):
+    """Polar coordinates to Carthesian coordinates"""
     phirad = np.radians(start - phi)
     x = rho * np.cos(phirad)
     y = rho * np.sin(phirad)
@@ -34,23 +42,24 @@ def pol2cart(rho, phi, start=90):
 
 # %% Class
 class Pilot:
+    """class holding all infomation about the pilot"""
+
     # init method or constructor
     def __init__(
         self,
-        name: str,
-        mass: float,
-        pilot_drag: tuple,
+        mass: float,  # kg
+        pilot_drag: tuple,  # S*Cxp (m²)
     ):
-        self.name = name
-        self.mass = mass  # kg
-        self.pilot_drag = pilot_drag  # S*Cxp (m²)
+        self.mass = mass
+        self.pilot_drag = pilot_drag
 
     def weight(self):  # Newton
         return self.mass * GRAVITY
 
 
 class Deflector:
-    # init method or constructor
+    """All object wich deviate a flux"""
+
     def __init__(
         self,
         name: str,
@@ -64,7 +73,7 @@ class Deflector:
         line_length: float,
     ):
         self.name = name
-        self.cl = cl
+        self.cl = cl  # no unit
         self._flat_area = flat_area  # m2
         self.flat_ratio = flat_ratio  # m2
         self.flat_aspect_ratio = flat_aspect_ratio  # m2
@@ -72,7 +81,7 @@ class Deflector:
         self._efficiency_angle = efficiency_angle  # deg
         self.line_length = line_length  # m
 
-        self.cl_range = {"min": cl_range[0], "max": cl_range[1]}
+        self.cl_range = {"min": cl_range[0], "max": cl_range[1]}  # no unit
 
     def flat_area(self):  # m2
         return self._flat_area
@@ -89,23 +98,23 @@ class Deflector:
     def parasite_drag(self):
         return self._parasite_drag_pct * self.flat_area()
 
-    def induced_drag(self):
+    def induced_drag(self):  # S*Cx
         return (
             self.cl**2 / (np.pi * self.flat_aspect_ratio * 0.95)
         ) * self.flat_area()
 
-    def total_drag(self):
+    def total_drag(self):  # S*Cx
         return self._parasite_drag + self.induced_drag()
 
-    def c_force(self):
+    def c_force(self):  # No unit
         return (
             np.sqrt(self.total_drag() ** 2 + self.lift() ** 2) / self.projected_area()
         )
 
-    def efficiency_LD(self):
+    def efficiency_LD(self):  # no unit
         return self.lift() / self.total_drag()
 
-    def efficiency_angle(self):
+    def efficiency_angle(self):  # deg
         return np.degrees(np.arctan(1 / self.efficiency_LD()))
 
     def __repr__(self):
@@ -117,6 +126,8 @@ class Deflector:
 
 
 class Kite(Deflector):
+    """This classe inherit from deflector and simulate a kite with a pilot."""
+
     def __init__(
         self,
         name: str,
@@ -144,7 +155,7 @@ class Kite(Deflector):
 
         self.pilot = pilot
 
-    def total_drag_with_pilot(self):
+    def total_drag_with_pilot(self):  # S*Cx
         return self.total_drag() + self.pilot.pilot_drag
 
     def efficiency_LD(self):
@@ -156,11 +167,13 @@ class Kite(Deflector):
             / self.projected_area()
         )
 
-    def efficiency_angle(self):
+    def efficiency_angle(self):  # deg1
         return np.degrees(np.arctan(1 / self.efficiency_LD()))
 
 
 class FishKite:
+    """This is the central object, most of the computation are done here"""
+
     def __init__(
         self,
         name: str,
@@ -175,12 +188,12 @@ class FishKite:
         self.rising_angle = rising_angle  # deg
         self.fish = fish
         self.kite = kite
-        self._extra_angle = extra_angle
+        self._extra_angle = extra_angle  # deg  this will later been computed
 
     def __repr__(self):
         return f"FishKite({self.name}): wind_speed:{self.wind_speed} rising_angle:{self.rising_angle}  \n Kite:{self.kite}  \n Fish:{self.fish}"
 
-    def extra_angle(self):
+    def extra_angle(self):  # deg
         return self._extra_angle
 
     def kite_roll_angle(self):
@@ -268,6 +281,7 @@ class FishKite:
             return 180 - (180 + value)
 
     def apparent_wind(self, velocity_ratio=None):
+        """This fuunction was used on the 2D version and will be obsolete,"""
         if velocity_ratio is None:
             velocity_ratio = self.fluid_velocity_ratio()
         apparent_wind_kt = (
@@ -278,6 +292,7 @@ class FishKite:
         return apparent_wind_kt
 
     def apparent_watter(self, velocity_ratio=None):
+        """This fuunction was used on the 2D version and will be obsolete,"""
         if velocity_ratio is None:
             velocity_ratio = self.fluid_velocity_ratio()
 
@@ -286,7 +301,14 @@ class FishKite:
         )
         return apparent_water_kt
 
+    def fish_total_force(self):
+        """geometrical resolution of the 3 forces"""
+        return self.kite.pilot.weight()
+
     def cable_tension(self, velocity_ratio=None):
+        """This fuunction was used on the 2D version and will be obsolete,
+        it assume assume the watter speed is already been compute
+        """
         if velocity_ratio is None:
             velocity_ratio = self.fluid_velocity_ratio()
         cable_tension_dan = (
@@ -300,6 +322,14 @@ class FishKite:
         return cable_tension_dan
 
     def compute_polar(self, nb_value=70):
+        """Compute the polar for several (cl_fish , cl_kite) ratio
+
+        Args:
+            nb_value (int, optional): Nb of point to compute for the polar. Defaults to 70.
+
+        Returns:
+            DataFrame: Dataframe result.
+        """
         velocity_max_min = self.fluid_velocity_ratio_range()
         velocity_range = np.linspace(
             velocity_max_min["min"], velocity_max_min["max"], nb_value
@@ -347,6 +377,11 @@ class FishKite:
         return df_polar
 
     def perf_table(self):
+        """Collect different data on the fishkite Operating point and general point on the polar
+
+        Returns:
+            DataFrame
+        """
         df = self.compute_polar()
         dict_stats = {
             "Total Efficiency [°]": self.total_efficiency(),
@@ -359,6 +394,10 @@ class FishKite:
         return pd.DataFrame(dict_stats, index=[self.name])
 
     def data_to_plot_polar(self):
+        """Prepare the detail to be plot
+
+        Returns: Dict
+        """
         vr = self.fluid_velocity_ratio()
         current_apparent_watter_pct = self.apparent_watter(vr) / self.wind_speed * 100
         current_true_wind_angle = self.true_wind_angle(vr)
@@ -378,10 +417,21 @@ class FishKite:
         }
 
     def plot(self, draw_ortho_grid=True, add_background_image=False):
+        """Apply the plot_case function to this FishKite"""
         fig = plot_cases([self], draw_ortho_grid, add_background_image)
         return fig
 
     def add_plot_elements(self, fig, m_color=None, add_legend_name=False):
+        """Add elements to a already existing plotly figure
+
+        Args:
+            fig (Plotly figure): The figure to modify
+            m_color (str, optional): Hex string containing the color to use. Defaults to None.
+            add_legend_name (bool, optional): If True the Fishkite name is added to the figure legende. Defaults to False.
+
+        Returns:
+            _type_: _description_
+        """
         data_plot = self.data_to_plot_polar()
         df_polar = data_plot["polar_pts"]
 
@@ -473,6 +523,8 @@ class FishKite:
 
 
 class Project:
+    """Project holding different FishKites, help to plot several FK"""
+
     def __init__(self, lst_fishkite=[], name="Project1"):
         self.name = name
         self.lst_fishkite = lst_fishkite
