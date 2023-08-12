@@ -284,14 +284,20 @@ class FishKite:
             / self.fish.projected_area()
         )
 
-    # angle and projection
+    def flat_power_ratio(self):  # air/water
+        flat_pwr_ratio = (
+            RHO_AIR * self.kite_c_force() * self.kite.projected_area()
+        ) / (RHO_WATER * self.fish_c_force() * self.fish.projected_area())
+        return flat_pwr_ratio
+
+    #  now considering extra angle
     def extra_angle(self):  # deg
         return self._extra_angle
 
     def kite_roll_angle(self):
         return self.rising_angle + self.extra_angle()
 
-    def kite_projected_efficiency_angle(self) -> float:
+    def kite_projected_efficiency_angle(self):  # deg
         return np.degrees(
             np.arctan(
                 1
@@ -302,17 +308,27 @@ class FishKite:
             )
         )
 
-    def total_efficiency(self):
+    def total_efficiency(self):  # deg
         return (
             self.kite_projected_efficiency_angle()
             + self.projected_efficiency_water_deg()
         )
 
-    def flat_power_ratio(self):  # air/water
-        flat_pwr_ratio = (
-            RHO_AIR * self.kite_c_force() * self.kite.projected_area()
-        ) / (RHO_WATER * self.fish_c_force() * self.fish.projected_area())
-        return flat_pwr_ratio
+    def fish_total_force(self):  # N
+        """geometrical resolution of the 3 forces"""
+        return (
+            self.kite.pilot.weight()
+            * np.sin(np.radians(90 - self.kite_roll_angle()))
+            / np.sin(np.radians(self.extra_angle()))
+        )
+
+    def kite_total_force(self):  # N
+        """geometrical resolution of the 3 forces"""
+        return (
+            self.kite.pilot.weight()
+            * np.sin(np.radians(90 - self.rising_angle))
+            / np.sin(np.radians(self.extra_angle()))
+        )
 
     def projected_power_ratio(self):  # air/water
         return (
@@ -320,6 +336,76 @@ class FishKite:
             * (np.cos(np.radians(self.kite_roll_angle())))
             / (np.cos(np.radians(self.rising_angle)))
         )
+
+    def apparent_wind_ms(self):
+        apparent_wind_ms = np.sqrt(
+            self.kite_total_force()
+            / (self.kite_c_force() * 0.5 * RHO_AIR * self.kite.projected_area())
+        )
+        return apparent_wind_ms
+
+    def apparent_watter_ms(self):  # m/s
+        apparent_water_ms = np.sqrt(
+            self.fish_total_force()
+            / (self.fish_c_force() * 0.5 * RHO_WATER * self.fish.projected_area())
+        )
+        return apparent_water_ms
+
+    def apparent_water_wind_angle(self):
+        # Apparent water / wind (degrees. = Boat course relative to wind)
+        angle = np.arccos(
+            (
+                self.apparent_watter_ms() ** 2
+                - self.apparent_wind_ms() ** 2
+                + self.true_wind_calculated() ** 2
+            )
+            / (2 * self.apparent_watter_ms() * self.true_wind_calculated())
+        )
+        return 180 - np.degrees(angle)
+
+    def apparent_wind_wind_angle(self):  # deg
+        return -self.total_efficiency() + self.apparent_water_wind_angle()
+
+    def vmg_x(self):  # m/s
+        return self.apparent_watter_ms() * np.sin(
+            np.radians(self.apparent_water_wind_angle())
+        )
+
+    def vmg_y(self):  # m/s
+        return self.apparent_watter_ms() * np.cos(
+            np.radians(self.apparent_water_wind_angle())
+        )
+
+    def vmg_x_kt(self):  # kt
+        return ms_to_knot(self.vmg_x())
+
+    def vmg_y_kt(self):  # kt ; + = upwind)
+        return ms_to_knot(self.vmg_y())
+
+    def true_wind_calculated(self):  # m/s
+        return np.sqrt(
+            self.apparent_watter_ms() ** 2
+            + self.apparent_wind_ms() ** 2
+            - 2
+            * self.apparent_watter_ms()
+            * self.apparent_wind_ms()
+            * np.cos(np.radians(self.total_efficiency()))
+        )
+
+    def speed_gap_modified_extra_angle(self, angle, debug=True):
+        self._extra_angle = angle
+        if debug:
+            print(angle)
+
+        return self.true_wind_calculated() - self.wind_speed
+
+    def find_raising_angle(self):
+        fun = lambda x: ((self.modified_extra_angle(x) - self.wind_speed) ** 2) ** 0.5
+        # results = opt.minimize_scalar(fun, bounds=(0.1, 89), method='bounded')
+        results = opt.minimize(fun, x0=(30), bounds=((0.1), (89)))
+        return results
+
+    ################# BELOW THAT ALL IS FOR THE 2D ##################
 
     def fluid_velocity_ratio(self):
         current_ratio = (
@@ -346,74 +432,22 @@ class FishKite:
 
         return {"max": max_ratio, "min": min_ratio}
 
-    # def true_wind_angle(self, velocity_ratio):
-    #     """From 2D calculation might be obsolete"""
-    #     # TODO to clean
-    #     value = np.degrees(
-    #         np.arctan(
-    #             np.sin(np.radians(self.total_efficiency()))
-    #             / (velocity_ratio - np.cos(np.radians(self.total_efficiency())))
-    #         )
-    #     )
-    #     if value > 0:
-    #         return 180 - value
-    #     else:
-    #         return 180 - (180 + value)
-
-    def fish_total_force(self):  # N
-        """geometrical resolution of the 3 forces"""
-        return (
-            self.kite.pilot.weight()
-            * np.sin(np.radians(90 - self.kite_roll_angle()))
-            / np.sin(np.radians(self.extra_angle()))
+    def true_wind_angle(self, velocity_ratio):
+        """From 2D calculation might be obsolete"""
+        # TODO to clean
+        value = np.degrees(
+            np.arctan(
+                np.sin(np.radians(self.total_efficiency()))
+                / (velocity_ratio - np.cos(np.radians(self.total_efficiency())))
+            )
         )
-
-    def kite_total_force(self):  # N
-        """geometrical resolution of the 3 forces"""
-        return (
-            self.kite.pilot.weight()
-            * np.sin(np.radians(90 - self.rising_angle))
-            / np.sin(np.radians(self.extra_angle()))
-        )
-
-    def apparent_wind_ms(self):
-        apparent_wind_ms = np.sqrt(
-            self.kite_total_force()
-            / (self.kite_c_force() * 0.5 * RHO_AIR * self.kite.projected_area())
-        )
-        return apparent_wind_ms
-
-    def apparent_watter_ms(self):  # m/s
-        apparent_water_ms = np.sqrt(
-            self.fish_total_force()
-            / (self.fish_c_force() * 0.5 * RHO_WATER * self.fish.projected_area())
-        )
-        return apparent_water_ms
-
-    def true_wind_calculated(self):
-        return np.sqrt(
-            self.apparent_watter_ms() ** 2
-            + self.apparent_wind_ms() ** 2
-            - 2
-            * self.apparent_watter_ms()
-            * self.apparent_wind_ms()
-            * np.cos(np.radians(self.total_efficiency()))
-        )
-
-    def speed_gap_modified_extra_angle(self, angle, debug=True):
-        self._extra_angle = angle
-        if debug:
-            print(angle)
-
-        return self.true_wind_calculated() - self.wind_speed
-
-    def find_raising_angle(self):
-        fun = lambda x: ((self.modified_extra_angle(x) - self.wind_speed) ** 2) ** 0.5
-        # results = opt.minimize_scalar(fun, bounds=(0.1, 89), method='bounded')
-        results = opt.minimize(fun, x0=(30), bounds=((0.1), (89)))
-        return results
+        if value > 0:
+            return 180 - value
+        else:
+            return 180 - (180 + value)
 
     def compute_polar(self, nb_value=70):
+        # OLD FOR 2D VERSION
         """Compute the polar for several (cl_fish , cl_kite) ratio
 
         Args:
@@ -469,6 +503,7 @@ class FishKite:
         return df_polar
 
     def perf_table(self):
+        # OLD FOR 2D VERSION
         """Collect different data on the fishkite Operating point and general point on the polar
 
         Returns:
@@ -486,6 +521,7 @@ class FishKite:
         return pd.DataFrame(dict_stats, index=[self.name])
 
     def data_to_plot_polar(self):
+        # OLD FOR 2D VERSION
         """Prepare the detail to be plot
 
         Returns: Dict
@@ -509,11 +545,13 @@ class FishKite:
         }
 
     def plot(self, draw_ortho_grid=True, add_background_image=False):
+        # OLD FOR 2D VERSION
         """Apply the plot_case function to this FishKite"""
         fig = plot_cases([self], draw_ortho_grid, add_background_image)
         return fig
 
     def add_plot_elements(self, fig, m_color=None, add_legend_name=False):
+        ##OLD FOR 2D VERSION
         """Add elements to a already existing plotly figure
 
         Args:
@@ -732,6 +770,7 @@ if __name__ == "__main__":
         "find_raising_angle",
         "data_to_plot_polar",
         "perf_table",
+        "true_wind_angle",
     ]
     # Iterate through the attributes and call only the callable ones (functions)
     for attr_name in attributes:
