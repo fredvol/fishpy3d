@@ -294,6 +294,21 @@ class FishKite:
     def extra_angle(self):  # deg
         return self._extra_angle
 
+    def position_pilot(self):
+        x_pilot = self.cable_length_fish * np.cos(np.radians(self.rising_angle))
+        y_pilot = self.cable_length_fish * np.sin(np.radians(self.rising_angle))
+        return (x_pilot, y_pilot)
+
+    def position_kite(self):
+        x_pilot, y_pilot = self.position_pilot()
+        x_kite = x_pilot + self.cable_length_kite * np.cos(
+            np.radians(self.kite_roll_angle())
+        )
+        y_kite = y_pilot + self.cable_length_kite * np.sin(
+            np.radians(self.kite_roll_angle())
+        )
+        return (x_kite, y_kite)
+
     def kite_roll_angle(self):
         return self.rising_angle + self.extra_angle()
 
