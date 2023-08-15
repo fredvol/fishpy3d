@@ -13,6 +13,7 @@ import pandas as pd
 
 import plotly.express as px
 import plotly.figure_factory as ff
+import plotly.offline as po
 import plotly.graph_objects as go
 from itertools import product
 
@@ -945,6 +946,8 @@ df["true_wind_calculated"] = np.sqrt(
     * np.cos(df["total_efficiency_rad"])
 )
 
+df["true_wind_calculated_kt"] = df["true_wind_calculated"] / CONV_KTS_MS
+
 df["apparent_water_wind_rad"] = np.pi - np.arccos(
     (
         df["apparent_watter_ms"] ** 2
@@ -960,6 +963,10 @@ df["vmg_y"] = df["apparent_watter_ms"] * np.cos(df["apparent_water_wind_rad"])
 df["vmg_x_kt"] = df["vmg_x"] / CONV_KTS_MS
 df["vmg_y_kt"] = df["vmg_y"] / CONV_KTS_MS
 
+# group data
+df["true_wind_calculated_kt_rounded"] = df["true_wind_calculated_kt"].round()
+
+
 # %%
 df[
     (df["fish_cl"] == 0.6)
@@ -967,4 +974,79 @@ df[
     & (df["rising_angle"] == 20)
     & (df["extra_angle"] == 20)
 ]
-# %% PLOT
+# %% PLOT 3D
+
+
+# fig = px.scatter_3d(df, x='vmg_x', y='vmg_y', z='rising_angle',
+#               color='true_wind_calculated')
+# fig.show()
+# %%  One rising angle
+df["true_wind_calculated_kt_rounded"]
+
+fig = px.scatter(
+    df[(df["rising_angle"] == 20)], x="vmg_x", y="vmg_y", color="true_wind_calculated"
+)
+fig.show()
+
+# %%
+target_wind = 15
+target_rising_angle = 20
+
+
+dfr = df[(df["rising_angle"] == target_rising_angle)]
+
+fig = go.Figure()
+fig.add_trace(
+    go.Scatter(
+        x=dfr["vmg_x_kt"],
+        y=dfr["vmg_y_kt"],
+        mode="markers",
+        marker=dict(
+            size=2,
+            # I want the color to be green if
+            # lower_limit ≤ y ≤ upper_limit
+            # else red
+            color=((dfr["true_wind_calculated_kt_rounded"] == target_wind)).astype(
+                "int"
+            ),
+            colorscale=[[0, "blue"], [1, "red"]],
+        ),
+    )
+)
+
+fig.update_layout(
+    title=f"Polar pts for rising angle:{target_rising_angle} : red TW= {target_wind} kt",
+    xaxis_title="vmg_x_kt",
+    yaxis_title="vmg_y_kt",
+    legend_title="Legend Title",
+)
+fig.show()
+# %%
+dfs = df[
+    (df["rising_angle"] == target_rising_angle)
+    & (df["true_wind_calculated_kt_rounded"] == target_wind)
+]
+fig = px.scatter(
+    dfs,
+    x="vmg_x_kt",
+    y="vmg_y_kt",
+    title=f"Polar pts for rising angle:{target_rising_angle} and TW= {target_wind} kt",
+)
+fig.update_traces(marker=dict(color="red"))
+fig.update_yaxes(
+    scaleanchor="x",
+    scaleratio=1,
+)
+fig.show()
+# %%
+df_kt = df[df["true_wind_calculated_kt_rounded"] == target_wind]
+fig = px.density_contour(
+    df_kt,
+    x="vmg_x_kt",
+    y="vmg_y_kt",
+    z="rising_angle",
+    color="rising_angle",
+    title=f"Polar contour for TW={target_wind} kt",
+)
+fig.show()
+# %%
