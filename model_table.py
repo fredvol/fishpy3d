@@ -816,6 +816,14 @@ dfo = pd.DataFrame(
     list(product(range_kite, range_fish, range_rising_angle, range_extra_angle)),
     columns=["kite_cl", "fish_cl", "rising_angle", "extra_angle"],
 )
+# add the simplify criteria
+balance_range = []
+for i in range(nb_points):
+    balance_range.append((range_kite[i], range_fish[-(i + 1)]))
+    dfo.loc[
+        (dfo["kite_cl"] == range_kite[i]) & (dfo["fish_cl"] == range_fish[-(i + 1)]),
+        "simplify",
+    ] = 1
 
 
 # %% TABLE
@@ -970,9 +978,9 @@ df["true_wind_calculated_kt_rounded"] = df["true_wind_calculated_kt"].round()
 # %%
 df[
     (df["fish_cl"] == 0.6)
-    & (df["kite_cl"] == 0.8)
+    & (df["kite_cl"] == 0.4)
     & (df["rising_angle"] == 20)
-    & (df["extra_angle"] == 20)
+    & (df["extra_angle"] == 22)
 ]
 # %% PLOT 3D
 
@@ -981,7 +989,7 @@ df[
 #               color='true_wind_calculated')
 # fig.show()
 # %%  One rising angle
-df["true_wind_calculated_kt_rounded"]
+
 
 fig = px.scatter(
     df[(df["rising_angle"] == 20)], x="vmg_x", y="vmg_y", color="true_wind_calculated"
@@ -989,7 +997,7 @@ fig = px.scatter(
 fig.show()
 
 # %%
-target_wind = 15
+target_wind = 30
 target_rising_angle = 20
 
 
@@ -1021,7 +1029,7 @@ fig.update_layout(
     legend_title="Legend Title",
 )
 fig.show()
-# %%
+# %%  only selected points
 dfs = df[
     (df["rising_angle"] == target_rising_angle)
     & (df["true_wind_calculated_kt_rounded"] == target_wind)
@@ -1030,6 +1038,7 @@ fig = px.scatter(
     dfs,
     x="vmg_x_kt",
     y="vmg_y_kt",
+    color="simplify",
     title=f"Polar pts for rising angle:{target_rising_angle} and TW= {target_wind} kt",
 )
 fig.update_traces(marker=dict(color="red"))
@@ -1041,12 +1050,53 @@ fig.show()
 # %%
 df_kt = df[df["true_wind_calculated_kt_rounded"] == target_wind]
 fig = px.density_contour(
-    df_kt,
+    dfs,
     x="vmg_x_kt",
     y="vmg_y_kt",
     z="rising_angle",
     color="rising_angle",
     title=f"Polar contour for TW={target_wind} kt",
 )
+
+
+dfsimplify = dfs[dfs["simplify"] == 1]
+fig.add_trace(
+    go.Scatter(
+        x=dfsimplify["vmg_x_kt"],
+        y=dfsimplify["vmg_y_kt"],
+        mode="markers",
+        marker=dict(
+            size=8,
+            # I want the color to be green if
+            # lower_limit ≤ y ≤ upper_limit
+            # else red
+            color="red",
+        ),
+    )
+)
+fig.update_yaxes(
+    scaleanchor="x",
+    scaleratio=1,
+)
+
 fig.show()
+# %% Validation pivot table
+
+validation_rising_angle = 20
+validation_extra_angle = 20
+dfv = df[
+    (df["fish_cl"].isin(range_fish))
+    & (df["kite_cl"].isin(range_kite))
+    & (df["rising_angle"] == validation_rising_angle)
+    & (df["extra_angle"] == validation_extra_angle)
+]
+
+
+pd.pivot_table(
+    dfv,
+    values="true_wind_calculated_kt",
+    index=["kite_cl"],
+    columns=["fish_cl"],
+    aggfunc=np.sum,
+)
 # %%
