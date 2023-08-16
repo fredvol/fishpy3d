@@ -25,7 +25,7 @@ import scipy.optimize as opt
 GRAVITY = 9.81  # m/s-2
 RHO_AIR = 1.29  # kg/m3
 RHO_WATER = 1025  # kg/m3
-CONV_KTS_MS = 0.514444  # (m/s)/kt
+CONV_KTS_MS = 0.5144456333854638  # (m/s)/kt
 CABLE_STRENGTH_MM2 = 100  # daN/mm2
 
 
@@ -807,10 +807,12 @@ if __name__ == "__main__":
 
 # %% Create double range
 nb_points = 20
-range_kite = np.linspace(fk1.kite.cl_range["min"], fk1.kite.cl_range["max"], nb_points)
 range_fish = np.linspace(fk1.fish.cl_range["min"], fk1.fish.cl_range["max"], nb_points)
-range_rising_angle = np.arange(2, 90, 2)
-range_extra_angle = np.arange(2, 90, 2)
+range_kite = np.linspace(fk1.kite.cl_range["min"], fk1.kite.cl_range["max"], nb_points)
+range_fish = [round(i, 3) for i in range_fish]
+range_kite = [round(i, 3) for i in range_kite]
+range_rising_angle = range_rising_angle = [1] + list(np.arange(5, 90, 5))
+range_extra_angle = np.arange(2, 90, 1)
 
 dfo = pd.DataFrame(
     list(product(range_kite, range_fish, range_rising_angle, range_extra_angle)),
@@ -976,12 +978,14 @@ df["true_wind_calculated_kt_rounded"] = df["true_wind_calculated_kt"].round()
 
 
 # %%
-df[
-    (df["fish_cl"] == 0.6)
-    & (df["kite_cl"] == 0.4)
-    & (df["rising_angle"] == 20)
-    & (df["extra_angle"] == 22)
+dfcheck = df[
+    (df["fish_cl"] == 0.2)
+    & (df["kite_cl"] == 0.81)
+    & (df["rising_angle"] == 40)
+    & (df["extra_angle"] == 10)
 ]
+
+dfcheck.T
 # %% PLOT 3D
 
 
@@ -997,7 +1001,7 @@ fig = px.scatter(
 fig.show()
 
 # %%
-target_wind = 30
+target_wind = 23
 target_rising_angle = 20
 
 
@@ -1029,6 +1033,41 @@ fig.update_layout(
     legend_title="Legend Title",
 )
 fig.show()
+
+
+# %% Plot selected
+
+dfs = df[
+    (df["rising_angle"] == target_rising_angle)
+    & (df["true_wind_calculated_kt_rounded"] == target_wind)
+]
+
+fig = go.Figure()
+fig.add_trace(
+    go.Scatter(
+        x=dfs["vmg_x_kt"],
+        y=dfs["vmg_y_kt"],
+        mode="markers",
+        marker=dict(
+            size=4,
+            # I want the color to be green if
+            # lower_limit ≤ y ≤ upper_limit
+            # else red
+            color=((dfs["simplify"] == 1)).astype("int"),
+            colorscale=[[0, "red"], [1, "green"]],
+        ),
+    )
+)
+
+fig.update_layout(
+    title=f"Polar pts for rising angle:{target_rising_angle} : red TW= {target_wind} kt",
+    xaxis_title="vmg_x_kt",
+    yaxis_title="vmg_y_kt",
+    legend_title="Legend Title",
+)
+fig.show()
+
+
 # %%  only selected points
 dfs = df[
     (df["rising_angle"] == target_rising_angle)
@@ -1038,35 +1077,20 @@ fig = px.scatter(
     dfs,
     x="vmg_x_kt",
     y="vmg_y_kt",
-    color="simplify",
+    color="extra_angle",
     title=f"Polar pts for rising angle:{target_rising_angle} and TW= {target_wind} kt",
 )
-fig.update_traces(marker=dict(color="red"))
-fig.update_yaxes(
-    scaleanchor="x",
-    scaleratio=1,
-)
-fig.show()
-# %%
-df_kt = df[df["true_wind_calculated_kt_rounded"] == target_wind]
-fig = px.density_contour(
-    dfs,
-    x="vmg_x_kt",
-    y="vmg_y_kt",
-    z="rising_angle",
-    color="rising_angle",
-    title=f"Polar contour for TW={target_wind} kt",
-)
-
+# fig.update_traces(marker=dict(color="red"))
 
 dfsimplify = dfs[dfs["simplify"] == 1]
+
 fig.add_trace(
     go.Scatter(
         x=dfsimplify["vmg_x_kt"],
         y=dfsimplify["vmg_y_kt"],
         mode="markers",
         marker=dict(
-            size=8,
+            size=10,
             # I want the color to be green if
             # lower_limit ≤ y ≤ upper_limit
             # else red
@@ -1074,15 +1098,50 @@ fig.add_trace(
         ),
     )
 )
+
+
 fig.update_yaxes(
     scaleanchor="x",
     scaleratio=1,
 )
-
 fig.show()
+# %%
+# df_kt = df[df["true_wind_calculated_kt_rounded"] == target_wind]
+# fig = px.density_contour(
+#     dfs,
+#     x="vmg_x_kt",
+#     y="vmg_y_kt",
+#     z="rising_angle",
+#     color="rising_angle",
+#     title=f"Polar contour for TW={target_wind} kt",
+# )
+
+
+# dfsimplify = dfs[dfs["simplify"] == 1]
+# fig.add_trace(
+#     go.Scatter(
+#         x=dfsimplify["vmg_x_kt"],
+#         y=dfsimplify["vmg_y_kt"],
+#         mode="markers",
+#         marker=dict(
+#             size=8,
+#             # I want the color to be green if
+#             # lower_limit ≤ y ≤ upper_limit
+#             # else red
+#             color="red",
+#         ),
+#     )
+# )
+# fig.update_yaxes(
+#     scaleanchor="x",
+#     scaleratio=1,
+# )
+
+# fig.show()
 # %% Validation pivot table
 
-validation_rising_angle = 20
+validation_rising_angle = 30
+
 validation_extra_angle = 20
 dfv = df[
     (df["fish_cl"].isin(range_fish))
