@@ -814,10 +814,25 @@ range_kite = [round(i, 3) for i in range_kite]
 range_rising_angle = range_rising_angle = [1] + list(np.arange(5, 90, 5))
 range_extra_angle = np.arange(2, 90, 1)
 
-dfo = pd.DataFrame(
-    list(product(range_kite, range_fish, range_rising_angle, range_extra_angle)),
-    columns=["kite_cl", "fish_cl", "rising_angle", "extra_angle"],
+##  previous data generation method  ( slow 15s)
+# dfa = pd.DataFrame(
+#     list(product(range_kite, range_fish, range_rising_angle, range_extra_angle)),
+#     columns=["kite_cl", "fish_cl", "rising_angle", "extra_angle"],
+# )
+
+# Generate all combinations using NumPy broadcasting
+kite_cl, fish_cl, rising_angle, extra_angle = np.meshgrid(
+    range_kite, range_fish, range_rising_angle, range_extra_angle
 )
+dfo = pd.DataFrame(
+    {
+        "kite_cl": kite_cl.ravel(),  # The .ravel() function is used to flatten the arrays into 1D arrays
+        "fish_cl": fish_cl.ravel(),
+        "rising_angle": rising_angle.ravel(),
+        "extra_angle": extra_angle.ravel(),
+    }
+)
+
 # add the simplify criteria
 balance_range = []
 for i in range(nb_points):
@@ -828,31 +843,8 @@ for i in range(nb_points):
     ] = 1
 
 
-# %% TABLE
-def fish_center_depth(row, fk):  # m
-    return fk.tip_fish_depth + fk.fish.projected_span() * 0.5 * np.cos(
-        row["rising_angle_rad"]
-    )
+# %% TABLE CREATION
 
-
-def cable_length_in_water(row):  # m
-    return row["fish_center_depth"] / np.sin(row["rising_angle_rad"])
-
-
-def cable_length_in_air(row, fk):  # m
-    return fk.cable_length_fish - row["cable_length_in_water"]
-
-
-# drag
-def cable_water_drag(row, fk):  # m2
-    return row["cable_length_in_water"] * fk.cable_diameter() * fk.cx_cable_water
-
-
-def cable_air_drag(row, fk):  # m2
-    return row["cable_length_in_air"] * fk.cable_diameter() * fk.cx_cable_air
-
-
-# %%
 df = dfo.copy()
 
 df[f"kite_roll_angle"] = df[f"rising_angle"] + df["extra_angle"]
@@ -863,11 +855,17 @@ df["extra_angle_rad"] = df["extra_angle"].apply(np.radians)
 df["kite_roll_angle_rad"] = df["kite_roll_angle"].apply(np.radians)
 
 # cable
-df["fish_center_depth"] = df.apply(fish_center_depth, axis=1, fk=fk1)
-df["cable_length_in_water"] = df.apply(cable_length_in_water, axis=1)
-df["cable_length_in_air"] = df.apply(cable_length_in_air, axis=1, fk=fk1)
-df["cable_water_drag"] = df.apply(cable_water_drag, axis=1, fk=fk1)
-df["cable_air_drag"] = df.apply(cable_air_drag, axis=1, fk=fk1)
+df["fish_center_depth"] = fk1.tip_fish_depth + fk1.fish.projected_span() * 0.5 * np.cos(
+    df["rising_angle_rad"]
+)
+df["cable_length_in_water"] = df["fish_center_depth"] / np.sin(df["rising_angle_rad"])
+df["cable_length_in_air"] = fk1.cable_length_fish - df["cable_length_in_water"]
+df["cable_water_drag"] = (
+    df["cable_length_in_water"] * fk1.cable_diameter() * fk1.cx_cable_water
+)
+df["cable_air_drag"] = (
+    df["cable_length_in_air"] * fk1.cable_diameter() * fk1.cx_cable_air
+)
 
 # lift and drag
 df["fish_lift"] = fk1.fish.projected_area() * df["fish_cl"]
@@ -976,6 +974,12 @@ df["vmg_y_kt"] = df["vmg_y"] / CONV_KTS_MS
 # group data
 df["true_wind_calculated_kt_rounded"] = df["true_wind_calculated_kt"].round()
 
+# %%
+# assert df
+# df.to_pickle("dfall.pkl")
+
+df_ref = pd.read_pickle("dfall.pkl")
+# pd.testing.assert_frame_equal(df, df_ref)
 
 # %%
 dfcheck = df[
