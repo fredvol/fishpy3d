@@ -142,48 +142,48 @@ class Deflector:
     #     return 1 / np.tan(np.radians(self.efficiency_angle()))
 
 
-class Kite(Deflector):
-    """This classe inherit from deflector and simulate a kite with a pilot."""
+# class Kite(Deflector):
+#     """This classe inherit from deflector and simulate a kite with a pilot."""
 
-    def __init__(
-        self,
-        name: str,
-        cl: float,
-        cl_range: tuple,
-        flat_area: float,
-        flat_ratio: float,
-        flat_aspect_ratio: float,
-        profil_drag_coeff: float,
-        parasite_drag_pct: float,
-        pilot=Pilot,
-    ):
-        super(self.__class__, self).__init__(
-            name,
-            cl,
-            cl_range,
-            flat_area,
-            flat_ratio,
-            flat_aspect_ratio,
-            profil_drag_coeff,
-            parasite_drag_pct,
-        )
+#     def __init__(
+#         self,
+#         name: str,
+#         cl: float,
+#         cl_range: tuple,
+#         flat_area: float,
+#         flat_ratio: float,
+#         flat_aspect_ratio: float,
+#         profil_drag_coeff: float,
+#         parasite_drag_pct: float,
+#         pilot=Pilot,
+#     ):
+#         super(self.__class__, self).__init__(
+#             name,
+#             cl,
+#             cl_range,
+#             flat_area,
+#             flat_ratio,
+#             flat_aspect_ratio,
+#             profil_drag_coeff,
+#             parasite_drag_pct,
+#         )
 
-        self.pilot = pilot
+#         self.pilot = pilot
 
-    def total_drag_with_pilot(self):  # S*Cx
-        return self.total_drag() + self.pilot.pilot_drag
+#     def total_drag_with_pilot(self):  # S*Cx
+#         return self.total_drag() + self.pilot.pilot_drag
 
-    def efficiency_LD(self):
-        return self.lift() / self.total_drag_with_pilot()
+#     def efficiency_LD(self):
+#         return self.lift() / self.total_drag_with_pilot()
 
-    def c_force(self):
-        return (
-            np.sqrt(self.total_drag_with_pilot() ** 2 + self.lift() ** 2)
-            / self.projected_area()
-        )
+#     def c_force(self):
+#         return (
+#             np.sqrt(self.total_drag_with_pilot() ** 2 + self.lift() ** 2)
+#             / self.projected_area()
+#         )
 
-    def efficiency_angle(self):  # deg1
-        return np.degrees(np.arctan(1 / self.efficiency_LD()))
+#     def efficiency_angle(self):  # deg1
+#         return np.degrees(np.arctan(1 / self.efficiency_LD()))
 
 
 class FishKite:
@@ -335,7 +335,7 @@ class FishKite:
     def fish_total_force(self):  # N
         """geometrical resolution of the 3 forces"""
         return (
-            self.kite.pilot.weight()
+            self.pilot.weight()
             * np.sin(np.radians(90 - self.kite_roll_angle()))
             / np.sin(np.radians(self.extra_angle()))
         )
@@ -343,7 +343,7 @@ class FishKite:
     def kite_total_force(self):  # N
         """geometrical resolution of the 3 forces"""
         return (
-            self.kite.pilot.weight()
+            self.pilot.weight()
             * np.sin(np.radians(90 - self.rising_angle))
             / np.sin(np.radians(self.extra_angle()))
         )
@@ -820,11 +820,8 @@ class Project:
 
 # %% Parameter
 if __name__ == "__main__":
-    wind_speed_i = 15  # kt
-    rising_angle_1 = 20  # deg
-
     d_pilot = Pilot(mass=80, pilot_drag=0.25)
-    d_kite1 = Kite(
+    d_kite1 = Deflector(
         "kite1",
         cl=0.8,
         cl_range=(0.4, 1),
@@ -833,7 +830,6 @@ if __name__ == "__main__":
         flat_aspect_ratio=6,
         profil_drag_coeff=0.013,
         parasite_drag_pct=0.03,  # 0.69,
-        pilot=d_pilot,
     )
     d_fish1 = Deflector(
         "fish1",
@@ -848,8 +844,8 @@ if __name__ == "__main__":
 
     fk1 = FishKite(
         "fk1",
-        wind_speed_i,
-        rising_angle_1,
+        wind_speed=15,
+        rising_angle=20,
         fish=d_fish1,
         kite=d_kite1,
         pilot=d_pilot,
@@ -919,196 +915,190 @@ if __name__ == "__main__":
 
     # %%
 
+    # %% Create double range
+    df = fk1.create_df()
 
-# %% Create double range
-df = fk1.create_df()
+    # %%
+    # assert df
+    # df.to_pickle("dfall.pkl")
 
-# %%
-# assert df
-# df.to_pickle("dfall.pkl")
+    df_ref = pd.read_pickle("dfall.pkl")
+    # pd.testing.assert_frame_equal(df, df_ref)
 
-df_ref = pd.read_pickle("dfall.pkl")
-# pd.testing.assert_frame_equal(df, df_ref)
+    # %%
+    dfcheck = df[
+        (df["fish_cl"] == 0.2)
+        & (df["kite_cl"] == 0.81)
+        & (df["rising_angle"] == 40)
+        & (df["extra_angle"] == 10)
+    ]
 
-# %%
-dfcheck = df[
-    (df["fish_cl"] == 0.2)
-    & (df["kite_cl"] == 0.81)
-    & (df["rising_angle"] == 40)
-    & (df["extra_angle"] == 10)
-]
+    dfcheck.T
+    # %% PLOT 3D
 
-dfcheck.T
-# %% PLOT 3D
+    # fig = px.scatter_3d(df, x='vmg_x', y='vmg_y', z='rising_angle',
+    #               color='true_wind_calculated')
+    # fig.show()
+    # %%  One rising angle
 
+    fig = px.scatter(
+        df[(df["rising_angle"] == 20)],
+        x="vmg_x",
+        y="vmg_y",
+        color="true_wind_calculated",
+    )
+    fig.show()
 
-# fig = px.scatter_3d(df, x='vmg_x', y='vmg_y', z='rising_angle',
-#               color='true_wind_calculated')
-# fig.show()
-# %%  One rising angle
+    # %%
+    target_wind = 23
+    target_rising_angle = 20
 
+    dfr = df[(df["rising_angle"] == target_rising_angle)]
 
-fig = px.scatter(
-    df[(df["rising_angle"] == 20)], x="vmg_x", y="vmg_y", color="true_wind_calculated"
-)
-fig.show()
-
-# %%
-target_wind = 23
-target_rising_angle = 20
-
-
-dfr = df[(df["rising_angle"] == target_rising_angle)]
-
-fig = go.Figure()
-fig.add_trace(
-    go.Scatter(
-        x=dfr["vmg_x_kt"],
-        y=dfr["vmg_y_kt"],
-        mode="markers",
-        marker=dict(
-            size=2,
-            # I want the color to be green if
-            # lower_limit ≤ y ≤ upper_limit
-            # else red
-            color=((dfr["true_wind_calculated_kt_rounded"] == target_wind)).astype(
-                "int"
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=dfr["vmg_x_kt"],
+            y=dfr["vmg_y_kt"],
+            mode="markers",
+            marker=dict(
+                size=2,
+                # I want the color to be green if
+                # lower_limit ≤ y ≤ upper_limit
+                # else red
+                color=((dfr["true_wind_calculated_kt_rounded"] == target_wind)).astype(
+                    "int"
+                ),
+                colorscale=[[0, "blue"], [1, "red"]],
             ),
-            colorscale=[[0, "blue"], [1, "red"]],
-        ),
+        )
     )
-)
 
-fig.update_layout(
-    title=f"Polar pts for rising angle:{target_rising_angle} : red TW= {target_wind} kt",
-    xaxis_title="vmg_x_kt",
-    yaxis_title="vmg_y_kt",
-    legend_title="Legend Title",
-)
-fig.show()
-
-
-# %% Plot selected
-
-dfs = df[
-    (df["rising_angle"] == target_rising_angle)
-    & (df["true_wind_calculated_kt_rounded"] == target_wind)
-]
-
-fig = go.Figure()
-fig.add_trace(
-    go.Scatter(
-        x=dfs["vmg_x_kt"],
-        y=dfs["vmg_y_kt"],
-        mode="markers",
-        marker=dict(
-            size=4,
-            # I want the color to be green if
-            # lower_limit ≤ y ≤ upper_limit
-            # else red
-            color=((dfs["simplify"] == 1)).astype("int"),
-            colorscale=[[0, "red"], [1, "green"]],
-        ),
+    fig.update_layout(
+        title=f"Polar pts for rising angle:{target_rising_angle} : red TW= {target_wind} kt",
+        xaxis_title="vmg_x_kt",
+        yaxis_title="vmg_y_kt",
+        legend_title="Legend Title",
     )
-)
+    fig.show()
 
-fig.update_layout(
-    title=f"Polar pts for rising angle:{target_rising_angle} : red TW= {target_wind} kt",
-    xaxis_title="vmg_x_kt",
-    yaxis_title="vmg_y_kt",
-    legend_title="Legend Title",
-)
-fig.show()
+    # %% Plot selected
 
+    dfs = df[
+        (df["rising_angle"] == target_rising_angle)
+        & (df["true_wind_calculated_kt_rounded"] == target_wind)
+    ]
 
-# %%  only selected points
-dfs = df[
-    (df["rising_angle"] == target_rising_angle)
-    & (df["true_wind_calculated_kt_rounded"] == target_wind)
-]
-fig = px.scatter(
-    dfs,
-    x="vmg_x_kt",
-    y="vmg_y_kt",
-    color="extra_angle",
-    title=f"Polar pts for rising angle:{target_rising_angle} and TW= {target_wind} kt",
-)
-# fig.update_traces(marker=dict(color="red"))
-
-dfsimplify = dfs[dfs["simplify"] == 1]
-
-fig.add_trace(
-    go.Scatter(
-        x=dfsimplify["vmg_x_kt"],
-        y=dfsimplify["vmg_y_kt"],
-        mode="markers",
-        marker=dict(
-            size=10,
-            # I want the color to be green if
-            # lower_limit ≤ y ≤ upper_limit
-            # else red
-            color="red",
-        ),
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=dfs["vmg_x_kt"],
+            y=dfs["vmg_y_kt"],
+            mode="markers",
+            marker=dict(
+                size=4,
+                # I want the color to be green if
+                # lower_limit ≤ y ≤ upper_limit
+                # else red
+                color=((dfs["simplify"] == 1)).astype("int"),
+                colorscale=[[0, "red"], [1, "green"]],
+            ),
+        )
     )
-)
 
+    fig.update_layout(
+        title=f"Polar pts for rising angle:{target_rising_angle} : red TW= {target_wind} kt",
+        xaxis_title="vmg_x_kt",
+        yaxis_title="vmg_y_kt",
+        legend_title="Legend Title",
+    )
+    fig.show()
 
-fig.update_yaxes(
-    scaleanchor="x",
-    scaleratio=1,
-)
-fig.show()
-# %%
-# df_kt = df[df["true_wind_calculated_kt_rounded"] == target_wind]
-# fig = px.density_contour(
-#     dfs,
-#     x="vmg_x_kt",
-#     y="vmg_y_kt",
-#     z="rising_angle",
-#     color="rising_angle",
-#     title=f"Polar contour for TW={target_wind} kt",
-# )
+    # %%  only selected points
+    dfs = df[
+        (df["rising_angle"] == target_rising_angle)
+        & (df["true_wind_calculated_kt_rounded"] == target_wind)
+    ]
+    fig = px.scatter(
+        dfs,
+        x="vmg_x_kt",
+        y="vmg_y_kt",
+        color="extra_angle",
+        title=f"Polar pts for rising angle:{target_rising_angle} and TW= {target_wind} kt",
+    )
+    # fig.update_traces(marker=dict(color="red"))
 
+    dfsimplify = dfs[dfs["simplify"] == 1]
 
-# dfsimplify = dfs[dfs["simplify"] == 1]
-# fig.add_trace(
-#     go.Scatter(
-#         x=dfsimplify["vmg_x_kt"],
-#         y=dfsimplify["vmg_y_kt"],
-#         mode="markers",
-#         marker=dict(
-#             size=8,
-#             # I want the color to be green if
-#             # lower_limit ≤ y ≤ upper_limit
-#             # else red
-#             color="red",
-#         ),
-#     )
-# )
-# fig.update_yaxes(
-#     scaleanchor="x",
-#     scaleratio=1,
-# )
+    fig.add_trace(
+        go.Scatter(
+            x=dfsimplify["vmg_x_kt"],
+            y=dfsimplify["vmg_y_kt"],
+            mode="markers",
+            marker=dict(
+                size=10,
+                # I want the color to be green if
+                # lower_limit ≤ y ≤ upper_limit
+                # else red
+                color="red",
+            ),
+        )
+    )
 
-# fig.show()
-# %% Validation pivot table
+    fig.update_yaxes(
+        scaleanchor="x",
+        scaleratio=1,
+    )
+    fig.show()
+    # %%
+    # df_kt = df[df["true_wind_calculated_kt_rounded"] == target_wind]
+    # fig = px.density_contour(
+    #     dfs,
+    #     x="vmg_x_kt",
+    #     y="vmg_y_kt",
+    #     z="rising_angle",
+    #     color="rising_angle",
+    #     title=f"Polar contour for TW={target_wind} kt",
+    # )
 
-validation_rising_angle = 30
+    # dfsimplify = dfs[dfs["simplify"] == 1]
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=dfsimplify["vmg_x_kt"],
+    #         y=dfsimplify["vmg_y_kt"],
+    #         mode="markers",
+    #         marker=dict(
+    #             size=8,
+    #             # I want the color to be green if
+    #             # lower_limit ≤ y ≤ upper_limit
+    #             # else red
+    #             color="red",
+    #         ),
+    #     )
+    # )
+    # fig.update_yaxes(
+    #     scaleanchor="x",
+    #     scaleratio=1,
+    # )
 
-validation_extra_angle = 20
-dfv = df[
-    (df["fish_cl"].isin(range_fish))
-    & (df["kite_cl"].isin(range_kite))
-    & (df["rising_angle"] == validation_rising_angle)
-    & (df["extra_angle"] == validation_extra_angle)
-]
+    # fig.show()
+    # %% Validation pivot table
 
+    validation_rising_angle = 30
 
-pd.pivot_table(
-    dfv,
-    values="true_wind_calculated_kt",
-    index=["kite_cl"],
-    columns=["fish_cl"],
-    aggfunc=np.sum,
-)
-# %%
+    validation_extra_angle = 20
+    dfv = df[
+        (df["fish_cl"].isin(range_fish))
+        & (df["kite_cl"].isin(range_kite))
+        & (df["rising_angle"] == validation_rising_angle)
+        & (df["extra_angle"] == validation_extra_angle)
+    ]
+
+    pd.pivot_table(
+        dfv,
+        values="true_wind_calculated_kt",
+        index=["kite_cl"],
+        columns=["fish_cl"],
+        aggfunc=np.sum,
+    )
+    # %%
