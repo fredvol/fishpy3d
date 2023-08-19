@@ -30,11 +30,19 @@ wind_speed_i = 15  # kt
 rising_angle_1 = 33  # deg
 rising_angle_2 = 20  # deg
 
-d_kite1 = Deflector("kite1", cl=0.4, cl_range=(0.4, 0.9), area=24, efficiency_angle=12)
-d_fish1 = Deflector("fish1", cl=0.2, cl_range=(0.2, 0.4), area=0.1, efficiency_angle=14)
+d_kite1 = Deflector(
+    "kite1", cl=0.4, cl_range=(0.4, 0.9), flat_area=24, efficiency_angle=12
+)
+d_fish1 = Deflector(
+    "fish1", cl=0.2, cl_range=(0.2, 0.4), flat_area=0.1, efficiency_angle=14
+)
 
-d_kite2 = Deflector("kite2", cl=0.6, cl_range=(0.4, 0.9), area=25, efficiency_angle=4)
-d_fish2 = Deflector("fish2", cl=0.4, cl_range=(0.2, 0.4), area=0.07, efficiency_angle=8)
+d_kite2 = Deflector(
+    "kite2", cl=0.6, cl_range=(0.4, 0.9), flat_area=25, efficiency_angle=4
+)
+d_fish2 = Deflector(
+    "fish2", cl=0.4, cl_range=(0.2, 0.4), flat_area=0.07, efficiency_angle=8
+)
 
 fk1 = FishKite("fk1", wind_speed_i, rising_angle_1, fish=d_fish1, kite=d_kite1)
 fk2 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite2)
