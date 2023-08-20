@@ -19,6 +19,7 @@ from pytest import fixture
 import test_assets.data_test_model3d as data_test_model3d
 
 cwd = os.getcwd()
+test_folder = os.path.join(cwd, "test_assets")
 
 
 # %% function
@@ -148,3 +149,19 @@ def test_fk2_object(fk2):
 
 
 # %%
+def test_df_creation(fk1, fk2):
+    df1 = fk1.create_df()
+    df2 = fk2.create_df()
+
+    df1_ref_path = os.path.join(test_folder, "df_fk1_table.pkl")
+    df2_ref_path = os.path.join(test_folder, "df_fk2_table.pkl")
+
+    # export for reference
+    # df1.to_pickle(df1_ref_path)
+    # df2.to_pickle(df2_ref_path)
+
+    df_ref1 = pd.read_pickle(df1_ref_path)
+    df_ref2 = pd.read_pickle(df2_ref_path)
+
+    pd.testing.assert_frame_equal(df1, df_ref1)
+    pd.testing.assert_frame_equal(df2, df_ref2)
