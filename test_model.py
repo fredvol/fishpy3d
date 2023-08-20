@@ -27,10 +27,10 @@ def fk1():
     rising_angle_1 = 33  # deg
 
     d_kite1 = Deflector(
-        "kite1", cl=0.4, cl_range=(0.4, 0.9), area=24, efficiency_angle=12
+        "kite1", cl=0.4, cl_range=(0.4, 0.9), flat_area=24, efficiency_angle=12
     )
     d_fish1 = Deflector(
-        "fish1", cl=0.2, cl_range=(0.2, 0.4), area=0.1, efficiency_angle=14
+        "fish1", cl=0.2, cl_range=(0.2, 0.4), flat_area=0.1, efficiency_angle=14
     )
     fk1 = FishKite("fk1", wind_speed_i, rising_angle_1, fish=d_fish1, kite=d_kite1)
     return fk1
@@ -42,10 +42,10 @@ def fk2():
     rising_angle_2 = 20  # deg
 
     d_kite2 = Deflector(
-        "kite2", cl=0.6, cl_range=(0.3, 0.9), area=25, efficiency_angle=4
+        "kite2", cl=0.6, cl_range=(0.3, 0.9), flat_area=25, efficiency_angle=4
     )
     d_fish2 = Deflector(
-        "fish2", cl=0.4, cl_range=(0.2, 0.4), area=0.07, efficiency_angle=8
+        "fish2", cl=0.4, cl_range=(0.2, 0.4), flat_area=0.07, efficiency_angle=8
     )
     fk2 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish2, kite=d_kite2)
     return fk2
@@ -56,9 +56,11 @@ def fk3():
     wind_speed_i = 23  # kt
     rising_angle_2 = 50  # deg
 
-    d_kite3 = Deflector("kite3", cl=1, cl_range=(0.4, 0.9), area=12, efficiency_angle=4)
+    d_kite3 = Deflector(
+        "kite3", cl=1, cl_range=(0.4, 0.9), flat_area=12, efficiency_angle=4
+    )
     d_fish3 = Deflector(
-        "fish2", cl=0.4, cl_range=(0.2, 0.4), area=0.1, efficiency_angle=45
+        "fish2", cl=0.4, cl_range=(0.2, 0.4), flat_area=0.1, efficiency_angle=45
     )
     fk3 = FishKite("fk2", wind_speed_i, rising_angle_2, fish=d_fish3, kite=d_kite3)
     return fk3
