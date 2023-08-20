@@ -17,7 +17,7 @@ import plotly.offline as po
 import plotly.graph_objects as go
 from itertools import product
 
-from fish_plot import plot_cases, add_line
+from fish_plot_3d import plot_3d_cases, plot_3d_cases_risingangle
 
 import scipy.optimize as opt
 
@@ -806,6 +806,17 @@ class Project:
         list_df = [fk.perf_table() for fk in self.lst_fishkite]
         df = pd.concat(list_df)
         return df.T.reset_index()
+
+    def create_df(self):
+        df_list = []
+
+        for fk in self.lst_fishkite:
+            dfi = fk.create_df()
+            dfi["fk_name"] = fk.name
+            df_list.append(dfi)
+
+        df = pd.concat(df_list, ignore_index=True)
+        return df
 
     def plot(self, draw_ortho_grid=True, add_background_image=False):
         fig = plot_cases(
