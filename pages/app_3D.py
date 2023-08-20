@@ -6,6 +6,7 @@
 # https://fishpy2d-9143325b137e.herokuapp.com/
 
 # imports
+from model import Project
 from model_3d import (
     Deflector,
     FishKite,
@@ -71,6 +72,44 @@ fk1 = FishKite(
     tip_fish_depth=0.5,
 )
 
+d_kite2 = Deflector(
+    "kite2",
+    cl=0.8,
+    cl_range=(0.2, 0.6),
+    flat_area=18,
+    flat_ratio=0.85,
+    flat_aspect_ratio=6,
+    profil_drag_coeff=0.013,
+    parasite_drag_pct=0.03,  # 0.69,
+)
+d_fish2 = Deflector(
+    "fish2",
+    cl=0.6,
+    cl_range=(0.2, 0.6),
+    flat_area=0.1,
+    flat_ratio=0.64,
+    profil_drag_coeff=0.01,
+    flat_aspect_ratio=8.5,
+    parasite_drag_pct=0.06,
+)
+
+fk2 = FishKite(
+    "fk2",
+    wind_speed=15,
+    rising_angle=20,
+    fish=d_fish1,
+    kite=d_kite1,
+    pilot=d_pilot,
+    extra_angle=20,
+    cable_length_fish=30,
+    cable_length_kite=12,
+    cable_strength=500,
+    cx_cable_water=1,
+    cx_cable_air=1,
+    tip_fish_depth=0.5,
+)
+
+proj = Project([fk1, fk2])
 # %%"
 # app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # server = app.server
@@ -172,16 +211,16 @@ layout = dbc.Container(
                                 dcc.Tab(
                                     label="selected Rising angle",
                                     children=[
+                                        dbc.CardBody(
+                                            create_polar_rising_sliders(),
+                                            # dcc.Markdown("bidon")
+                                        ),
                                         dcc.Graph(
                                             id="fig1_3d_rising_angle",
                                             figure=fig_rising_angle,
                                             style={
                                                 "position": "fixed",  # that imobilised the graph
                                             },
-                                        ),
-                                        dbc.CardBody(
-                                            create_polar_rising_sliders(),
-                                            # dcc.Markdown("bidon")
                                         ),
                                     ],
                                 ),
@@ -272,6 +311,23 @@ def toggle_shape_collapse(n_clicks, is_open):
     if n_clicks:
         return not is_open
     return is_open
+
+
+### Callback to update possible  rising angle according to truewind
+@callback(
+    Output("slider-rising_angle_polar", "marks"),
+    [
+        Input("slider-wind_speed", "value"),
+    ],
+)
+def update_possible_rising_angle(target_wind):
+    possibility = list(
+        dfG[dfG["true_wind_calculated_kt_rounded"] == target_wind][
+            "rising_angle"
+        ].unique()
+    )
+
+    return {int(i): str(i) for i in sorted(possibility)}
 
 
 ### Callback to update polar selected  rising angle

@@ -214,7 +214,7 @@ class FishKite:
         self._extra_angle = extra_angle  # deg  this will later been computed
         self.cable_length_fish = cable_length_fish  # m
         self.cable_length_kite = cable_length_kite  # m
-        self.cable_strength = cable_strength  # m
+        self.cable_strength = cable_strength  # DaN
         self.cx_cable_water = cx_cable_water  # no unit
         self.cx_cable_air = cx_cable_air  # no unit
         self.tip_fish_depth = tip_fish_depth  # no
@@ -425,30 +425,30 @@ class FishKite:
 
     ################# BELOW THAT ALL IS FOR THE 2D ##################
 
-    def fluid_velocity_ratio(self):
-        current_ratio = (
-            RHO_AIR
-            * self.kite.flat_area()
-            * self.kite.cl
-            / (RHO_WATER * self.fish.flat_area() * self.fish.cl)
-        ) ** 0.5
-        return current_ratio
+    # def fluid_velocity_ratio(self):
+    #     current_ratio = (
+    #         RHO_AIR
+    #         * self.kite.flat_area()
+    #         * self.kite.cl
+    #         / (RHO_WATER * self.fish.flat_area() * self.fish.cl)
+    #     ) ** 0.5
+    #     return current_ratio
 
-    def fluid_velocity_ratio_range(self):
-        min_ratio = (
-            RHO_AIR
-            * self.kite.flat_area()
-            * self.kite.cl_range["min"]
-            / (RHO_WATER * self.fish.flat_area() * self.fish.cl_range["max"])
-        ) ** 0.5
-        max_ratio = (
-            RHO_AIR
-            * self.kite.flat_area()
-            * self.kite.cl_range["max"]
-            / (RHO_WATER * self.fish.flat_area() * self.fish.cl_range["min"])
-        ) ** 0.5
+    # def fluid_velocity_ratio_range(self):
+    #     min_ratio = (
+    #         RHO_AIR
+    #         * self.kite.flat_area()
+    #         * self.kite.cl_range["min"]
+    #         / (RHO_WATER * self.fish.flat_area() * self.fish.cl_range["max"])
+    #     ) ** 0.5
+    #     max_ratio = (
+    #         RHO_AIR
+    #         * self.kite.flat_area()
+    #         * self.kite.cl_range["max"]
+    #         / (RHO_WATER * self.fish.flat_area() * self.fish.cl_range["min"])
+    #     ) ** 0.5
 
-        return {"max": max_ratio, "min": min_ratio}
+    #     return {"max": max_ratio, "min": min_ratio}
 
     # def true_wind_angle(self, velocity_ratio):
     #     """From 2D calculation might be obsolete"""
@@ -594,12 +594,12 @@ class FishKite:
             self.pilot.weight()
             * np.sin((np.pi / 2) - df[f"kite_roll_angle_rad"])
             / np.sin(df[f"extra_angle_rad"])
-        )
+        )  # N
         df["kite_total_force"] = (
             self.pilot.weight()
             * np.sin((np.pi / 2) - df[f"rising_angle_rad"])
             / np.sin(df[f"extra_angle_rad"])
-        )
+        )  # N
 
         df["flat_power_ratio"] = (
             RHO_AIR * df["kite_c_force"] * self.kite.projected_area()
@@ -647,6 +647,12 @@ class FishKite:
 
         df["vmg_x_kt"] = df["vmg_x"] / CONV_KTS_MS
         df["vmg_y_kt"] = df["vmg_y"] / CONV_KTS_MS
+
+        # cable strength
+        df["cable_strength_margin"] = self.cable_strength / (
+            df["fish_total_force"] / 10
+        )
+        df["cable_break"] = df["cable_strength_margin"] <= 1
 
         # group data
         df["true_wind_calculated_kt_rounded"] = df["true_wind_calculated_kt"].round()

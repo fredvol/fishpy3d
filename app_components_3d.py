@@ -64,14 +64,14 @@ operating_slider_components = [
 
 def create_polar_rising_sliders():
     s = html.Div(
-        dbc.Row(
+        dbc.Col(
             [
                 html.Label("rising Angle [deg]"),
                 dcc.Slider(
                     id=f"slider-rising_angle_polar",
                     min=1,
                     max=90,
-                    step=5,
+                    step=90,
                     value=25,
                     updatemode="drag",
                     marks={i: str(i) for i in range(0, 90, 5)},
@@ -80,17 +80,36 @@ def create_polar_rising_sliders():
                         "always_visible": True,
                     },
                 ),
-                html.Label("Data:"),
-                dcc.Dropdown(
-                    ["extra_angle", "fish_total_force", "apparent_watter_ms"],
-                    "extra_angle",
-                    id="data_color_polar_rising",
-                ),
-                html.Label("Symbol:"),
-                dcc.Dropdown(
-                    ["None", "extra_angle", "fish_total_force", "apparent_watter_ms"],
-                    None,
-                    id="data_symbol_polar_rising",
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                html.Label("Data:"),
+                                dcc.Dropdown(
+                                    [
+                                        "extra_angle",
+                                        "fish_total_force",
+                                        "apparent_watter_ms",
+                                    ],
+                                    "extra_angle",
+                                    id="data_color_polar_rising",
+                                ),
+                            ]
+                        ),
+                        dbc.Col(
+                            [
+                                html.Label("Symbol:"),
+                                dcc.Dropdown(
+                                    [
+                                        "None",
+                                        "cable_break",
+                                    ],
+                                    None,
+                                    id="data_symbol_polar_rising",
+                                ),
+                            ]
+                        ),
+                    ]
                 ),
             ]
         ),
@@ -109,20 +128,6 @@ def create_fk_sliders(id):
                             daq.BooleanSwitch(id=f"boolean_{id}", on=True),
                         ),
                     ]
-                ),
-                html.Label("rising Angle [deg]"),
-                dcc.Slider(
-                    id=f"slider-rising_angle_{id}",
-                    min=1,
-                    max=90,
-                    step=1,
-                    value=25,
-                    updatemode="drag",
-                    marks={i: str(i) for i in range(0, 90, 5)},
-                    tooltip={
-                        "placement": "bottom",
-                        "always_visible": True,
-                    },
                 ),
                 html.H6(html.B(f"Kite:")),
                 html.Label("Kite Area [m2]"),
@@ -145,29 +150,10 @@ def create_fk_sliders(id):
                     min=0,
                     max=1.5,
                     step=0.05,
-                    value=[0.5, 0.8, 1],
+                    value=[0.5, 1],
                     updatemode="drag",
                     marks={i: str(i) for i in [0, 0.5, 1, 1.5]},
                     pushable=0,
-                    tooltip={
-                        "placement": "bottom",
-                        "always_visible": True,
-                    },
-                ),
-                html.Tr(
-                    [
-                        html.Td("Kite efficiency_angle [deg]:    "),
-                        html.Div(id=f"label-kite_eff_LD_{id}"),
-                    ]
-                ),
-                dcc.Slider(
-                    id=f"slider-kite_efficiency_angle_{id}",
-                    min=1,
-                    max=45,
-                    step=1,
-                    value=12,
-                    updatemode="drag",
-                    marks={i: str(i) for i in range(0, 50, 5)},
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,
@@ -195,29 +181,10 @@ def create_fk_sliders(id):
                     min=0.1,
                     max=1,
                     step=0.05,
-                    value=[0.25, 0.4, 0.5],
+                    value=[0.25, 0.5],
                     pushable=0,
                     updatemode="drag",
                     marks={i: str(i) for i in [0, 0.5, 1]},
-                    tooltip={
-                        "placement": "bottom",
-                        "always_visible": True,
-                    },
-                ),
-                html.Tr(
-                    [
-                        html.Td("Fish efficiency_angle [deg]:    >"),
-                        html.Div(id=f"label-fish_eff_LD_{id}"),
-                    ]
-                ),
-                dcc.Slider(
-                    id=f"slider-fish_efficiency_angle_{id}",
-                    min=1,
-                    max=45,
-                    step=1,
-                    value=9,
-                    updatemode="drag",
-                    marks={i: str(i) for i in range(0, 50, 5)},
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,

@@ -62,7 +62,12 @@ def plot_3d_cases_risingangle(
         y="vmg_y_kt",
         color=what,
         symbol=symbol,
-        hover_data=["apparent_watter_ms", what],
+        hover_data=[
+            "apparent_watter_ms",
+            what,
+            "fish_total_force",
+            "cable_strength_margin",
+        ],
         height=height_size,
         width=height_size * 1.1,
     )
