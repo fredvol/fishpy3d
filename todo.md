@@ -8,3 +8,4 @@
 
 # info 
  filter and tab : https://shapash-demo.ossbymaif.fr/
+ click link : https://dash.gallery/dash-tsne/
