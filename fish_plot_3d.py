@@ -25,29 +25,20 @@ if "#EF553B" in COLOR_palette:
 
 
 def plot_3d_cases_risingangle(
-    list_of_cases,
-    height_size=900,
+    df,
     target_rising_angle=20,
     target_wind=30,
+    what="extra_angle",
+    symbol=None,
+    height_size=900,
 ):
-    df_list = []
-
-    for fk in list_of_cases:
-        dfi = fk.create_df()
-        dfi["fk_name"] = fk.name
-        df_list.append(dfi)
-
-    df = pd.concat(df_list, ignore_index=True)
-
-    title_cases = ", ".join([fk.name for fk in list_of_cases])
-
     fig = go.Figure(
         layout=go.Layout(
-            title=go.layout.Title(text=f"Polar for: {title_cases}"),
+            title=go.layout.Title(
+                text=f"Rising angle: {target_rising_angle} , TrueWind = {target_wind} kt"
+            ),
             autosize=True,
             plot_bgcolor="rgba(240,240,240,0.7)",
-            height=height_size,
-            width=height_size * 1.1,
             xaxis_range=[-15, 550],
             yaxis_range=[-300, 240],
             xaxis=dict(showgrid=False, visible=False),
@@ -69,8 +60,11 @@ def plot_3d_cases_risingangle(
         dfs,
         x="vmg_x_kt",
         y="vmg_y_kt",
-        color="extra_angle",
-        title=f"Polar pts for rising angle:{target_rising_angle} and TW= {target_wind} kt",
+        color=what,
+        symbol=symbol,
+        hover_data=["apparent_watter_ms", what],
+        height=height_size,
+        width=height_size * 1.1,
     )
     # fig.update_traces(marker=dict(color="red"))
 
@@ -99,11 +93,7 @@ def plot_3d_cases_risingangle(
     return fig
 
 
-def plot_3d_cases(
-    df,
-):
-    title_cases = "3D plot "
-
+def plot_3d_cases(df, height_size=800):
     fig = go.Figure(
         data=go.Scattergl(
             x=df["vmg_x_kt"],
@@ -113,6 +103,13 @@ def plot_3d_cases(
         )
     )
 
+    fig.update_layout(
+        title=go.layout.Title(text=f" All polar points "),
+        autosize=True,
+        plot_bgcolor="rgba(240,240,240,0.7)",
+        height=height_size,
+        width=height_size * 1.1,
+    )
     fig.update_yaxes(
         scaleanchor="x",
         scaleratio=1,

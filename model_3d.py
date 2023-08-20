@@ -868,6 +868,7 @@ if __name__ == "__main__":
         cx_cable_air=1,
         tip_fish_depth=0.5,
     )
+
     # %% display all for fish
     print(" ALL DATA FOR FISH")
     attributes = dir(d_fish1)
