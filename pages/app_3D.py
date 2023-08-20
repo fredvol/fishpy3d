@@ -27,7 +27,7 @@ import numpy as np
 import copy
 import pandas as pd
 
-from app_components import *
+from app_components_3d import *
 from dash import ctx, dash_table, callback
 
 __version__ = "1.0.3"
@@ -74,9 +74,10 @@ fk1 = FishKite(
 # %%"
 # app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # server = app.server
+dfG = fk1.create_df()
 
-fig_rising_angle = plot_3d_cases_risingangle([fk1])
-fig_all_pts = plot_3d_cases(fk1.create_df())
+fig_rising_angle = plot_3d_cases_risingangle(dfG)
+fig_all_pts = plot_3d_cases(dfG)
 # df_table = proj.perf_table()
 
 
@@ -177,7 +178,11 @@ layout = dbc.Container(
                                             style={
                                                 "position": "fixed",  # that imobilised the graph
                                             },
-                                        )
+                                        ),
+                                        dbc.CardBody(
+                                            create_polar_rising_sliders(),
+                                            # dcc.Markdown("bidon")
+                                        ),
                                     ],
                                 ),
                                 dcc.Tab(
@@ -267,6 +272,29 @@ def toggle_shape_collapse(n_clicks, is_open):
     if n_clicks:
         return not is_open
     return is_open
+
+
+### Callback to update polar selected  rising angle
+@callback(
+    Output("fig1_3d_rising_angle", "figure"),
+    [
+        Input("slider-rising_angle_polar", "value"),
+        Input("slider-wind_speed", "value"),
+        Input("data_color_polar_rising", "value"),
+        Input("data_symbol_polar_rising", "value"),
+    ],
+)
+def update_polar_rising_angle(rising_angle, target_wind, color_data, symbol_data):
+    if symbol_data == "None":
+        symbol_data = None
+
+    return plot_3d_cases_risingangle(
+        dfG,
+        target_rising_angle=rising_angle,
+        target_wind=target_wind,
+        what=color_data,
+        symbol=symbol_data,
+    )
 
 
 ## main collaback
