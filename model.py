@@ -41,12 +41,12 @@ class Deflector:
         name: str,
         cl: float,
         cl_range: tuple,
-        area: float,
+        flat_area: float,
         efficiency_angle: float,
     ):
         self.name = name
         self.cl = cl
-        self.area = area  # m2
+        self.area = flat_area  # m2
         self.efficiency_angle = efficiency_angle  # deg
 
         self.cl_range = {"min": cl_range[0], "max": cl_range[1]}
