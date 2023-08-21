@@ -6,11 +6,12 @@
 # https://fishpy2d-9143325b137e.herokuapp.com/
 
 # imports
-from model import Project
+
 from model_3d import (
     Deflector,
     FishKite,
     Pilot,
+    Project,
     plot_3d_cases,
     plot_3d_cases_risingangle,
 )
@@ -124,6 +125,7 @@ layout = dbc.Container(
     [
         dbc.Row(
             [
+                dcc.Store(id="dataStore", storage_type="memory"),
                 dbc.Col(
                     [
                         dbc.Button(
@@ -190,6 +192,7 @@ layout = dbc.Container(
                             is_open=False,
                         ),
                         html.Hr(),
+                        html.Div(id="debug"),
                         # dcc.Markdown("##### Commands"),
                         # dbc.Button(
                         #     "Analyze",
@@ -321,7 +324,7 @@ def toggle_shape_collapse(n_clicks, is_open):
 @callback(
     Output("slider-rising_angle_polar", "marks"),
     [
-        Input("slider-wind_speed", "value"),
+        Input("3d_slider-wind_speed", "value"),
     ],
 )
 def update_possible_rising_angle(target_wind):
@@ -339,7 +342,7 @@ def update_possible_rising_angle(target_wind):
     Output("fig1_3d_rising_angle", "figure"),
     [
         Input("slider-rising_angle_polar", "value"),
-        Input("slider-wind_speed", "value"),
+        Input("3d_slider-wind_speed", "value"),
         Input("data_color_polar_rising", "value"),
         Input("data_symbol_polar_rising", "value"),
     ],
@@ -361,123 +364,72 @@ def update_polar_rising_angle(rising_angle, target_wind, color_data, symbol_data
 @callback(
     Output("fig1_3d_all_pts", "figure"),
     [
-        Input("slider-wind_speed", "value"),
+        Input("3d_slider-wind_speed", "value"),
         Input("data_color_polar_all_pts", "value"),
+        Input("dataStore", "data"),
     ],
 )
-def update_polar_all_pts(target_wind, color_data):
+def update_polar_all_pts(target_wind, color_data, jsonified_data):
+    dff = pd.read_json(jsonified_data, orient="split")
     return plot_3d_cases(
-        dfG,
+        dff,
         target_wind=target_wind,
         what=color_data,
     )
 
 
-## main collaback
-# @callback(
-#     Output("fig1_3d", "figure"),
-#     Output(component_id="my-output_3d", component_property="children"),
-#     # Output(component_id="perf_table", component_property="data"),
-#     inputs={
-#         "all_inputs": {
-#             "general": {
-#                 "wind_speed": Input("slider-wind_speed", "value"),
-#                 "bool_orthogrid": Input("bool_orthogrid", "on"),
-#                 # "bool_backgrdimg": Input("bool_backgrdimg", "on"),
-#                 "bool_isospeed": Input("bool_isospeed", "on"),
-#                 "bool_isoeft": Input("bool_isoeft", "on"),
-#                 "bool_isofluid": Input("bool_isofluid", "on"),
-#                 "graph_size": Input("slider-graph_size", "value"),
-#             },
-#             0: {
-#                 "bool_fk": Input("boolean_0", "on"),
-#                 "rising_angle": Input("slider-rising_angle_0", "value"),
-#                 "kite_area": Input("slider-kite_area_0", "value"),
-#                 "kite_cl": Input("slider-kite_cl_0", "value"),
-#                 "kite_efficiency_angle": Input(
-#                     "slider-kite_efficiency_angle_0", "value"
-#                 ),
-#                 "fish_area": Input("slider-fish_area_0", "value"),
-#                 "fish_cl": Input("slider-fish_cl_0", "value"),
-#                 "fish_efficiency_angle": Input(
-#                     "slider-fish_efficiency_angle_0", "value"
-#                 ),
-#             },
-#             1: {
-#                 "bool_fk": Input("boolean_1", "on"),
-#                 "rising_angle": Input("slider-rising_angle_1", "value"),
-#                 "kite_area": Input("slider-kite_area_1", "value"),
-#                 "kite_cl": Input("slider-kite_cl_1", "value"),
-#                 "kite_efficiency_angle": Input(
-#                     "slider-kite_efficiency_angle_1", "value"
-#                 ),
-#                 "fish_area": Input("slider-fish_area_1", "value"),
-#                 "fish_cl": Input("slider-fish_cl_1", "value"),
-#                 "fish_efficiency_angle": Input(
-#                     "slider-fish_efficiency_angle_1", "value"
-#                 ),
-#             },
-#         }
-#     },
-# )
-# def update(all_inputs):
-#     c = ctx.args_grouping.all_inputs
+# DF update callaback
+@callback(
+    [Output("dataStore", "data"), Output("debug", "children")],
+    inputs={
+        "all_inputs": {
+            "general": {
+                "wind_speed": Input("3d_slider-wind_speed", "value"),
+            },
+            0: {
+                "bool_fk": Input("3d_boolean_0", "on"),
+                "kite_area": Input("3d_slider-kite_area_0", "value"),
+                "kite_cl": Input("3d_slider-kite_cl_0", "value"),
+                "fish_area": Input("3d_slider-fish_area_0", "value"),
+                "fish_cl": Input("3d_slider-fish_cl_0", "value"),
+            },
+            1: {
+                "bool_fk": Input("3d_boolean_1", "on"),
+                "kite_area": Input("3d_slider-kite_area_1", "value"),
+                "kite_cl": Input("3d_slider-kite_cl_1", "value"),
+                "fish_area": Input("3d_slider-fish_area_1", "value"),
+                "fish_cl": Input("3d_slider-fish_cl_1", "value"),
+            },
+        }
+    },
+    # State=State("dataStore", "data"),
+)
+def update(all_inputs):
+    c = ctx.args_grouping.all_inputs
+    # case_list = []
 
-#     bool_orthogrid = c["general"]["bool_orthogrid"]["value"]
-#     # bool_backgrdimg = c["general"]["bool_backgrdimg"]["value"]
-#     bool_isospeed = c["general"]["bool_isospeed"]["value"]
-#     bool_isoeft = c["general"]["bool_isoeft"]["value"]
-#     bool_isofluid = c["general"]["bool_isofluid"]["value"]
+    # if c[0]["bool_fk"]["value"]:
+    #     case_list.append(proj.lst_fishkite[0])
+    # if c[1]["bool_fk"]["value"]:
+    #     case_list.append(proj.lst_fishkite[1])
+    # proj = Project(case_list)
 
-#     proj.lst_fishkite[0].wind_speed = c["general"]["wind_speed"]["value"]
-#     proj.lst_fishkite[1].wind_speed = c["general"]["wind_speed"]["value"]
+    proj.lst_fishkite[0].wind_speed = c["general"]["wind_speed"]["value"]
+    proj.lst_fishkite[1].wind_speed = c["general"]["wind_speed"]["value"]
 
-#     proj.lst_fishkite[0].rising_angle = c[0]["rising_angle"]["value"]
-#     proj.lst_fishkite[0].kite.area = c[0]["kite_area"]["value"]
-#     proj.lst_fishkite[0].kite.cl = c[0]["kite_cl"]["value"][1]
-#     proj.lst_fishkite[0].kite.cl_range["min"] = c[0]["kite_cl"]["value"][0]
-#     proj.lst_fishkite[0].kite.cl_range["max"] = c[0]["kite_cl"]["value"][2]
-#     proj.lst_fishkite[0].kite.efficiency_angle = c[0]["kite_efficiency_angle"]["value"]
-#     proj.lst_fishkite[0].fish.area = c[0]["fish_area"]["value"]
-#     proj.lst_fishkite[0].fish.cl = c[0]["fish_cl"]["value"][1]
-#     proj.lst_fishkite[0].fish.cl_range["min"] = c[0]["fish_cl"]["value"][0]
-#     proj.lst_fishkite[0].fish.cl_range["max"] = c[0]["fish_cl"]["value"][2]
-#     proj.lst_fishkite[0].fish.efficiency_angle = c[0]["fish_efficiency_angle"]["value"]
+    proj.lst_fishkite[0].kite.area = c[0]["kite_area"]["value"]
+    proj.lst_fishkite[0].kite.cl = c[0]["kite_cl"]["value"][1]
+    proj.lst_fishkite[0].kite.cl_range["min"] = c[0]["kite_cl"]["value"][0]
+    proj.lst_fishkite[0].kite.cl_range["max"] = c[0]["kite_cl"]["value"][1]
 
-#     proj.lst_fishkite[1].rising_angle = c[1]["rising_angle"]["value"]
-#     proj.lst_fishkite[1].kite.area = c[1]["kite_area"]["value"]
-#     proj.lst_fishkite[1].kite.cl = c[1]["kite_cl"]["value"][1]
-#     proj.lst_fishkite[1].kite.cl_range["min"] = c[1]["kite_cl"]["value"][0]
-#     proj.lst_fishkite[1].kite.cl_range["max"] = c[1]["kite_cl"]["value"][2]
-#     proj.lst_fishkite[1].kite.efficiency_angle = c[1]["kite_efficiency_angle"]["value"]
-#     proj.lst_fishkite[1].fish.area = c[1]["fish_area"]["value"]
-#     proj.lst_fishkite[1].fish.cl = c[1]["fish_cl"]["value"][1]
-#     proj.lst_fishkite[1].fish.cl_range["min"] = c[1]["fish_cl"]["value"][0]
-#     proj.lst_fishkite[1].fish.cl_range["max"] = c[1]["fish_cl"]["value"][2]
-#     proj.lst_fishkite[1].fish.efficiency_angle = c[1]["fish_efficiency_angle"]["value"]
+    proj.lst_fishkite[1].kite.area = c[1]["kite_area"]["value"]
+    proj.lst_fishkite[1].kite.cl = c[1]["kite_cl"]["value"][1]
+    proj.lst_fishkite[1].kite.cl_range["min"] = c[1]["kite_cl"]["value"][0]
+    proj.lst_fishkite[1].kite.cl_range["max"] = c[1]["kite_cl"]["value"][1]
 
-#     case_to_plot = []
-
-#     if c[0]["bool_fk"]["value"]:
-#         case_to_plot.append(proj.lst_fishkite[0])
-#     if c[1]["bool_fk"]["value"]:
-#         case_to_plot.append(proj.lst_fishkite[1])
-
-#     fig = plot_cases(
-#         list_of_cases=case_to_plot,
-#         draw_ortho_grid=bool_orthogrid,
-#         draw_iso_speed=bool_isospeed,
-#         draw_iso_eft=bool_isoeft,
-#         draw_iso_fluid=bool_isofluid,
-#         add_background_image=False,
-#         height_size=c["general"]["graph_size"]["value"],
-#     )
-
-#     text_detail = f"Compute for : {proj.detail()}  "
-
-#     perf_data = proj.perf_table().round(1).to_dict(orient="records")
-
-#     return fig, text_detail, perf_data
+    df = proj.create_df()
+    deb = f"updated df ={ df.shape}"
+    return df.to_json(orient="split"), deb
 
 
 if __name__ == "__main__":
