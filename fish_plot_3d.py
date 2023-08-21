@@ -98,13 +98,14 @@ def plot_3d_cases_risingangle(
     return fig
 
 
-def plot_3d_cases(df, height_size=800):
+def plot_3d_cases(df, target_wind=30, what="rising_angle", height_size=800):
+    dfs = df[df["true_wind_calculated_kt_rounded"] == target_wind]
     fig = go.Figure(
         data=go.Scattergl(
-            x=df["vmg_x_kt"],
-            y=df["vmg_y_kt"],
+            x=dfs["vmg_x_kt"],
+            y=dfs["vmg_y_kt"],
             mode="markers",
-            marker=dict(color=df["rising_angle"], colorscale="Viridis", line_width=1),
+            marker=dict(color=dfs[what], colorscale="Viridis", line_width=1),
         )
     )
 

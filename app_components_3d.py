@@ -117,6 +117,34 @@ def create_polar_rising_sliders():
     return s
 
 
+def create_polar_all_pts_sliders():
+    s = html.Div(
+        dbc.Col(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                html.Label("Data:"),
+                                dcc.Dropdown(
+                                    [
+                                        "extra_angle",
+                                        "fish_total_force",
+                                        "apparent_watter_ms",
+                                    ],
+                                    "extra_angle",
+                                    id="data_color_polar_all_pts",
+                                ),
+                            ]
+                        ),
+                    ]
+                ),
+            ]
+        ),
+    )
+    return s
+
+
 def create_fk_sliders(id):
     s = (
         html.Div(
