@@ -225,15 +225,19 @@ layout = dbc.Container(
                                     ],
                                 ),
                                 dcc.Tab(
-                                    label="Overview",
+                                    label="All Rising angle",
                                     children=[
+                                        dbc.CardBody(
+                                            create_polar_all_pts_sliders(),
+                                            # dcc.Markdown("bidon")
+                                        ),
                                         dcc.Graph(
                                             id="fig1_3d_all_pts",
                                             figure=fig_all_pts,
                                             style={
                                                 "position": "fixed",  # that imobilised the graph
                                             },
-                                        )
+                                        ),
                                     ],
                                 ),
                             ]
@@ -350,6 +354,22 @@ def update_polar_rising_angle(rising_angle, target_wind, color_data, symbol_data
         target_wind=target_wind,
         what=color_data,
         symbol=symbol_data,
+    )
+
+
+### Callback to update polar all  rising angle
+@callback(
+    Output("fig1_3d_all_pts", "figure"),
+    [
+        Input("slider-wind_speed", "value"),
+        Input("data_color_polar_all_pts", "value"),
+    ],
+)
+def update_polar_all_pts(target_wind, color_data):
+    return plot_3d_cases(
+        dfG,
+        target_wind=target_wind,
+        what=color_data,
     )
 
 
