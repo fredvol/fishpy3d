@@ -1102,21 +1102,48 @@ if __name__ == "__main__":
     # fig.show()
     # %% Validation pivot table
 
-    validation_rising_angle = 30
+    # validation_rising_angle = 30
 
-    validation_extra_angle = 20
-    dfv = df[
-        (df["fish_cl"].isin(range_fish))
-        & (df["kite_cl"].isin(range_kite))
-        & (df["rising_angle"] == validation_rising_angle)
-        & (df["extra_angle"] == validation_extra_angle)
-    ]
+    # validation_extra_angle = 20
+    # dfv = df[
+    #     (df["fish_cl"].isin(range_fish))
+    #     & (df["kite_cl"].isin(range_kite))
+    #     & (df["rising_angle"] == validation_rising_angle)
+    #     & (df["extra_angle"] == validation_extra_angle)
+    # ]
 
-    pd.pivot_table(
-        dfv,
-        values="true_wind_calculated_kt",
-        index=["kite_cl"],
-        columns=["fish_cl"],
-        aggfunc=np.sum,
+    # pd.pivot_table(
+    #     dfv,
+    #     values="true_wind_calculated_kt",
+    #     index=["kite_cl"],
+    #     columns=["fish_cl"],
+    #     aggfunc=np.sum,
+    # )
+    # %%
+
+    dfx = df[df["true_wind_calculated_kt_rounded"] == 30]
+    fig = px.scatter(
+        dfx,
+        x="vmg_x_kt",
+        y="vmg_y_kt",
+        color="rising_angle",  # "extra_angle",
+        title=f"Polar pts",
     )
+    fig.show()
+    # %%
+    from scipy.spatial import ConvexHull, convex_hull_plot_2d
+
+    rng = np.random.default_rng()
+
+    points = dfx[["vmg_x_kt", "vmg_y_kt"]].to_numpy()  # 30 random points in 2-D
+
+    hull = ConvexHull(points)
+    # %%
+
+    import matplotlib.pyplot as plt
+
+    plt.plot(points[:, 0], points[:, 1], "o")
+
+    for simplex in hull.simplices:
+        plt.plot(points[simplex, 0], points[simplex, 1], "k-")
     # %%
