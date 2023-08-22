@@ -464,7 +464,7 @@ class FishKite:
     #     else:
     #         return 180 - (180 + value)
 
-    def create_df(self, nb_points=10):
+    def create_df(self, nb_points=7):
         """Create df with all the data
 
         Args:
@@ -481,8 +481,8 @@ class FishKite:
         )
         range_fish = [round(i, 3) for i in range_fish]
         range_kite = [round(i, 3) for i in range_kite]
-        range_rising_angle = range_rising_angle = [1] + list(np.arange(5, 90, 5))
-        range_extra_angle = np.arange(2, 90, 1)
+        range_rising_angle = range_rising_angle = [1] + list(np.arange(5, 80, 5))
+        range_extra_angle = np.arange(2, 80, 1)
 
         ##  previous data generation method  ( slow 15s)
         # dfa = pd.DataFrame(
