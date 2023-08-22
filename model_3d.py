@@ -464,7 +464,7 @@ class FishKite:
     #     else:
     #         return 180 - (180 + value)
 
-    def create_df(self, nb_points=20):
+    def create_df(self, nb_points=10):
         """Create df with all the data
 
         Args:
