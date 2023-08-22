@@ -182,11 +182,18 @@ layout = dbc.Container(
                         dbc.Collapse(
                             dbc.Card(
                                 dbc.CardBody(
-                                    dbc.Spinner(
-                                        [html.Div(id="debug"), html.Div(id="debug2")],
-                                        # html.P(id="my-output_3d"),
-                                        color="primary",
-                                    ),
+                                    [
+                                        dbc.Spinner(
+                                            [html.Div(id="debug")],
+                                            # html.P(id="my-output_3d"),
+                                            color="primary",
+                                        ),
+                                        dbc.Spinner(
+                                            [html.Div(id="debug2")],
+                                            # html.P(id="my-output_3d"),
+                                            color="primary",
+                                        ),
+                                    ],
                                 )
                             ),
                             id="coordinates_collapse_3d",
@@ -390,8 +397,11 @@ def update_polar_all_pts(target_wind, color_data, jsonified_data):
 )
 def update_polar_all_pts(_data):
     global dfG
-    df_max1 = dfG.groupby("fk_name")["vmg_x"].max()
-    return f"Max1 {df_max1['fk1']} , Max2 {df_max1['fk2']}"
+    df_max = dfG.groupby("fk_name")["vmg_x"].max()
+    result = ""
+    for name in dfG["fk_name"].unique():
+        result += f"Max_{name}: {df_max[name]} "
+    return result
 
 
 # DF update callaback
@@ -423,13 +433,12 @@ def update_polar_all_pts(_data):
 def update(all_inputs):
     global dfG
     c = ctx.args_grouping.all_inputs
-    # case_list = []
+    case_list = []
 
-    # if c[0]["bool_fk"]["value"]:
-    #     case_list.append(proj.lst_fishkite[0])
-    # if c[1]["bool_fk"]["value"]:
-    #     case_list.append(proj.lst_fishkite[1])
-    # proj = Project(case_list)
+    if c[0]["bool_fk"]["value"]:
+        case_list.append(proj.lst_fishkite[0].name)
+    if c[1]["bool_fk"]["value"]:
+        case_list.append(proj.lst_fishkite[1].name)
 
     proj.lst_fishkite[0].wind_speed = c["general"]["wind_speed"]["value"]
     proj.lst_fishkite[1].wind_speed = c["general"]["wind_speed"]["value"]
@@ -444,7 +453,9 @@ def update(all_inputs):
     proj.lst_fishkite[1].kite.cl_range["min"] = c[1]["kite_cl"]["value"][0]
     proj.lst_fishkite[1].kite.cl_range["max"] = c[1]["kite_cl"]["value"][1]
 
-    dfG = proj.create_df()
+    dfall = proj.create_df()
+    dfG = dfall[dfall["fk_name"].isin(case_list)]
+
     deb = f"updated df {dfG.shape} \n---\n={ c}"
     return c, deb
 
