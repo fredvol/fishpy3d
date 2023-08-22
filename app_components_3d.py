@@ -93,6 +93,7 @@ def create_polar_rising_sliders():
                                         "extra_angle",
                                         "fish_total_force",
                                         "apparent_watter_ms",
+                                        "fk_name",
                                     ],
                                     "extra_angle",
                                     id="data_color_polar_rising",
@@ -103,10 +104,7 @@ def create_polar_rising_sliders():
                             [
                                 html.Label("Symbol:"),
                                 dcc.Dropdown(
-                                    [
-                                        "None",
-                                        "cable_break",
-                                    ],
+                                    ["None", "cable_break", "fk_name"],
                                     None,
                                     id="data_symbol_polar_rising",
                                 ),
@@ -134,6 +132,7 @@ def create_polar_all_pts_sliders():
                                         "extra_angle",
                                         "fish_total_force",
                                         "apparent_watter_ms",
+                                        "fk_name",
                                     ],
                                     "extra_angle",
                                     id="data_color_polar_all_pts",

@@ -76,8 +76,8 @@ fk1 = FishKite(
 d_kite2 = Deflector(
     "kite2",
     cl=0.8,
-    cl_range=(0.2, 0.6),
-    flat_area=18,
+    cl_range=(0.2, 1),
+    flat_area=30,
     flat_ratio=0.85,
     flat_aspect_ratio=6,
     profil_drag_coeff=0.013,
@@ -86,11 +86,11 @@ d_kite2 = Deflector(
 d_fish2 = Deflector(
     "fish2",
     cl=0.6,
-    cl_range=(0.2, 0.6),
-    flat_area=0.1,
+    cl_range=(0.2, 0.8),
+    flat_area=0.15,
     flat_ratio=0.64,
     profil_drag_coeff=0.01,
-    flat_aspect_ratio=8.5,
+    flat_aspect_ratio=10,
     parasite_drag_pct=0.06,
 )
 
@@ -98,8 +98,8 @@ fk2 = FishKite(
     "fk2",
     wind_speed=15,
     rising_angle=20,
-    fish=d_fish1,
-    kite=d_kite1,
+    fish=d_fish2,
+    kite=d_kite2,
     pilot=d_pilot,
     extra_angle=20,
     cable_length_fish=30,
@@ -114,7 +114,7 @@ proj = Project([fk1, fk2])
 # %%"
 # app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # server = app.server
-dfG = fk1.create_df()
+dfG = proj.create_df()
 
 fig_rising_angle = plot_3d_cases_risingangle(dfG)
 fig_all_pts = plot_3d_cases(dfG)
@@ -183,7 +183,8 @@ layout = dbc.Container(
                             dbc.Card(
                                 dbc.CardBody(
                                     dbc.Spinner(
-                                        html.P(id="my-output_3d"),
+                                        [html.Div(id="debug"), html.Div(id="debug2")],
+                                        # html.P(id="my-output_3d"),
                                         color="primary",
                                     ),
                                 )
@@ -192,7 +193,6 @@ layout = dbc.Container(
                             is_open=False,
                         ),
                         html.Hr(),
-                        html.Div(id="debug"),
                         # dcc.Markdown("##### Commands"),
                         # dbc.Button(
                         #     "Analyze",
@@ -345,9 +345,12 @@ def update_possible_rising_angle(target_wind):
         Input("3d_slider-wind_speed", "value"),
         Input("data_color_polar_rising", "value"),
         Input("data_symbol_polar_rising", "value"),
+        Input("dataStore", "data"),
     ],
 )
-def update_polar_rising_angle(rising_angle, target_wind, color_data, symbol_data):
+def update_polar_rising_angle(
+    rising_angle, target_wind, color_data, symbol_data, _data
+):
     if symbol_data == "None":
         symbol_data = None
 
@@ -370,12 +373,25 @@ def update_polar_rising_angle(rising_angle, target_wind, color_data, symbol_data
     ],
 )
 def update_polar_all_pts(target_wind, color_data, jsonified_data):
-    dff = pd.read_json(jsonified_data, orient="split")
+    c = jsonified_data
     return plot_3d_cases(
-        dff,
+        dfG,
         target_wind=target_wind,
         what=color_data,
     )
+
+
+### Callback to debug2
+@callback(
+    Output("debug2", "children"),
+    [
+        Input("dataStore", "data"),
+    ],
+)
+def update_polar_all_pts(_data):
+    global dfG
+    df_max1 = dfG.groupby("fk_name")["vmg_x"].max()
+    return f"Max1 {df_max1['fk1']} , Max2 {df_max1['fk2']}"
 
 
 # DF update callaback
@@ -405,6 +421,7 @@ def update_polar_all_pts(target_wind, color_data, jsonified_data):
     # State=State("dataStore", "data"),
 )
 def update(all_inputs):
+    global dfG
     c = ctx.args_grouping.all_inputs
     # case_list = []
 
@@ -417,19 +434,19 @@ def update(all_inputs):
     proj.lst_fishkite[0].wind_speed = c["general"]["wind_speed"]["value"]
     proj.lst_fishkite[1].wind_speed = c["general"]["wind_speed"]["value"]
 
-    proj.lst_fishkite[0].kite.area = c[0]["kite_area"]["value"]
+    proj.lst_fishkite[0].kite._flat_area = c[0]["kite_area"]["value"]
     proj.lst_fishkite[0].kite.cl = c[0]["kite_cl"]["value"][1]
     proj.lst_fishkite[0].kite.cl_range["min"] = c[0]["kite_cl"]["value"][0]
     proj.lst_fishkite[0].kite.cl_range["max"] = c[0]["kite_cl"]["value"][1]
 
-    proj.lst_fishkite[1].kite.area = c[1]["kite_area"]["value"]
+    proj.lst_fishkite[1].kite._flat_area = c[1]["kite_area"]["value"]
     proj.lst_fishkite[1].kite.cl = c[1]["kite_cl"]["value"][1]
     proj.lst_fishkite[1].kite.cl_range["min"] = c[1]["kite_cl"]["value"][0]
     proj.lst_fishkite[1].kite.cl_range["max"] = c[1]["kite_cl"]["value"][1]
 
-    df = proj.create_df()
-    deb = f"updated df ={ df.shape}"
-    return df.to_json(orient="split"), deb
+    dfG = proj.create_df()
+    deb = f"updated df {dfG.shape} \n---\n={ c}"
+    return c, deb
 
 
 if __name__ == "__main__":
