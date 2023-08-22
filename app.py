@@ -3,6 +3,8 @@ import dash_bootstrap_components as dbc
 
 __version__ = "1.1.0"
 app = dash.Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
+
 
 navbar = dbc.NavbarSimple(
     dbc.DropdownMenu(

@@ -10,7 +10,7 @@ operating_slider_components = [
         [
             html.Label("Graph size:"),
             dcc.Slider(
-                id=f"slider-graph_size",
+                id=f"3d_slider-graph_size",
                 min=500,
                 max=1000,
                 step=50,
@@ -25,7 +25,7 @@ operating_slider_components = [
     ),
     html.Label("Wind speed [knots]"),
     dcc.Slider(
-        id=f"slider-wind_speed",
+        id=f"3d_slider-wind_speed",
         min=1,
         max=40,
         step=1,
@@ -37,26 +37,29 @@ operating_slider_components = [
         },
     ),
     daq.BooleanSwitch(
-        id="bool_orthogrid", on=True, label="Ortho grid", labelPosition="right"
+        id="3d_bool_orthogrid", on=True, label="Ortho grid", labelPosition="right"
     ),
     # daq.BooleanSwitch(
     #     id="bool_backgrdimg", on=False, label="Background image", labelPosition="right"
     # ),
     daq.BooleanSwitch(
-        id="bool_isospeed", on=True, label="Iso speed", labelPosition="right"
+        id="3d_bool_isospeed", on=True, label="Iso speed", labelPosition="right"
     ),
     daq.BooleanSwitch(
-        id="bool_isoeft", on=True, label="Iso efficiency total", labelPosition="right"
+        id="3d_bool_isoeft",
+        on=True,
+        label="Iso efficiency total",
+        labelPosition="right",
     ),
     daq.BooleanSwitch(
-        id="bool_isofluid", on=True, label="Iso fluid ratio", labelPosition="right"
+        id="3d_bool_isofluid", on=True, label="Iso fluid ratio", labelPosition="right"
     ),
-    dbc.Button(
-        "copy parameters : Fk1 -> Fk2",
-        color="secondary",
-        size="sm",
-        id="copy_FK0toFK1",
-    ),
+    # dbc.Button(
+    #     "copy parameters : Fk1 -> Fk2",
+    #     color="secondary",
+    #     size="sm",
+    #     id="copy_FK0toFK1",
+    # ),
 ]
 
 ### FishKite
@@ -90,6 +93,7 @@ def create_polar_rising_sliders():
                                         "extra_angle",
                                         "fish_total_force",
                                         "apparent_watter_ms",
+                                        "fk_name",
                                     ],
                                     "extra_angle",
                                     id="data_color_polar_rising",
@@ -100,10 +104,7 @@ def create_polar_rising_sliders():
                             [
                                 html.Label("Symbol:"),
                                 dcc.Dropdown(
-                                    [
-                                        "None",
-                                        "cable_break",
-                                    ],
+                                    ["None", "cable_break", "fk_name"],
                                     None,
                                     id="data_symbol_polar_rising",
                                 ),
@@ -131,6 +132,7 @@ def create_polar_all_pts_sliders():
                                         "extra_angle",
                                         "fish_total_force",
                                         "apparent_watter_ms",
+                                        "fk_name",
                                     ],
                                     "extra_angle",
                                     id="data_color_polar_all_pts",
@@ -153,14 +155,14 @@ def create_fk_sliders(id):
                     [
                         html.Td(html.H5(f"FishKite {id +1}")),
                         html.Td(
-                            daq.BooleanSwitch(id=f"boolean_{id}", on=True),
+                            daq.BooleanSwitch(id=f"3d_boolean_{id}", on=True),
                         ),
                     ]
                 ),
                 html.H6(html.B(f"Kite:")),
                 html.Label("Kite Area [m2]"),
                 dcc.Slider(
-                    id=f"slider-kite_area_{id}",
+                    id=f"3d_slider-kite_area_{id}",
                     min=1,
                     max=50,
                     step=1,
@@ -174,7 +176,7 @@ def create_fk_sliders(id):
                 ),
                 html.Label("Kite Force Coeficient range and OP"),
                 dcc.RangeSlider(
-                    id=f"slider-kite_cl_{id}",
+                    id=f"3d_slider-kite_cl_{id}",
                     min=0,
                     max=1.5,
                     step=0.05,
@@ -191,7 +193,7 @@ def create_fk_sliders(id):
                 html.H6(html.B(f"Fish:")),
                 html.Label("Fish Area [m2]"),
                 dcc.Slider(
-                    id=f"slider-fish_area_{id}",
+                    id=f"3d_slider-fish_area_{id}",
                     min=0.01,
                     max=0.2,
                     step=0.01,
@@ -205,7 +207,7 @@ def create_fk_sliders(id):
                 ),
                 html.Label("Fish Force Coeficient range and OP"),
                 dcc.RangeSlider(
-                    id=f"slider-fish_cl_{id}",
+                    id=f"3d_slider-fish_cl_{id}",
                     min=0.1,
                     max=1,
                     step=0.05,
