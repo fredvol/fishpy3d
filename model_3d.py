@@ -464,7 +464,7 @@ class FishKite:
     #     else:
     #         return 180 - (180 + value)
 
-    def create_df(self, nb_points=20):
+    def create_df(self, nb_points=7):
         """Create df with all the data
 
         Args:
@@ -481,8 +481,8 @@ class FishKite:
         )
         range_fish = [round(i, 3) for i in range_fish]
         range_kite = [round(i, 3) for i in range_kite]
-        range_rising_angle = range_rising_angle = [1] + list(np.arange(5, 90, 5))
-        range_extra_angle = np.arange(2, 90, 1)
+        range_rising_angle = range_rising_angle = [1] + list(np.arange(5, 80, 5))
+        range_extra_angle = np.arange(2, 80, 1)
 
         ##  previous data generation method  ( slow 15s)
         # dfa = pd.DataFrame(
@@ -875,6 +875,65 @@ if __name__ == "__main__":
         tip_fish_depth=0.5,
     )
 
+    d_kite2 = Deflector(
+        "kite2",
+        cl=0.8,
+        cl_range=(0.1, 0.6),
+        flat_area=35,
+        flat_ratio=0.85,
+        flat_aspect_ratio=10,
+        profil_drag_coeff=0.013,
+        parasite_drag_pct=0.01,  # 0.69,
+    )
+    d_fish2 = Deflector(
+        "fish2",
+        cl=0.6,
+        cl_range=(0.2, 1),
+        flat_area=0.3,
+        flat_ratio=0.64,
+        profil_drag_coeff=0.01,
+        flat_aspect_ratio=10,
+        parasite_drag_pct=0.02,
+    )
+
+    fk2 = FishKite(
+        "fk2",
+        wind_speed=15,
+        rising_angle=20,
+        fish=d_fish2,
+        kite=d_kite2,
+        pilot=d_pilot,
+        extra_angle=20,
+        cable_length_fish=30,
+        cable_length_kite=12,
+        cable_strength=500,
+        cx_cable_water=1,
+        cx_cable_air=1,
+        tip_fish_depth=0.5,
+    )
+
+    proj = Project([fk1, fk2])
+
+    dfM = proj.create_df()
+
+    # %%
+    what = "fk_name"
+    height_size = 700
+    px.scatter(
+        dfM[dfM["fk_name"] == "fk2"],
+        x="vmg_x_kt",
+        y="vmg_y_kt",
+        color=what,
+        hover_data=[
+            "apparent_watter_ms",
+            what,
+            "fish_total_force",
+            "cable_strength_margin",
+        ],
+        height=height_size,
+        width=height_size * 1.1,
+    )
+
     # %% display all for fish
     print(" ALL DATA FOR FISH")
     attributes = dir(d_fish1)
@@ -945,8 +1004,8 @@ if __name__ == "__main__":
 
     # %%
     dfcheck = df[
-        (df["fish_cl"] == 0.2)
-        & (df["kite_cl"] == 0.81)
+        (df["fish_cl"] == 0.474)
+        & (df["kite_cl"] == 0.811)
         & (df["rising_angle"] == 40)
         & (df["extra_angle"] == 10)
     ]

@@ -182,3 +182,4 @@ inspiration/multi_page_update_url_in_callback_V292/app.py
 inspiration/multi_page_update_url_in_callback_V292/pages/home.py
 inspiration/multi_page_update_url_in_callback_V292/pages/not_found_404.py
 inspiration/multi_page_update_url_in_callback_V292/pages/stocks.py
+inspiration/dcc_store/app.py
