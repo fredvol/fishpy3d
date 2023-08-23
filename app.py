@@ -1,8 +1,19 @@
 import dash
 import dash_bootstrap_components as dbc
+import os
 
-__version__ = "1.1.0"
-app = dash.Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
+__version__ = "2.0.0"
+# pages_folder = os.path.join(os.path.dirname(__name__), "pages")
+pages_folder = os.getcwd() + "/pages/"
+print("pages is:", pages_folder)
+print("cwd:", os.getcwd())
+
+app = dash.Dash(
+    __name__,
+    use_pages=True,
+    pages_folder=pages_folder,
+    external_stylesheets=[dbc.themes.BOOTSTRAP],
+)
 server = app.server
 
 
