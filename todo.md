@@ -1,9 +1,25 @@
 
 
 # Dash 3D
- * merge parasite draga and % of aera
- * add diameter
- *  indication resistance rupture
+ v* MODEL :add cavitation in model 
+ v* APP: fix x y range for graph
+ v* MODEL: add stream part of cable in model 
+ * MODEL: add position graph in model 
+ * MODEL: update test suite
+ * APP: range for rising angles instead of slider
+ * APP: adjust graph position on page
+ * APP: add all missing parameters 
+ * APP: update list of parameter to display ( color , symbol)
+ * APP: export all data button
+ * MODEL: adjust sampling for rising angle
+ * APP: add iso curves
+ * APP: add side numerical table 
+ * APP: add position graph in app
+ * APP: clean env 
+ * APP:make msi file 
+ * MODEL make save and load
+ * APP make save and load
+ * APP:add icon 
  
 
 # info 
