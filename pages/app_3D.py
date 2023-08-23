@@ -110,7 +110,7 @@ fk2 = FishKite(
     tip_fish_depth=0.5,
 )
 
-proj = Project([fk1])  # , fk2])
+proj = Project([fk1, fk2])
 # %%"
 # app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # server = app.server
@@ -433,25 +433,25 @@ def update_polar_all_pts(_data):
 def update(all_inputs):
     global dfG
     c = ctx.args_grouping.all_inputs
-    case_list = ["fk1"]
+    case_list = []
 
-    # if c[0]["bool_fk"]["value"]:
-    #     case_list.append(proj.lst_fishkite[0].name)
-    # if c[1]["bool_fk"]["value"] and 0:
-    #     case_list.append(proj.lst_fishkite[1].name)
+    if c[0]["bool_fk"]["value"]:
+        case_list.append(proj.lst_fishkite[0].name)
+    if c[1]["bool_fk"]["value"]:
+        case_list.append(proj.lst_fishkite[1].name)
 
     proj.lst_fishkite[0].wind_speed = c["general"]["wind_speed"]["value"]
-    # proj.lst_fishkite[1].wind_speed = c["general"]["wind_speed"]["value"]
+    proj.lst_fishkite[1].wind_speed = c["general"]["wind_speed"]["value"]
 
     proj.lst_fishkite[0].kite._flat_area = c[0]["kite_area"]["value"]
     proj.lst_fishkite[0].kite.cl = c[0]["kite_cl"]["value"][1]
     proj.lst_fishkite[0].kite.cl_range["min"] = c[0]["kite_cl"]["value"][0]
     proj.lst_fishkite[0].kite.cl_range["max"] = c[0]["kite_cl"]["value"][1]
 
-    # proj.lst_fishkite[1].kite._flat_area = c[1]["kite_area"]["value"]
-    # proj.lst_fishkite[1].kite.cl = c[1]["kite_cl"]["value"][1]
-    # proj.lst_fishkite[1].kite.cl_range["min"] = c[1]["kite_cl"]["value"][0]
-    # proj.lst_fishkite[1].kite.cl_range["max"] = c[1]["kite_cl"]["value"][1]
+    proj.lst_fishkite[1].kite._flat_area = c[1]["kite_area"]["value"]
+    proj.lst_fishkite[1].kite.cl = c[1]["kite_cl"]["value"][1]
+    proj.lst_fishkite[1].kite.cl_range["min"] = c[1]["kite_cl"]["value"][0]
+    proj.lst_fishkite[1].kite.cl_range["max"] = c[1]["kite_cl"]["value"][1]
 
     dfall = proj.create_df()
     dfG = dfall[dfall["fk_name"].isin(case_list)]
