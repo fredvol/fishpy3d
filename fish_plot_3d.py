@@ -39,8 +39,6 @@ def plot_3d_cases_risingangle(
             ),
             autosize=True,
             plot_bgcolor="rgba(240,240,240,0.7)",
-            xaxis_range=[-15, 550],
-            yaxis_range=[-300, 240],
             xaxis=dict(showgrid=False, visible=False),
             yaxis=dict(showgrid=False, visible=False),
             legend=dict(
@@ -90,6 +88,10 @@ def plot_3d_cases_risingangle(
         )
     )
 
+    fig.update_layout(
+        xaxis_range=[-1, 50],
+    )
+
     fig.update_yaxes(
         scaleanchor="x",
         scaleratio=1,
@@ -124,4 +126,49 @@ def plot_3d_cases(df, target_wind=30, what="rising_angle", height_size=800):
     return fig
 
 
+# %%
+# from model_3d import Deflector, FishKite, Pilot
+
+# # %%
+# d_pilot = Pilot(mass=80, pilot_drag=0.25)
+# d_kite2 = Deflector(
+#     "kite2",
+#     cl=0.8,
+#     cl_range=(0.1, 0.6),
+#     flat_area=35,
+#     flat_ratio=0.85,
+#     flat_aspect_ratio=10,
+#     profil_drag_coeff=0.013,
+#     parasite_drag_pct=0.01,  # 0.69,
+# )
+# d_fish2 = Deflector(
+#     "fish2",
+#     cl=0.6,
+#     cl_range=(0.2, 1),
+#     flat_area=0.3,
+#     flat_ratio=0.64,
+#     profil_drag_coeff=0.01,
+#     flat_aspect_ratio=10,
+#     parasite_drag_pct=0.02,
+# )
+
+# fk2 = FishKite(
+#     "fk2",
+#     wind_speed=15,
+#     rising_angle=20,
+#     fish=d_fish2,
+#     kite=d_kite2,
+#     pilot=d_pilot,
+#     extra_angle=20,
+#     cable_length_fish=30,
+#     cable_length_kite=12,
+#     cable_strength=500,
+#     cx_cable_water=1,
+#     cx_cable_air=1,
+#     tip_fish_depth=0.5,
+# )
+# # %%
+# df = fk2.create_df()
+
+# plot_3d_cases_risingangle(df)
 # %%

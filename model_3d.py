@@ -137,54 +137,6 @@ class Deflector:
     def __repr__(self):
         return f"{self.name} Cl:{self.cl} efficiency_angle:{self.efficiency_angle()} Area:{self.flat_area()} "
 
-    # Sample Method
-    # def glide_ratio(self) -> float:
-    #     return 1 / np.tan(np.radians(self.efficiency_angle()))
-
-
-# class Kite(Deflector):
-#     """This classe inherit from deflector and simulate a kite with a pilot."""
-
-#     def __init__(
-#         self,
-#         name: str,
-#         cl: float,
-#         cl_range: tuple,
-#         flat_area: float,
-#         flat_ratio: float,
-#         flat_aspect_ratio: float,
-#         profil_drag_coeff: float,
-#         parasite_drag_pct: float,
-#         pilot=Pilot,
-#     ):
-#         super(self.__class__, self).__init__(
-#             name,
-#             cl,
-#             cl_range,
-#             flat_area,
-#             flat_ratio,
-#             flat_aspect_ratio,
-#             profil_drag_coeff,
-#             parasite_drag_pct,
-#         )
-
-#         self.pilot = pilot
-
-#     def total_drag_with_pilot(self):  # S*Cx
-#         return self.total_drag() + self.pilot.pilot_drag
-
-#     def efficiency_LD(self):
-#         return self.lift() / self.total_drag_with_pilot()
-
-#     def c_force(self):
-#         return (
-#             np.sqrt(self.total_drag_with_pilot() ** 2 + self.lift() ** 2)
-#             / self.projected_area()
-#         )
-
-#     def efficiency_angle(self):  # deg1
-#         return np.degrees(np.arctan(1 / self.efficiency_LD()))
-
 
 class FishKite:
     """This is the central object, most of the computation are done here"""
@@ -198,10 +150,12 @@ class FishKite:
         kite: Deflector,
         pilot: Pilot,
         extra_angle: float,
-        cable_length_fish: float,
+        cable_length_fish_unstreamline: float,
+        cable_length_fish_streamline: float,
         cable_length_kite: float,
         cable_strength: float,
-        cx_cable_water: float,
+        cx_cable_water_unstreamline: float,
+        cx_cable_water_streamline: float,
         cx_cable_air: float,
         tip_fish_depth: float,
     ):
@@ -212,10 +166,12 @@ class FishKite:
         self.kite = kite
         self.pilot = pilot
         self._extra_angle = extra_angle  # deg  this will later been computed
-        self.cable_length_fish = cable_length_fish  # m
+        self.cable_length_fish_unstreamline = cable_length_fish_unstreamline  # m
+        self.cable_length_fish_streamline = cable_length_fish_streamline  # m
         self.cable_length_kite = cable_length_kite  # m
         self.cable_strength = cable_strength  # DaN
-        self.cx_cable_water = cx_cable_water  # no unit
+        self.cx_cable_water_unstreamline = cx_cable_water_unstreamline  # no unit
+        self.cx_cable_water_streamline = cx_cable_water_streamline  # no unit
         self.cx_cable_air = cx_cable_air  # no unit
         self.tip_fish_depth = tip_fish_depth  # no
 
@@ -235,13 +191,33 @@ class FishKite:
     def cable_length_in_water(self):  # m
         return self.fish_center_depth() / np.sin(np.radians(self.rising_angle))
 
+    def cable_length_fish(self):  # m
+        return self.cable_length_fish_streamline + self.cable_length_fish_unstreamline
+
     def cable_length_in_air(self):  # m
-        return self.cable_length_fish - self.cable_length_in_water()
+        return self.cable_length_fish() - self.cable_length_in_water()
+
+    def cable_length_in_water_streamline(self):  # m
+        if self.cable_length_fish_streamline < self.cable_length_in_water():
+            return self.cable_length_fish_streamline
+        else:
+            return self.cable_length_in_water()
+
+    def cable_length_in_water_unstreamline(self):  # m
+        if self.cable_length_fish_streamline < self.cable_length_in_water():
+            return self.cable_length_in_water() - self.cable_length_fish_streamline
+        else:
+            return 0
 
     # drag
     def cable_water_drag(self):  # m2
         return (
-            self.cable_length_in_water() * self.cable_diameter() * self.cx_cable_water
+            self.cable_length_in_water_streamline()
+            * self.cable_diameter()
+            * self.cx_cable_water_streamline
+            + self.cable_length_in_water_unstreamline()
+            * self.cable_diameter()
+            * self.cx_cable_water_unstreamline
         )
 
     def cable_air_drag(self):  # m2
@@ -298,8 +274,8 @@ class FishKite:
         return self._extra_angle
 
     def position_pilot(self):
-        x_pilot = self.cable_length_fish * np.cos(np.radians(self.rising_angle))
-        y_pilot = self.cable_length_fish * np.sin(np.radians(self.rising_angle))
+        x_pilot = self.cable_length_fish() * np.cos(np.radians(self.rising_angle))
+        y_pilot = self.cable_length_fish() * np.sin(np.radians(self.rising_angle))
         return (x_pilot, y_pilot)
 
     def position_kite(self):
@@ -423,47 +399,6 @@ class FishKite:
         results = opt.minimize(fun, x0=(30), bounds=((0.1), (89)))
         return results
 
-    ################# BELOW THAT ALL IS FOR THE 2D ##################
-
-    # def fluid_velocity_ratio(self):
-    #     current_ratio = (
-    #         RHO_AIR
-    #         * self.kite.flat_area()
-    #         * self.kite.cl
-    #         / (RHO_WATER * self.fish.flat_area() * self.fish.cl)
-    #     ) ** 0.5
-    #     return current_ratio
-
-    # def fluid_velocity_ratio_range(self):
-    #     min_ratio = (
-    #         RHO_AIR
-    #         * self.kite.flat_area()
-    #         * self.kite.cl_range["min"]
-    #         / (RHO_WATER * self.fish.flat_area() * self.fish.cl_range["max"])
-    #     ) ** 0.5
-    #     max_ratio = (
-    #         RHO_AIR
-    #         * self.kite.flat_area()
-    #         * self.kite.cl_range["max"]
-    #         / (RHO_WATER * self.fish.flat_area() * self.fish.cl_range["min"])
-    #     ) ** 0.5
-
-    #     return {"max": max_ratio, "min": min_ratio}
-
-    # def true_wind_angle(self, velocity_ratio):
-    #     """From 2D calculation might be obsolete"""
-    #     # TODO to clean
-    #     value = np.degrees(
-    #         np.arctan(
-    #             np.sin(np.radians(self.total_efficiency()))
-    #             / (velocity_ratio - np.cos(np.radians(self.total_efficiency())))
-    #         )
-    #     )
-    #     if value > 0:
-    #         return 180 - value
-    #     else:
-    #         return 180 - (180 + value)
-
     def create_df(self, nb_points=20):
         """Create df with all the data
 
@@ -529,9 +464,31 @@ class FishKite:
         df["cable_length_in_water"] = df["fish_center_depth"] / np.sin(
             df["rising_angle_rad"]
         )
-        df["cable_length_in_air"] = self.cable_length_fish - df["cable_length_in_water"]
+
+        df["cable_length_in_water_streamline"] = np.where(
+            (self.cable_length_fish_streamline < df["cable_length_in_water"]),
+            self.cable_length_fish_streamline,
+            df["cable_length_in_water"],
+        )
+
+        df["cable_length_in_water_unstreamline"] = np.where(
+            (self.cable_length_fish_streamline < df["cable_length_in_water"]),
+            (df["cable_length_in_water"] - self.cable_length_fish_streamline),
+            0,
+        )
+
         df["cable_water_drag"] = (
-            df["cable_length_in_water"] * self.cable_diameter() * self.cx_cable_water
+            df["cable_length_in_water_streamline"]
+            * self.cable_diameter()
+            * self.cx_cable_water_streamline
+        ) + (
+            df["cable_length_in_water_unstreamline"]
+            * self.cable_diameter()
+            * self.cx_cable_water_unstreamline
+        )
+
+        df["cable_length_in_air"] = (
+            self.cable_length_fish() - df["cable_length_in_water"]
         )
         df["cable_air_drag"] = (
             df["cable_length_in_air"] * self.cable_diameter() * self.cx_cable_air
@@ -617,10 +574,14 @@ class FishKite:
             / (df["fish_c_force"] * 0.5 * RHO_WATER * self.fish.projected_area())
         )
 
+        df["apparent_watter_kt"] = df["apparent_watter_ms"] / CONV_KTS_MS
+
         df["apparent_wind_ms"] = np.sqrt(
             df["kite_total_force"]
             / (df["kite_c_force"] * 0.5 * RHO_AIR * self.kite.projected_area())
         )
+
+        df["apparent_wind_kt"] = df["apparent_wind_ms"] / CONV_KTS_MS
 
         df["true_wind_calculated"] = np.sqrt(
             df["apparent_watter_ms"] ** 2
@@ -657,138 +618,15 @@ class FishKite:
         # group data
         df["true_wind_calculated_kt_rounded"] = df["true_wind_calculated_kt"].round()
 
+        cavitation_conditions = [
+            (df["apparent_watter_kt"] > 40)
+            | ((df["fish_total_force"] / self.fish.flat_area()) > 50000),
+        ]
+        df["cavitation"] = np.select(cavitation_conditions, [True], default=False)
+
+        df["broke_cable_or_cavitated"] = (df["cable_break"]) | (df["cavitation"])
+
         return df
-
-    # def data_to_plot_polar(self):
-    #     # OLD FOR 2D VERSION
-    #     """Prepare the detail to be plot
-
-    #     Returns: Dict
-    #     """
-    #     vr = self.fluid_velocity_ratio()
-    #     current_apparent_watter_pct = self.apparent_watter(vr) / self.wind_speed * 100
-    #     current_true_wind_angle = self.true_wind_angle(vr)
-
-    #     anchor = [0, 0]
-    #     wind = [0, -100]
-    #     op_point = pol2cart(current_apparent_watter_pct, current_true_wind_angle)
-    #     polar_pts = self.compute_polar()
-    #     watter_speed_kt = self.apparent_watter()
-
-    #     return {
-    #         "anchor": anchor,
-    #         "wind": wind,
-    #         "op_point": op_point,
-    #         "polar_pts": polar_pts,
-    #         "watter_speed_kt": watter_speed_kt,
-    #     }
-
-    # def plot(self, draw_ortho_grid=True, add_background_image=False):
-    #     # OLD FOR 2D VERSION
-    #     """Apply the plot_case function to this FishKite"""
-    #     fig = plot_cases([self], draw_ortho_grid, add_background_image)
-    #     return fig
-
-    # def add_plot_elements(self, fig, m_color=None, add_legend_name=False):
-    #     ##OLD FOR 2D VERSION
-    #     """Add elements to a already existing plotly figure
-
-    #     Args:
-    #         fig (Plotly figure): The figure to modify
-    #         m_color (str, optional): Hex string containing the color to use. Defaults to None.
-    #         add_legend_name (bool, optional): If True the Fishkite name is added to the figure legende. Defaults to False.
-
-    #     Returns:
-    #         _type_: _description_
-    #     """
-    #     data_plot = self.data_to_plot_polar()
-    #     df_polar = data_plot["polar_pts"]
-
-    #     def generate_hover_text(row):
-    #         return (
-    #             f"{row['name']}: {round(row['apparent_watter_kt'],1)} kts {row['note']}"
-    #         )
-
-    #     def generate_marker_size(row):
-    #         return 9 if len(row["note"]) else 1
-
-    #     df_polar["text_hover"] = df_polar.apply(generate_hover_text, axis=1)
-    #     df_polar["marker_size"] = df_polar.apply(generate_marker_size, axis=1)
-    #     legend_name = ""
-    #     if add_legend_name:
-    #         legend_name = "_" + self.name
-
-    #     # add speed wind label /!\ warning if different fishkite wind speed
-    #     fig.add_annotation(
-    #         x=-10,
-    #         y=-50,
-    #         text=f"True Wind:{round(ms_to_knot(self.wind_speed,1))} kt",
-    #         showarrow=False,
-    #         font=dict(color="red", size=12),
-    #         textangle=-90,
-    #     )
-
-    #     # add polar
-    #     fig.add_trace(
-    #         (
-    #             go.Scatter(
-    #                 x=df_polar["x_watter_pct"],
-    #                 y=df_polar["y_watter_pct"],
-    #                 # mode="lines",
-    #                 legendgrouptitle_text=self.name,
-    #                 name=f"Polar{legend_name}",
-    #                 text=df_polar["text_hover"],
-    #                 marker_size=df_polar["marker_size"],
-    #                 mode="lines+markers",
-    #                 hoverinfo="text",
-    #                 line=dict(
-    #                     color=m_color,
-    #                     width=3,
-    #                 ),
-    #             )
-    #         )
-    #     )
-
-    #     # trajectory  ( TODO chage to  fig.add_shape(type="line",) for label  )
-    #     fig.add_trace(
-    #         add_line(
-    #             data_plot["anchor"],
-    #             data_plot["op_point"],
-    #             m_name=f"Water speed {legend_name} ",
-    #             group_name=self.name,
-    #             extra_dict=dict(dash="dash", color=m_color),
-    #         )
-    #     )
-
-    #     fig.add_annotation(
-    #         x=data_plot["op_point"][0],
-    #         y=data_plot["op_point"][1],
-    #         text=f'{round(data_plot["watter_speed_kt"],1)} kts',
-    #         showarrow=True,
-    #         xanchor="center",
-    #         arrowhead=1,
-    #         font=dict(color=m_color, size=12),
-    #         arrowcolor=m_color,
-    #         arrowsize=0.3,
-    #         bgcolor="#ffffff",
-    #         bordercolor=m_color,
-    #         borderwidth=2,
-    #         ax=10,
-    #         ay=-30,
-    #     )
-
-    #     # Apparent_wind_vector
-    #     fig.add_trace(
-    #         add_line(
-    #             data_plot["wind"],
-    #             data_plot["op_point"],
-    #             m_name=f"Apparent wind speed {legend_name}",
-    #             group_name=self.name,
-    #             extra_dict=dict(dash="dot", color=m_color),
-    #         )
-    #     )
-
-    #     return fig
 
 
 class Project:
@@ -862,15 +700,17 @@ if __name__ == "__main__":
     fk1 = FishKite(
         "fk1",
         wind_speed=15,
-        rising_angle=20,
+        rising_angle=30,
         fish=d_fish1,
         kite=d_kite1,
         pilot=d_pilot,
-        extra_angle=20,
-        cable_length_fish=30,
+        extra_angle=10,
+        cable_length_fish_unstreamline=29,
+        cable_length_fish_streamline=1,
         cable_length_kite=12,
         cable_strength=500,
-        cx_cable_water=1,
+        cx_cable_water_streamline=0.5,
+        cx_cable_water_unstreamline=1,
         cx_cable_air=1,
         tip_fish_depth=0.5,
     )
@@ -904,10 +744,12 @@ if __name__ == "__main__":
         kite=d_kite2,
         pilot=d_pilot,
         extra_angle=20,
-        cable_length_fish=30,
+        cable_length_fish_unstreamline=28,
+        cable_length_fish_streamline=2,
         cable_length_kite=12,
         cable_strength=500,
-        cx_cable_water=1,
+        cx_cable_water_streamline=0.4,
+        cx_cable_water_unstreamline=1.1,
         cx_cable_air=1,
         tip_fish_depth=0.5,
     )
@@ -916,6 +758,7 @@ if __name__ == "__main__":
 
     dfM = proj.create_df()
 
+    df1 = dfM[dfM["fk_name"] == "fk1"]
     # %%
     what = "fk_name"
     height_size = 700
@@ -977,6 +820,7 @@ if __name__ == "__main__":
         "data_to_plot_polar",
         "perf_table",
         "true_wind_angle",
+        "create_df",
     ]
     # Iterate through the attributes and call only the callable ones (functions)
     for attr_name in attributes:
@@ -994,13 +838,6 @@ if __name__ == "__main__":
 
     # %% Create double range
     df = fk1.create_df()
-
-    # %%
-    # assert df
-    # df.to_pickle("dfall.pkl")
-
-    df_ref = pd.read_pickle("dfall.pkl")
-    # pd.testing.assert_frame_equal(df, df_ref)
 
     # %%
     dfcheck = df[
