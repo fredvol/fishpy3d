@@ -4,7 +4,8 @@
  v* MODEL :add cavitation in model 
  v* APP: fix x y range for graph
  v* MODEL: add stream part of cable in model 
- * MODEL: add position graph in model 
+ v* MODEL: add position graph in model 
+ ... * MODEL make save and load
  * MODEL: update test suite
  * APP: range for rising angles instead of slider
  * APP: adjust graph position on page
@@ -17,7 +18,6 @@
  * APP: add position graph in app
  * APP: clean env 
  * APP:make msi file 
- * MODEL make save and load
  * APP make save and load
  * APP:add icon 
  
