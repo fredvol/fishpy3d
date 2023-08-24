@@ -14,6 +14,7 @@ from model_3d import (
     Project,
     plot_3d_cases,
     plot_3d_cases_risingangle,
+    load_fish_kite,
 )
 
 import dash
@@ -28,87 +29,25 @@ from dash.dependencies import Input, Output, State
 import numpy as np
 import copy
 import pandas as pd
-
+import os
+import jsonpickle
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
 __version__ = "1.0.3"
 
 # %% Initial set up
-d_pilot = Pilot(mass=80, pilot_drag=0.25)
-d_kite1 = Deflector(
-    "kite1",
-    cl=0.8,
-    cl_range=(0.4, 1),
-    flat_area=20,
-    flat_ratio=0.85,
-    flat_aspect_ratio=6,
-    profil_drag_coeff=0.013,
-    parasite_drag_pct=0.03,  # 0.69,
-)
-d_fish1 = Deflector(
-    "fish1",
-    cl=0.6,
-    cl_range=(0.2, 0.6),
-    flat_area=0.1,
-    flat_ratio=0.64,
-    profil_drag_coeff=0.01,
-    flat_aspect_ratio=8.5,
-    parasite_drag_pct=0.06,
-)
+data_folder = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "data"
+)  # we go up 2 folders
 
-fk1 = FishKite(
-    "fk1",
-    wind_speed=15,
-    rising_angle=20,
-    fish=d_fish1,
-    kite=d_kite1,
-    pilot=d_pilot,
-    extra_angle=20,
-    cable_length_fish=30,
-    cable_length_kite=12,
-    cable_strength=500,
-    cx_cable_water=1,
-    cx_cable_air=1,
-    tip_fish_depth=0.5,
-)
+fk1_file = os.path.join(data_folder, "saved_fk1.json")
+fk2_file = os.path.join(data_folder, "saved_fk2.json")
 
-d_kite2 = Deflector(
-    "kite2",
-    cl=0.8,
-    cl_range=(0.2, 1),
-    flat_area=30,
-    flat_ratio=0.85,
-    flat_aspect_ratio=6,
-    profil_drag_coeff=0.013,
-    parasite_drag_pct=0.03,  # 0.69,
-)
-d_fish2 = Deflector(
-    "fish2",
-    cl=0.6,
-    cl_range=(0.2, 0.8),
-    flat_area=0.15,
-    flat_ratio=0.64,
-    profil_drag_coeff=0.01,
-    flat_aspect_ratio=10,
-    parasite_drag_pct=0.06,
-)
+fk1 = FishKite.from_json(fk1_file)
+fk2 = FishKite.from_json(fk2_file, classes=FishKite)
+# fk1 = load_fish_kite(fk1_file)
 
-fk2 = FishKite(
-    "fk2",
-    wind_speed=15,
-    rising_angle=20,
-    fish=d_fish2,
-    kite=d_kite2,
-    pilot=d_pilot,
-    extra_angle=20,
-    cable_length_fish=30,
-    cable_length_kite=12,
-    cable_strength=500,
-    cx_cable_water=1,
-    cx_cable_air=1,
-    tip_fish_depth=0.5,
-)
 
 proj = Project([fk1, fk2])
 # %%"

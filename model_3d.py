@@ -16,6 +16,7 @@ import plotly.figure_factory as ff
 import plotly.offline as po
 import plotly.graph_objects as go
 from itertools import product
+import jsonpickle
 
 from fish_plot_3d import plot_3d_cases, plot_3d_cases_risingangle
 
@@ -28,6 +29,7 @@ RHO_WATER = 1025  # kg/m3
 CONV_KTS_MS = 0.5144456333854638  # (m/s)/kt
 CABLE_STRENGTH_MM2 = 100  # daN/mm2
 
+data_folder = os.path.join(os.path.dirname(__file__), "data")
 
 # %%  Functions
 
@@ -52,6 +54,10 @@ def ms_to_knot(value):
     return value / CONV_KTS_MS
 
 
+def load_fish_kite(m_path):
+    return FishKite.from_json(m_path)
+
+
 # %% Class
 class Pilot:
     """class holding all infomation about the pilot"""
@@ -60,13 +66,36 @@ class Pilot:
     def __init__(
         self,
         mass: float,  # kg
-        pilot_drag: tuple,  # S*Cxp (m²)
+        pilot_drag: float,  # S*Cxp (m²)
     ):
         self.mass = mass
         self.pilot_drag = pilot_drag
+        self.obj_version = 1
 
     def weight(self):  # Newton
         return self.mass * GRAVITY
+
+    def to_dict(self):
+        """Converts the Pilot object to a dictionary."""
+        return {
+            attr: getattr(self, attr)
+            for attr in dir(self)
+            if not callable(getattr(self, attr)) and not attr.startswith("__")
+        }
+
+    def to_json(self, filename):
+        data_json = jsonpickle.encode(self)
+        with open(filename, "w") as json_file:
+            json_file.write(data_json)
+
+    @classmethod
+    def from_json(cls, filename):
+        with open(filename, "r") as json_file:
+            json_str = json_file.read()
+        return jsonpickle.decode(json_str)
+
+
+# %%
 
 
 class Deflector:
@@ -92,6 +121,22 @@ class Deflector:
         self._parasite_drag_pct = parasite_drag_pct  # % of flat area
 
         self.cl_range = {"min": cl_range[0], "max": cl_range[1]}  # no unit
+        self.obj_version = 1
+
+    # load save
+
+    def to_json(self, filename):
+        data_json = jsonpickle.encode(self)
+        with open(filename, "w") as json_file:
+            json_file.write(data_json)
+
+    @classmethod
+    def from_json(cls, filename):
+        with open(filename, "r") as json_file:
+            json_str = json_file.read()
+        return jsonpickle.decode(json_str)
+
+    # computation
 
     def flat_area(self):  # m2
         return self._flat_area
@@ -174,9 +219,31 @@ class FishKite:
         self.cx_cable_water_streamline = cx_cable_water_streamline  # no unit
         self.cx_cable_air = cx_cable_air  # no unit
         self.tip_fish_depth = tip_fish_depth  # no
+        self.obj_version = 1
 
     def __repr__(self):
         return f"FishKite({self.name}): wind_speed[kt]:{ms_to_knot(self.wind_speed)} rising_angle:{self.rising_angle}  \n Kite:{self.kite}  \n Fish:{self.fish}"
+
+    # Load and save
+
+    def to_json(self, filename):
+        """Convert to object to json
+
+        Note: Once the Json is produce, the '__main__.FishKite' should be remplace by 'model3d.FishKite' by hand. to be loaded by orther files
+        Args:
+            filename (str): filename to write it
+        """
+
+        data_json = jsonpickle.encode(self)
+        with open(filename, "w") as json_file:
+            json_file.write(data_json)
+        print("ok exported")
+
+    @classmethod
+    def from_json(cls, filename, classes=None):
+        with open(filename, "r") as json_file:
+            json_str = json_file.read()
+        return jsonpickle.decode(json_str, classes=classes)
 
     # geometry
 
@@ -568,6 +635,18 @@ class FishKite:
             / (np.cos(df[f"rising_angle_rad"]))
         )
 
+        # position ( pilot , kite)
+
+        df["y_pilot"] = self.cable_length_fish() * np.cos(df["rising_angle_rad"])
+        df["z_pilot"] = self.cable_length_fish() * np.sin(df["rising_angle_rad"])
+
+        df["y_kite"] = df["y_pilot"] + self.cable_length_kite * np.cos(
+            df["kite_roll_angle_rad"]
+        )
+        df["z_kite"] = df["z_pilot"] + self.cable_length_kite * np.sin(
+            df["kite_roll_angle_rad"]
+        )
+
         # speeds
         df["apparent_watter_ms"] = np.sqrt(
             df["fish_total_force"]
@@ -635,6 +714,7 @@ class Project:
     def __init__(self, lst_fishkite=[], name="Project1"):
         self.name = name
         self.lst_fishkite = lst_fishkite
+        self.obj_version = 1
 
     def __str__(self):
         return f"{self.name}"
@@ -673,86 +753,13 @@ class Project:
         return fig
 
 
-# %% Parameter
+# %%# %% Parameter
 if __name__ == "__main__":
-    d_pilot = Pilot(mass=80, pilot_drag=0.25)
-    d_kite1 = Deflector(
-        "kite1",
-        cl=0.8,
-        cl_range=(0.4, 1),
-        flat_area=20,
-        flat_ratio=0.85,
-        flat_aspect_ratio=6,
-        profil_drag_coeff=0.013,
-        parasite_drag_pct=0.03,  # 0.69,
-    )
-    d_fish1 = Deflector(
-        "fish1",
-        cl=0.6,
-        cl_range=(0.2, 0.6),
-        flat_area=0.1,
-        flat_ratio=0.64,
-        profil_drag_coeff=0.01,
-        flat_aspect_ratio=8.5,
-        parasite_drag_pct=0.06,
-    )
+    fk1_file = os.path.join(data_folder, "saved_fk1_copy.json")
+    fk2_file = os.path.join(data_folder, "saved_fk2.json")
 
-    fk1 = FishKite(
-        "fk1",
-        wind_speed=15,
-        rising_angle=30,
-        fish=d_fish1,
-        kite=d_kite1,
-        pilot=d_pilot,
-        extra_angle=10,
-        cable_length_fish_unstreamline=29,
-        cable_length_fish_streamline=1,
-        cable_length_kite=12,
-        cable_strength=500,
-        cx_cable_water_streamline=0.5,
-        cx_cable_water_unstreamline=1,
-        cx_cable_air=1,
-        tip_fish_depth=0.5,
-    )
-
-    d_kite2 = Deflector(
-        "kite2",
-        cl=0.8,
-        cl_range=(0.1, 0.6),
-        flat_area=35,
-        flat_ratio=0.85,
-        flat_aspect_ratio=10,
-        profil_drag_coeff=0.013,
-        parasite_drag_pct=0.01,  # 0.69,
-    )
-    d_fish2 = Deflector(
-        "fish2",
-        cl=0.6,
-        cl_range=(0.2, 1),
-        flat_area=0.3,
-        flat_ratio=0.64,
-        profil_drag_coeff=0.01,
-        flat_aspect_ratio=10,
-        parasite_drag_pct=0.02,
-    )
-
-    fk2 = FishKite(
-        "fk2",
-        wind_speed=15,
-        rising_angle=20,
-        fish=d_fish2,
-        kite=d_kite2,
-        pilot=d_pilot,
-        extra_angle=20,
-        cable_length_fish_unstreamline=28,
-        cable_length_fish_streamline=2,
-        cable_length_kite=12,
-        cable_strength=500,
-        cx_cable_water_streamline=0.4,
-        cx_cable_water_unstreamline=1.1,
-        cx_cable_air=1,
-        tip_fish_depth=0.5,
-    )
+    fk1 = FishKite.from_json(fk1_file)
+    fk2 = FishKite.from_json(fk2_file)
 
     proj = Project([fk1, fk2])
 
@@ -844,7 +851,7 @@ if __name__ == "__main__":
         (df["fish_cl"] == 0.474)
         & (df["kite_cl"] == 0.811)
         & (df["rising_angle"] == 40)
-        & (df["extra_angle"] == 10)
+        & (df["extra_angle"] == 20)
     ]
 
     dfcheck.T

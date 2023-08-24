@@ -12,14 +12,18 @@ import datetime
 
 import os
 import model as m
-from model_3d import Deflector, FishKite, Pilot
+from model_3d import Deflector, FishKite, Pilot, load_fish_kite
 import pandas as pd
 import pickle
 from pytest import fixture
 import test_assets.data_test_model3d as data_test_model3d
 
 cwd = os.getcwd()
-test_folder = os.path.join(cwd, "test_assets")
+test_folder = os.path.join(os.path.dirname(__file__), "test_assets")
+
+test_data_folder = os.path.join(test_folder, "saved_data_for_test")
+
+# %%"
 
 
 # %% function
@@ -48,86 +52,81 @@ def object_2_dict(m_object):
 
 @fixture(scope="session")
 def fk1():
-    d_pilot = Pilot(mass=80, pilot_drag=0.25)
-    d_kite1 = Deflector(
-        "kite1",
-        cl=0.8,
-        cl_range=(0.4, 1),
-        flat_area=20,
-        flat_ratio=0.85,
-        flat_aspect_ratio=6,
-        profil_drag_coeff=0.013,
-        parasite_drag_pct=0.03,  # 0.69,
-    )
-    d_fish1 = Deflector(
-        "fish1",
-        cl=0.6,
-        cl_range=(0.2, 0.6),
-        flat_area=0.1,
-        flat_ratio=0.64,
-        profil_drag_coeff=0.01,
-        flat_aspect_ratio=8.5,
-        parasite_drag_pct=0.06,
-    )
+    fk1_file = os.path.join(test_data_folder, "test_saved_fk1.json")
+    # fk1 = load_fish_kite(fk1_file)
+    fk1 = FishKite.from_json(fk1_file, classes=FishKite)
 
-    fk1 = FishKite(
-        "fk1",
-        wind_speed=15,
-        rising_angle=20,
-        fish=d_fish1,
-        kite=d_kite1,
-        pilot=d_pilot,
-        extra_angle=20,
-        cable_length_fish=30,
-        cable_length_kite=12,
-        cable_strength=500,
-        cx_cable_water=1,
-        cx_cable_air=1,
-        tip_fish_depth=0.5,
-    )
     return fk1
 
 
 @fixture(scope="session")
 def fk2():
+    fk2_file = os.path.join(test_data_folder, "test_saved_fk2.json")
+    fk2 = load_fish_kite(fk2_file)
+    # fk2 = FishKite.from_json(fk2_file, classes=FishKite)
+    return fk2
+
+
+def test_save_load():
+    """Test the save an load funstionallity by saving a file  , reloading it and comparing the difference"""
+    fk_test_file = os.path.join(test_data_folder, "test_saved_fk_test.json")
+
     d_pilot2 = Pilot(mass=90, pilot_drag=0.35)
     d_kite2 = Deflector(
         "kite2",
         cl=0.8,
-        cl_range=(0.3, 0.8),
-        flat_area=18,
+        cl_range=(0.1, 0.6),
+        flat_area=35,
         flat_ratio=0.85,
-        flat_aspect_ratio=8,
-        profil_drag_coeff=0.017,
-        parasite_drag_pct=0.04,  # 0.69,
+        flat_aspect_ratio=10,
+        profil_drag_coeff=0.013,
+        parasite_drag_pct=0.01,  # 0.69,
     )
     d_fish2 = Deflector(
         "fish2",
         cl=0.6,
-        cl_range=(0.25, 0.7),
-        flat_area=0.15,
+        cl_range=(0.2, 1),
+        flat_area=0.3,
         flat_ratio=0.64,
         profil_drag_coeff=0.01,
-        flat_aspect_ratio=9.5,
-        parasite_drag_pct=0.08,
+        flat_aspect_ratio=10,
+        parasite_drag_pct=0.02,
     )
 
-    fk2 = FishKite(
+    fk_test = FishKite(
         "fk2",
-        wind_speed=25,
-        rising_angle=30,
+        wind_speed=15,
+        rising_angle=20,
         fish=d_fish2,
         kite=d_kite2,
         pilot=d_pilot2,
-        extra_angle=10,
-        cable_length_fish=35,
-        cable_length_kite=15,
-        cable_strength=700,
-        cx_cable_water=1,
+        extra_angle=20,
+        cable_length_fish_unstreamline=28,
+        cable_length_fish_streamline=2,
+        cable_length_kite=12,
+        cable_strength=500,
+        cx_cable_water_streamline=0.4,
+        cx_cable_water_unstreamline=1.1,
         cx_cable_air=1,
-        tip_fish_depth=0.9,
+        tip_fish_depth=0.5,
     )
-    return fk2
+
+    fk_test.to_json(fk_test_file)
+
+    # modify  first Fishkite
+    fk_test.name = " original"
+
+    # reload file
+
+    fk_loaded = FishKite.from_json(fk_test_file)
+
+    # check similarity
+
+    assert fk_test.name != fk_loaded.name
+    assert fk_test.wind_speed == fk_loaded.wind_speed
+
+    print("deleted test file")
+    os.remove(fk_test_file)
 
 
 # %%
