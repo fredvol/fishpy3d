@@ -15,8 +15,12 @@ import model as m
 from model_3d import Deflector, FishKite, Pilot, load_fish_kite
 import pandas as pd
 import pickle
+import jsonpickle
 from pytest import fixture
-import test_assets.data_test_model3d as data_test_model3d
+from copy import deepcopy
+import math
+import numpy as np
+
 
 cwd = os.getcwd()
 test_folder = os.path.join(os.path.dirname(__file__), "test_assets")
@@ -27,13 +31,13 @@ test_data_folder = os.path.join(test_folder, "saved_data_for_test")
 
 
 # %% function
-def object_2_dict(m_object):
+def object_2_dict(m_object, exclude=[]):
     attributes = dir(m_object)
     dict_data = {}
 
     # Iterate through the attributes and call only the callable ones (functions)
     for attr_name in attributes:
-        if "__" in attr_name:
+        if "__" in attr_name or attr_name in exclude:
             continue
 
         attr = getattr(m_object, attr_name)
@@ -130,24 +134,6 @@ def test_save_load():
 
 
 # %%
-def test_fk1_object(fk1):
-    fk1_fish = object_2_dict(fk1.fish)
-    fk1_kite = object_2_dict(fk1.kite)
-
-    assert fk1_fish == data_test_model3d.data_fk1["fk1_fish"]
-    assert fk1_kite == data_test_model3d.data_fk1["fk1_kite"]
-
-
-# %%
-def test_fk2_object(fk2):
-    fk2_fish = object_2_dict(fk2.fish)
-    fk2_kite = object_2_dict(fk2.kite)
-
-    assert fk2_fish == data_test_model3d.data_fk2["fk2_fish"]
-    assert fk2_kite == data_test_model3d.data_fk2["fk2_kite"]
-
-
-# %%
 def test_df_creation(fk1, fk2):
     df1 = fk1.create_df()
     df2 = fk2.create_df()
@@ -155,7 +141,7 @@ def test_df_creation(fk1, fk2):
     df1_ref_path = os.path.join(test_folder, "df_fk1_table.pkl")
     df2_ref_path = os.path.join(test_folder, "df_fk2_table.pkl")
 
-    # export for reference
+    # export for reference, this section should be commented for real test
     # df1.to_pickle(df1_ref_path)
     # df2.to_pickle(df2_ref_path)
 
@@ -164,3 +150,62 @@ def test_df_creation(fk1, fk2):
 
     pd.testing.assert_frame_equal(df1, df_ref1)
     pd.testing.assert_frame_equal(df2, df_ref2)
+
+
+# %%
+def test_model_df_equality(fk1):
+    """Check the function model are giving the same result than the table culculated
+
+    Args:
+        fk1 (_type_): _description_
+    """
+    # fk1_file = os.path.join(test_data_folder, "test_saved_fk1.json")
+    # fk1 = FishKite.from_json(fk1_file, classes=FishKite)
+    DEBUG = 0
+    df_fk1 = fk1.create_df()
+
+    list_col = df_fk1.columns
+    attributes_fk1 = dir(fk1)
+
+    common_column = [c for c in list_col if c in attributes_fk1]
+
+    nb_row_to_check = 1000
+    row_to_check = [int(r) for r in np.linspace(0, len(df_fk1) - 1, nb_row_to_check)]
+    fk_test = deepcopy(fk1)
+    i = 1
+    for r_i in row_to_check:
+        if DEBUG:
+            print(f"{i} / {len(row_to_check)} :", end="")
+
+        row_ref = df_fk1.iloc[r_i]
+
+        fk_test.fish.cl = row_ref["fish_cl"]
+        fk_test.kite.cl = row_ref["kite_cl"]
+        fk_test.rising_angle = row_ref["rising_angle"]
+        fk_test._extra_angle = row_ref["extra_angle"]
+
+        if len(row_ref):
+            for v in common_column:
+                # if DEBUG:
+                #     print(v)
+                attr = getattr(fk_test, v)
+
+                if callable(attr):
+                    model_value = attr()
+
+                else:
+                    model_value = attr
+
+                df_value = row_ref[v]
+                assert math.isclose(
+                    model_value, df_value
+                ), f"fail at iloc: {r_i} for {v}"
+            if DEBUG:
+                print(f" OK")
+        else:
+            if DEBUG:
+                print(f" X")
+        i += 1
+
+
+# %%"

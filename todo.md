@@ -5,8 +5,8 @@
  v* APP: fix x y range for graph
  v* MODEL: add stream part of cable in model 
  v* MODEL: add position graph in model 
- ... * MODEL make save and load
- * MODEL: update test suite
+ v* MODEL make save and load
+ v* MODEL: update test suite
  * APP: range for rising angles instead of slider
  * APP: adjust graph position on page
  * APP: add all missing parameters 
