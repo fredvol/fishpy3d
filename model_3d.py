@@ -509,11 +509,12 @@ class FishKite:
         balance_range = []
         for i in range(nb_points):
             balance_range.append((range_kite[i], range_fish[-(i + 1)]))
+            df["simplify"] = False
             df.loc[
                 (df["kite_cl"] == range_kite[i])
                 & (df["fish_cl"] == range_fish[-(i + 1)]),
                 "simplify",
-            ] = 1
+            ] = True
 
         df[f"kite_roll_angle"] = df[f"rising_angle"] + df["extra_angle"]
         df.drop(df[df["kite_roll_angle"] >= 90].index, inplace=True)
@@ -705,6 +706,13 @@ class FishKite:
 
         df["broke_cable_or_cavitated"] = (df["cable_break"]) | (df["cavitation"])
 
+        # %optimise size - was saving 10mo ( 113mb instead 122mb) but loose precision.
+        # df["kite_cl"] = df["kite_cl"].astype(np.float32)
+        # df["fish_cl"] = df["fish_cl"].astype(np.float32)
+        # df["rising_angle"] = df["rising_angle"].astype(np.int16)
+        # df["extra_angle"] = df["extra_angle"].astype(np.int16)
+        # df["kite_roll_angle"] = df["kite_roll_angle"].astype(np.int32)
+
         return df
 
 
@@ -755,7 +763,7 @@ class Project:
 
 # %%# %% Parameter
 if __name__ == "__main__":
-    fk1_file = os.path.join(data_folder, "saved_fk1_copy.json")
+    fk1_file = os.path.join(data_folder, "saved_fk1.json")
     fk2_file = os.path.join(data_folder, "saved_fk2.json")
 
     fk1 = FishKite.from_json(fk1_file)
@@ -766,6 +774,7 @@ if __name__ == "__main__":
     dfM = proj.create_df()
 
     df1 = dfM[dfM["fk_name"] == "fk1"]
+
     # %%
     what = "fk_name"
     height_size = 700
