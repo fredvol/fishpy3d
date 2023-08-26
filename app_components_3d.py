@@ -71,19 +71,6 @@ def create_polar_rising_sliders():
         dbc.Col(
             [
                 html.Label("rising Angle [deg]"),
-                # dcc.Slider(
-                #     id=f"slider-rising_angle_polar",
-                #     min=1,
-                #     max=90,
-                #     step=90,
-                #     value=25,
-                #     updatemode="drag",
-                #     marks={i: str(i) for i in range(0, 90, 5)},
-                #     tooltip={
-                #         "placement": "bottom",
-                #         "always_visible": True,
-                #     },
-                # ),
                 dcc.RangeSlider(
                     id=f"slider-rising_angle_polar",
                     min=1,
@@ -256,7 +243,7 @@ def create_fk_sliders(id):
                                 "always_visible": True,
                             },
                         ),
-                        dbc.Stack(  # kite drag and flat ratio
+                        dbc.Stack(  # Kite flat ratio , aspect ratio
                             [
                                 dbc.Stack(
                                     [
@@ -274,6 +261,27 @@ def create_fk_sliders(id):
                                         ),
                                     ]
                                 ),
+                                dbc.Stack(
+                                    [
+                                        dbc.Label(
+                                            "Aspect ratio:",
+                                            className="custom-labels",
+                                        ),
+                                        dbc.Input(
+                                            type="number",
+                                            id=f"input_kite_aspect_ratio_{id}",
+                                            min=0,
+                                            max=10,
+                                            step=0.01,
+                                            className="custom-inputs",
+                                        ),
+                                    ]
+                                ),
+                            ],
+                            direction="horizontal",
+                        ),
+                        dbc.Stack(  # kite drag
+                            [
                                 dbc.Stack(
                                     [
                                         dbc.Label(
@@ -399,7 +407,7 @@ def create_fk_sliders(id):
                                 "always_visible": True,
                             },
                         ),
-                        dbc.Stack(  # Fish drag and flat ratio
+                        dbc.Stack(  # Fish flat ratio , aspect ratio
                             [
                                 dbc.Stack(
                                     [
@@ -417,6 +425,27 @@ def create_fk_sliders(id):
                                         ),
                                     ]
                                 ),
+                                dbc.Stack(
+                                    [
+                                        dbc.Label(
+                                            "Aspect ratio:",
+                                            className="custom-labels",
+                                        ),
+                                        dbc.Input(
+                                            type="number",
+                                            id=f"input_fish_aspect_ratio_{id}",
+                                            min=0,
+                                            max=10,
+                                            step=0.01,
+                                            className="custom-inputs",
+                                        ),
+                                    ]
+                                ),
+                            ],
+                            direction="horizontal",
+                        ),
+                        dbc.Stack(  # Fish drag and flat ratio
+                            [
                                 dbc.Stack(
                                     [
                                         dbc.Label(
@@ -511,7 +540,7 @@ def create_fk_sliders(id):
                                         ),
                                         dbc.Input(
                                             type="number",
-                                            id=f"input_fish_cx_unstreamline__{id}",
+                                            id=f"input_fish_cx_unstreamline_{id}",
                                             min=0,
                                             max=1,
                                             step=0.01,
@@ -519,7 +548,7 @@ def create_fk_sliders(id):
                                         ),
                                         dbc.Tooltip(
                                             "no unit ",
-                                            target=f"input_fish_cx_unstreamline__{id}",
+                                            target=f"input_fish_cx_unstreamline_{id}",
                                         ),
                                     ]
                                 ),
@@ -551,7 +580,7 @@ def create_fk_sliders(id):
                                         ),
                                         dbc.Input(
                                             type="number",
-                                            id=f"input_fish_cx_streamline__{id}",
+                                            id=f"input_fish_cx_streamline_{id}",
                                             min=0,
                                             max=1,
                                             step=0.01,
@@ -559,7 +588,7 @@ def create_fk_sliders(id):
                                         ),
                                         dbc.Tooltip(
                                             "no unit ",
-                                            target=f"input_fish_cx_streamline__{id}",
+                                            target=f"input_fish_cx_streamline_{id}",
                                         ),
                                     ]
                                 ),

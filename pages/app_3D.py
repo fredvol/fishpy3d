@@ -65,16 +65,15 @@ tabs_styles = {
     "padding-top": "2px",
 }
 
-dcc.Store(id="model_state", data={"need_update": True}),
 
 # Layout
 
 layout = dbc.Container(
     [
-        dcc.Store(id="model_state", data={"need_update": True}),
+        dcc.Store(id="model_state", data={"need_update_sliders": True}),
+        dcc.Store(id="graph_need_update", data=True),
         dbc.Row(
             [
-                dcc.Store(id="dataStore", storage_type="memory"),
                 dbc.Col(
                     [
                         dbc.Button(
@@ -124,7 +123,7 @@ layout = dbc.Container(
                         ),
                         html.Hr(),
                         dbc.Button(
-                            "Export data (txt format)",
+                            "Internal model state",
                             color="info",
                             id="coordinates_button_3d",
                         ),
@@ -299,24 +298,79 @@ def update_possible_rising_angle(target_wind):
     return {int(i): str(i) for i in sorted(possibility)}
 
 
+######################################################  GUI
 ### update slider
+
+roots_outputs_update_slider = [
+    "fk_name_",
+    "cable_strength_",
+    "3d_slider-kite_area_",
+    # "3d_slider-kite_cl_",
+    "input_kite_flat_ratio_",
+    "input_kite_aspect_ratio_",
+    "input_kite_profildrag_",
+    "input_kite_parasitedrag_",
+    "input_kite_cable_length_",
+    "input_kite_cx_air_",
+    "3d_slider-fish_area_",
+    # "3d_slider-fish_cl_",
+    "input_fish_flat_ratio_",
+    "input_fish_aspect_ratio_",
+    "input_fish_profildrag_",
+    "input_fish_parasitedrag_",
+    "input_fish_tip_depth_",  #
+    "input_fish_cable_length_unstreamline_",
+    "input_fish_cx_unstreamline_",
+    "input_fish_cable_length_streamline_",
+    "input_fish_cx_streamline_",
+]
+
+list_outputs = [Output("model_state", "data")]
+for id in [0, 1]:
+    for field in roots_outputs_update_slider:
+        list_outputs.append(Output(f"{field}{id}", "value"))
+
+# print("list_outputs:")
+# print(list_outputs)
 
 
 @callback(
-    [Output("model_state", "data"), Output("input_kite_flat_ratio_0", "value")],
+    list_outputs,
     Input("model_state", "data"),
 )
-def filter_countries(model_state):
-    if model_state["need_update"]:
-        flat_ratio_0 = proj.lst_fishkite[0].kite.flat_ratio
-        print(f" will update flat ratio : {flat_ratio_0}")
-        model_state["need_update"] = False
-        return model_state, flat_ratio_0
+def update_sliders(model_state):
+    if model_state["need_update_sliders"]:
+        output_to_send = []
+        for id in [0, 1]:
+            output_to_send.append(proj.lst_fishkite[id].name)
+            output_to_send.append(proj.lst_fishkite[id].cable_strength)
+            output_to_send.append(proj.lst_fishkite[id].kite._flat_area)
+            output_to_send.append(proj.lst_fishkite[id].kite.flat_ratio)
+            output_to_send.append(proj.lst_fishkite[id].kite.flat_aspect_ratio)
+            output_to_send.append(proj.lst_fishkite[id].kite.profil_drag_coeff)
+            output_to_send.append(proj.lst_fishkite[id].kite._parasite_drag_pct)
+            output_to_send.append(proj.lst_fishkite[id].cable_length_kite)
+            output_to_send.append(proj.lst_fishkite[id].cx_cable_air)
+            output_to_send.append(proj.lst_fishkite[id].fish._flat_area)
+            output_to_send.append(proj.lst_fishkite[id].fish.flat_ratio)
+            output_to_send.append(proj.lst_fishkite[id].fish.flat_aspect_ratio)
+            output_to_send.append(proj.lst_fishkite[id].fish.profil_drag_coeff)
+            output_to_send.append(proj.lst_fishkite[id].fish._parasite_drag_pct)
+            output_to_send.append(proj.lst_fishkite[id].tip_fish_depth)
+            output_to_send.append(proj.lst_fishkite[id].cable_length_fish_unstreamline)
+            output_to_send.append(proj.lst_fishkite[id].cx_cable_water_unstreamline)
+            output_to_send.append(proj.lst_fishkite[id].cable_length_fish_streamline)
+            output_to_send.append(proj.lst_fishkite[id].cx_cable_water_streamline)
+
+        print(f" will update slider")
+
+        return model_state, *output_to_send
     else:
-        print(f" no update : {flat_ratio_0}")
+        print(f" no update of the sliders")
         raise PreventUpdate
 
 
+####################################################### PLOTS
 ### Callback to update polar selected  rising angle
 @callback(
     Output("fig1_3d_rising_angle", "figure"),
@@ -326,7 +380,7 @@ def filter_countries(model_state):
         Input("3d_slider-wind_speed", "value"),
         Input("data_color_polar_rising", "value"),
         Input("data_symbol_polar_rising", "value"),
-        Input("dataStore", "data"),
+        Input("graph_need_update", "data"),
     ],
 )
 def update_polar_rising_angle(
@@ -355,7 +409,7 @@ def update_polar_rising_angle(
     [
         Input("3d_slider-wind_speed", "value"),
         Input("data_color_polar_all_pts", "value"),
-        Input("dataStore", "data"),
+        Input("graph_need_update", "data"),
     ],
 )
 def update_polar_all_pts(target_wind, color_data, jsonified_data):
@@ -368,25 +422,22 @@ def update_polar_all_pts(target_wind, color_data, jsonified_data):
     )
 
 
+######################################################  DEBUG
 ### Callback to debug2
 @callback(
     Output("debug2", "children"),
     [
-        Input("dataStore", "data"),
+        Input("model_state", "data"),
     ],
 )
-def update_polar_all_pts(_data):
-    global dfG
-    df_max = dfG.groupby("fk_name")["vmg_x"].max()
-    result = ""
-    for name in dfG["fk_name"].unique():
-        result += f"Max_{name}: {df_max[name]} "
-    return result
+def update_polar_all_pts(model_state):
+    return f"{model_state}"
 
 
+######################################################  MODEL
 # DF update callaback
 @callback(
-    [Output("dataStore", "data"), Output("debug", "children")],
+    [Output("graph_need_update", "data"), Output("debug", "children")],
     inputs={
         "all_inputs": {
             "general": {
@@ -396,6 +447,7 @@ def update_polar_all_pts(_data):
                 "bool_fk": Input("3d_boolean_0", "on"),
                 "kite_area": Input("3d_slider-kite_area_0", "value"),
                 "kite_cl": Input("3d_slider-kite_cl_0", "value"),
+                "kite_flat_ratio": Input("input_kite_flat_ratio_0", "value"),
                 "fish_area": Input("3d_slider-fish_area_0", "value"),
                 "fish_cl": Input("3d_slider-fish_cl_0", "value"),
             },
@@ -408,7 +460,6 @@ def update_polar_all_pts(_data):
             },
         }
     },
-    # State=State("dataStore", "data"),
 )
 def update(all_inputs):
     global dfG
@@ -427,6 +478,7 @@ def update(all_inputs):
     proj.lst_fishkite[0].kite.cl = c[0]["kite_cl"]["value"][1]
     proj.lst_fishkite[0].kite.cl_range["min"] = c[0]["kite_cl"]["value"][0]
     proj.lst_fishkite[0].kite.cl_range["max"] = c[0]["kite_cl"]["value"][1]
+    proj.lst_fishkite[0].kite.flat_ratio = c[0]["kite_flat_ratio"]["value"]
 
     proj.lst_fishkite[1].kite._flat_area = c[1]["kite_area"]["value"]
     proj.lst_fishkite[1].kite.cl = c[1]["kite_cl"]["value"][1]
@@ -437,7 +489,7 @@ def update(all_inputs):
     dfG = dfall[dfall["fk_name"].isin(case_list)]
 
     deb = f"updated df {dfG.shape} \n---\n={ c}"
-    return c, deb
+    return True, deb
 
 
 if __name__ == "__main__":
