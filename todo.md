@@ -7,9 +7,10 @@
  v* MODEL: add position graph in model 
  v* MODEL make save and load
  v* MODEL: update test suite
- * APP: range for rising angles instead of slider
- * APP: adjust graph position on page
+ v* APP: range for rising angles instead of slider
+ v* APP: reduce tab size
  * APP: add all missing parameters 
+ * APP: adjust graph position on page
  * APP: update list of parameter to display ( color , symbol)
  * APP: export all data button
  * MODEL: adjust sampling for rising angle

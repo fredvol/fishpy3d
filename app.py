@@ -5,8 +5,8 @@ import os
 __version__ = "2.0.0"
 pages_folder = os.path.join(os.path.dirname(__name__), "pages")  # for live
 # pages_folder = os.getcwd() + "/pages/"  # for exe
-print("pages is:", pages_folder)
-print("cwd:", os.getcwd())
+# print("pages is:", pages_folder)
+# print("cwd:", os.getcwd())
 
 app = dash.Dash(
     __name__,
@@ -15,7 +15,6 @@ app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP],
 )
 server = app.server
-
 
 navbar = dbc.NavbarSimple(
     dbc.DropdownMenu(
@@ -30,7 +29,7 @@ navbar = dbc.NavbarSimple(
     brand=f"FishPy v{__version__}",
     color="primary",
     dark=True,
-    className="mb-2",
+    className="py-1",
 )
 
 app.layout = dbc.Container(

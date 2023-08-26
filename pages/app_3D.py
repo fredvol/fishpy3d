@@ -58,7 +58,14 @@ dfG = proj.create_df()
 fig_rising_angle = plot_3d_cases_risingangle(dfG)
 fig_all_pts = plot_3d_cases(dfG)
 # df_table = proj.perf_table()
+# CSS
+tabs_styles = {
+    "height": "30px",
+    "padding-top": "2px",
+}
 
+
+# Layout
 
 layout = dbc.Container(
     [
@@ -167,11 +174,13 @@ layout = dbc.Container(
                                         dcc.Graph(
                                             id="fig1_3d_rising_angle",
                                             figure=fig_rising_angle,
-                                            style={
-                                                "position": "fixed",  # that imobilised the graph
-                                            },
+                                            # style={
+                                            #     "position": "fixed",  # that imobilised the graph
+                                            # },
                                         ),
                                     ],
+                                    className="custom-tab",
+                                    selected_className="custom-tab--selected",
                                 ),
                                 dcc.Tab(
                                     label="All Rising angle",
@@ -183,13 +192,17 @@ layout = dbc.Container(
                                         dcc.Graph(
                                             id="fig1_3d_all_pts",
                                             figure=fig_all_pts,
-                                            style={
-                                                "position": "fixed",  # that imobilised the graph
-                                            },
+                                            # style={
+                                            #     "position": "fixed",  # that imobilised the graph
+                                            # },
                                         ),
                                     ],
+                                    className="custom-tab",
+                                    selected_className="custom-tab--selected",
                                 ),
-                            ]
+                            ],
+                            parent_className="custom-tabs",
+                            className="custom-tabs-container",
                         )
                     ],
                     width=9,
@@ -288,6 +301,7 @@ def update_possible_rising_angle(target_wind):
     Output("fig1_3d_rising_angle", "figure"),
     [
         Input("slider-rising_angle_polar", "value"),
+        Input("bool_rising_angle_use_range", "on"),
         Input("3d_slider-wind_speed", "value"),
         Input("data_color_polar_rising", "value"),
         Input("data_symbol_polar_rising", "value"),
@@ -295,14 +309,19 @@ def update_possible_rising_angle(target_wind):
     ],
 )
 def update_polar_rising_angle(
-    rising_angle, target_wind, color_data, symbol_data, _data
+    rising_angle, use_max_only, target_wind, color_data, symbol_data, _data
 ):
     if symbol_data == "None":
         symbol_data = None
 
+    rising_low, rising_upper = rising_angle
+    if use_max_only:
+        rising_low = rising_upper
+
     return plot_3d_cases_risingangle(
         dfG,
-        target_rising_angle=rising_angle,
+        target_rising_angle_low=rising_low,
+        target_rising_angle_upper=rising_upper,
         target_wind=target_wind,
         what=color_data,
         symbol=symbol_data,
@@ -320,6 +339,7 @@ def update_polar_rising_angle(
 )
 def update_polar_all_pts(target_wind, color_data, jsonified_data):
     c = jsonified_data
+
     return plot_3d_cases(
         dfG,
         target_wind=target_wind,

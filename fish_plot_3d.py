@@ -26,7 +26,8 @@ if "#EF553B" in COLOR_palette:
 
 def plot_3d_cases_risingangle(
     df,
-    target_rising_angle=20,
+    target_rising_angle_low=20,
+    target_rising_angle_upper=40,
     target_wind=30,
     what="extra_angle",
     symbol=None,
@@ -35,7 +36,7 @@ def plot_3d_cases_risingangle(
     fig = go.Figure(
         layout=go.Layout(
             title=go.layout.Title(
-                text=f"Rising angle: {target_rising_angle} , TrueWind = {target_wind} kt"
+                text=f"Rising angle: [{target_rising_angle_low},{target_rising_angle_upper}] , TrueWind = {target_wind} kt"
             ),
             autosize=True,
             plot_bgcolor="rgba(240,240,240,0.7)",
@@ -51,7 +52,7 @@ def plot_3d_cases_risingangle(
     )
 
     dfs = df[
-        (df["rising_angle"] == target_rising_angle)
+        (df["rising_angle"].between(target_rising_angle_low, target_rising_angle_upper))
         & (df["true_wind_calculated_kt_rounded"] == target_wind)
     ]
     fig = px.scatter(
@@ -127,48 +128,24 @@ def plot_3d_cases(df, target_wind=30, what="rising_angle", height_size=800):
 
 
 # %%
-# from model_3d import Deflector, FishKite, Pilot
+# %% Initial set up
 
-# # %%
-# d_pilot = Pilot(mass=80, pilot_drag=0.25)
-# d_kite2 = Deflector(
-#     "kite2",
-#     cl=0.8,
-#     cl_range=(0.1, 0.6),
-#     flat_area=35,
-#     flat_ratio=0.85,
-#     flat_aspect_ratio=10,
-#     profil_drag_coeff=0.013,
-#     parasite_drag_pct=0.01,  # 0.69,
-# )
-# d_fish2 = Deflector(
-#     "fish2",
-#     cl=0.6,
-#     cl_range=(0.2, 1),
-#     flat_area=0.3,
-#     flat_ratio=0.64,
-#     profil_drag_coeff=0.01,
-#     flat_aspect_ratio=10,
-#     parasite_drag_pct=0.02,
-# )
+if __name__ == "__main__":
+    from model_3d import Deflector, FishKite, Pilot
 
-# fk2 = FishKite(
-#     "fk2",
-#     wind_speed=15,
-#     rising_angle=20,
-#     fish=d_fish2,
-#     kite=d_kite2,
-#     pilot=d_pilot,
-#     extra_angle=20,
-#     cable_length_fish=30,
-#     cable_length_kite=12,
-#     cable_strength=500,
-#     cx_cable_water=1,
-#     cx_cable_air=1,
-#     tip_fish_depth=0.5,
-# )
-# # %%
-# df = fk2.create_df()
+    data_folder = os.path.join(os.path.dirname(__file__), "data")  # we go up 2 folders
 
-# plot_3d_cases_risingangle(df)
+    fk1_file = os.path.join(data_folder, "saved_fk1.json")
+    fk2_file = os.path.join(data_folder, "saved_fk2.json")
+
+    fk1 = FishKite.from_json(fk1_file)
+    fk2 = FishKite.from_json(fk2_file, classes=FishKite)
+
+    # # %%
+    df = fk2.create_df()
+
+    fig = plot_3d_cases_risingangle(
+        df, target_rising_angle_low=20, target_rising_angle_upper=20
+    )
+    fig.show()
 # %%
