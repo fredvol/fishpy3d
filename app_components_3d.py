@@ -70,18 +70,38 @@ def create_polar_rising_sliders():
         dbc.Col(
             [
                 html.Label("rising Angle [deg]"),
-                dcc.Slider(
+                # dcc.Slider(
+                #     id=f"slider-rising_angle_polar",
+                #     min=1,
+                #     max=90,
+                #     step=90,
+                #     value=25,
+                #     updatemode="drag",
+                #     marks={i: str(i) for i in range(0, 90, 5)},
+                #     tooltip={
+                #         "placement": "bottom",
+                #         "always_visible": True,
+                #     },
+                # ),
+                dcc.RangeSlider(
                     id=f"slider-rising_angle_polar",
                     min=1,
                     max=90,
                     step=90,
-                    value=25,
+                    value=[20, 30],
                     updatemode="drag",
                     marks={i: str(i) for i in range(0, 90, 5)},
+                    pushable=1,
                     tooltip={
                         "placement": "bottom",
                         "always_visible": True,
                     },
+                ),
+                daq.BooleanSwitch(
+                    id="bool_rising_angle_use_range",
+                    on=False,
+                    label="Use max range only:",
+                    labelPosition="left",
                 ),
                 dbc.Row(
                     [
@@ -153,9 +173,39 @@ def create_fk_sliders(id):
             [
                 html.Tr(
                     [
-                        html.Td(html.H5(f"FishKite {id +1}")),
-                        html.Td(
-                            daq.BooleanSwitch(id=f"3d_boolean_{id}", on=True),
+                        dbc.Stack(
+                            [
+                                html.H5(f"FishKite {id +1}"),
+                                daq.BooleanSwitch(id=f"3d_boolean_{id}", on=True),
+                                dbc.Button("Inport", id=f"inport_fk{id}", size="sm"),
+                                dbc.Button("Export", id=f"export_fk{id}", size="sm"),
+                            ],
+                            direction="horizontal",
+                            gap=1,
+                        ),
+                        dbc.Stack(
+                            [
+                                dbc.Stack(
+                                    [
+                                        dbc.Label(
+                                            "cable strength [daN]",
+                                        ),
+                                        dbc.Input(
+                                            type="number",
+                                            id=f"cable_strength_{id}",
+                                            min=0,
+                                            max=1000,
+                                            step=1,
+                                        ),
+                                    ],
+                                    direction="horizontal",
+                                    gap=1,
+                                ),
+                                dbc.Stack(
+                                    [dbc.Label("l3"), dbc.Label("l3")],
+                                    direction="horizontal",
+                                ),
+                            ]
                         ),
                     ]
                 ),
