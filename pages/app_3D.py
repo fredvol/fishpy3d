@@ -24,6 +24,7 @@ dash.register_page(__name__)
 from dash import dcc  # import dash_core_components as dcc   # from dash import dcc
 from dash import html  # import dash_html_components as html  # from dash import html
 import dash_bootstrap_components as dbc
+from dash.exceptions import PreventUpdate
 from dash.dependencies import Input, Output, State
 
 import numpy as np
@@ -64,11 +65,13 @@ tabs_styles = {
     "padding-top": "2px",
 }
 
+dcc.Store(id="model_state", data={"need_update": True}),
 
 # Layout
 
 layout = dbc.Container(
     [
+        dcc.Store(id="model_state", data={"need_update": True}),
         dbc.Row(
             [
                 dcc.Store(id="dataStore", storage_type="memory"),
@@ -294,6 +297,24 @@ def update_possible_rising_angle(target_wind):
     )
 
     return {int(i): str(i) for i in sorted(possibility)}
+
+
+### update slider
+
+
+@callback(
+    [Output("model_state", "data"), Output("input_kite_flat_ratio_0", "value")],
+    Input("model_state", "data"),
+)
+def filter_countries(model_state):
+    if model_state["need_update"]:
+        flat_ratio_0 = proj.lst_fishkite[0].kite.flat_ratio
+        print(f" will update flat ratio : {flat_ratio_0}")
+        model_state["need_update"] = False
+        return model_state, flat_ratio_0
+    else:
+        print(f" no update : {flat_ratio_0}")
+        raise PreventUpdate
 
 
 ### Callback to update polar selected  rising angle
