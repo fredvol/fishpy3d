@@ -222,7 +222,7 @@ def create_fk_sliders(id):
                             step=1,
                             value=22,
                             updatemode="drag",
-                            marks={i: str(i) for i in range(0, 55, 5)},
+                            marks={i: str(i) for i in range(0, 105, 5)},
                             tooltip={
                                 "placement": "bottom",
                                 "always_visible": True,
