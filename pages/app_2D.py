@@ -9,10 +9,12 @@
 
 import os, sys
 
+## For exe
+sys.path.append(os.getcwd())
+print("open browser at http://127.0.0.1:8049/")
+print("--")
+##
 
-# sys.path.append(os.getcwd())
-# print("open browser at http://127.0.0.1:8049/")
-# print("--")
 from model import Deflector, FishKite, Project, plot_cases
 
 import dash

@@ -9,17 +9,19 @@
  v* MODEL: update test suite
  v* APP: range for rising angles instead of slider
  v* APP: reduce tab size
- * APP: add all missing parameters 
- * APP: adjust graph position on page
- * APP: update list of parameter to display ( color , symbol)
+ v* APP: add all missing parameters 
+ ~* APP: update list of parameter to display ( color , symbol)
  * APP: export all data button
+ * APP make save and load
+ * APP: adjust graph position on page
  * MODEL: adjust sampling for rising angle
  * APP: add iso curves
  * APP: add side numerical table 
  * APP: add position graph in app
  * APP: clean env 
+ * APP: auto open browser
  * APP:make msi file 
- * APP make save and load
+ * GENERAL : implement TOML config file
  * APP:add icon 
  
 

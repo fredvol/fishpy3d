@@ -6,6 +6,7 @@ options = {
     "build_exe": {
         "include_files": [
             "pages/",
+            "data/",
             "model.py",
             "model_3d.py",
             "fish_plot.py",
@@ -25,6 +26,7 @@ options = {
             "plotly",
             "waitress",
             "dash_daq",
+            "jsonpickle",
         ],
         "excludes": ["tkinter"],
     }
