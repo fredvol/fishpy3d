@@ -15,3 +15,6 @@ Uncomment in pages/app_2D.py
     # print("open browser at http://127.0.0.1:8049/)
     # print("--")
 
+Uncommemnt in app.py
+    pages_folder = os.getcwd() + "/pages/"  # for exe
+    print("cwd:", os.getcwd())
