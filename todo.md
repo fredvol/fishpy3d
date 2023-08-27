@@ -10,9 +10,9 @@
  v* APP: range for rising angles instead of slider
  v* APP: reduce tab size
  v* APP: add all missing parameters 
- ~* APP: update list of parameter to display ( color , symbol)
- * APP: export all data button
- * APP make save and load
+ v* APP: update list of parameter to display ( color , symbol)
+ v* APP: export all data button
+ v* APP make save and load
  * APP: adjust graph position on page
  * MODEL: adjust sampling for rising angle
  * APP: add iso curves

@@ -58,6 +58,28 @@ def load_fish_kite(m_path):
     return FishKite.from_json(m_path)
 
 
+def cosspace_extra_angle(start: float = 0.0, stop: float = 90, cos_coef: float = 0.5):
+    """
+    Makes a cosine-spaced vector.
+    Assuming average step = 1 !
+    Args:
+        start: Value to start at.
+        end: Value to end at.
+        cos_coef: coeficient to apply the cosinus.
+    """
+    num = stop - start + 1
+    step_length = [1 - np.cos(np.radians(i * 180 / num)) * cos_coef for i in range(num)]
+    result = [start]
+    for i in range(num - 1):
+        result.append(result[-1] + step_length[i + 1])
+
+    # Fix the endpoints, which might not be exactly right due to floating-point error.
+    result[0] = start
+    result[-1] = stop
+
+    return result
+
+
 # %% Class
 class Pilot:
     """class holding all infomation about the pilot"""
@@ -490,7 +512,8 @@ class FishKite:
         range_fish = [round(i, 3) for i in range_fish]
         range_kite = [round(i, 3) for i in range_kite]
         range_rising_angle = range_rising_angle = [1] + list(np.arange(5, 90, 5))
-        range_extra_angle = np.arange(2, 90, 1)
+        # range_extra_angle = np.arange(2, 90, 1)
+        range_extra_angle = cosspace_extra_angle(2, 84, 0.5)
 
         ##  previous data generation method  ( slow 15s)
         # dfa = pd.DataFrame(
@@ -513,9 +536,9 @@ class FishKite:
 
         # add the simplify criteria
         balance_range = []
+        df["simplify"] = False
         for i in range(nb_points):
             balance_range.append((range_kite[i], range_fish[-(i + 1)]))
-            df["simplify"] = False
             df.loc[
                 (df["kite_cl"] == range_kite[i])
                 & (df["fish_cl"] == range_fish[-(i + 1)]),
@@ -702,7 +725,9 @@ class FishKite:
         df["cable_break"] = df["cable_strength_margin"] <= 1
 
         # group data
-        df["true_wind_calculated_kt_rounded"] = df["true_wind_calculated_kt"].round()
+        df["true_wind_calculated_kt_rounded"] = (
+            df["true_wind_calculated_kt"] / 2
+        ).round() * 2  # round to even numbers
 
         cavitation_conditions = [
             (df["apparent_watter_kt"] > 40)
@@ -711,6 +736,18 @@ class FishKite:
         df["cavitation"] = np.select(cavitation_conditions, [True], default=False)
 
         df["broke_cable_or_cavitated"] = (df["cable_break"]) | (df["cavitation"])
+
+        def resume_failure(row):
+            if row["cable_break"] and row["cavitation"]:
+                return "broken + cavitation"
+            elif row["cable_break"]:
+                return "broken"
+            elif row["cavitation"]:
+                return "cavitation"
+            else:
+                return "no failure"
+
+        df["failure"] = df.apply(resume_failure, axis=1)
 
         # %optimise size - was saving 10mo ( 113mb instead 122mb) but loose precision.
         # df["kite_cl"] = df["kite_cl"].astype(np.float32)

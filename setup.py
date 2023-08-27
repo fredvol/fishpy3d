@@ -7,6 +7,7 @@ options = {
         "include_files": [
             "pages/",
             "data/",
+            "assets/",
             "model.py",
             "model_3d.py",
             "fish_plot.py",
