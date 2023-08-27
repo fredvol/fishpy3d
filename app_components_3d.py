@@ -457,7 +457,7 @@ def create_fk_sliders(id):
                                             id=f"input_fish_profildrag_{id}",
                                             min=0.005,
                                             max=0.05,
-                                            step=0.01,
+                                            step=0.005,
                                             className="custom-inputs",
                                         ),
                                         dbc.Tooltip(
