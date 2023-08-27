@@ -1,10 +1,23 @@
 import dash
 import dash_bootstrap_components as dbc
+import os
 
-__version__ = "1.1.0"
-app = dash.Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
+__version__ = "2.0.1"
+# # for live
+pages_folder = os.path.join(os.path.dirname(__name__), "pages")  # for live
+
+# for build
+# pages_folder = os.getcwd() + "/pages/"  # for exe
+# print("cwd:", os.getcwd())
+# print("Version: ", __version__)
+
+app = dash.Dash(
+    __name__,
+    use_pages=True,
+    pages_folder=pages_folder,
+    external_stylesheets=[dbc.themes.BOOTSTRAP],
+)
 server = app.server
-
 
 navbar = dbc.NavbarSimple(
     dbc.DropdownMenu(
@@ -19,7 +32,7 @@ navbar = dbc.NavbarSimple(
     brand=f"FishPy v{__version__}",
     color="primary",
     dark=True,
-    className="mb-2",
+    className="py-1",
 )
 
 app.layout = dbc.Container(

@@ -6,6 +6,15 @@
 # https://fishpy2d-9143325b137e.herokuapp.com/
 
 # imports
+
+import os, sys
+
+## For exe
+sys.path.append(os.getcwd())
+print("open browser at http://127.0.0.1:8049/")
+print("--")
+##
+
 from model import Deflector, FishKite, Project, plot_cases
 
 import dash

@@ -26,7 +26,8 @@ if "#EF553B" in COLOR_palette:
 
 def plot_3d_cases_risingangle(
     df,
-    target_rising_angle=20,
+    target_rising_angle_low=20,
+    target_rising_angle_upper=40,
     target_wind=30,
     what="extra_angle",
     symbol=None,
@@ -35,12 +36,10 @@ def plot_3d_cases_risingangle(
     fig = go.Figure(
         layout=go.Layout(
             title=go.layout.Title(
-                text=f"Rising angle: {target_rising_angle} , TrueWind = {target_wind} kt"
+                text=f"Rising angle: [{target_rising_angle_low},{target_rising_angle_upper}] , TrueWind = {target_wind} kt"
             ),
             autosize=True,
             plot_bgcolor="rgba(240,240,240,0.7)",
-            xaxis_range=[-15, 550],
-            yaxis_range=[-300, 240],
             xaxis=dict(showgrid=False, visible=False),
             yaxis=dict(showgrid=False, visible=False),
             legend=dict(
@@ -53,7 +52,7 @@ def plot_3d_cases_risingangle(
     )
 
     dfs = df[
-        (df["rising_angle"] == target_rising_angle)
+        (df["rising_angle"].between(target_rising_angle_low, target_rising_angle_upper))
         & (df["true_wind_calculated_kt_rounded"] == target_wind)
     ]
     fig = px.scatter(
@@ -90,6 +89,10 @@ def plot_3d_cases_risingangle(
         )
     )
 
+    fig.update_layout(
+        xaxis_range=[-1, 50],
+    )
+
     fig.update_yaxes(
         scaleanchor="x",
         scaleratio=1,
@@ -124,4 +127,25 @@ def plot_3d_cases(df, target_wind=30, what="rising_angle", height_size=800):
     return fig
 
 
+# %%
+# %% Initial set up
+
+if __name__ == "__main__":
+    from model_3d import Deflector, FishKite, Pilot
+
+    data_folder = os.path.join(os.path.dirname(__file__), "data")  # we go up 2 folders
+
+    fk1_file = os.path.join(data_folder, "saved_fk1.json")
+    fk2_file = os.path.join(data_folder, "saved_fk2.json")
+
+    fk1 = FishKite.from_json(fk1_file)
+    fk2 = FishKite.from_json(fk2_file, classes=FishKite)
+
+    # # %%
+    df = fk2.create_df()
+
+    fig = plot_3d_cases_risingangle(
+        df, target_rising_angle_low=20, target_rising_angle_upper=20
+    )
+    fig.show()
 # %%
