@@ -761,7 +761,7 @@ class Project:
         return fig
 
 
-# %%# %% Parameter
+# %%# Parameter
 if __name__ == "__main__":
     fk1_file = os.path.join(data_folder, "saved_fk1.json")
     fk2_file = os.path.join(data_folder, "saved_fk2.json")
