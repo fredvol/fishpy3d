@@ -26,11 +26,11 @@ operating_slider_components = [
     html.Label("Wind speed [knots]"),
     dcc.Slider(
         id=f"3d_slider-wind_speed",
-        min=1,
+        min=0,
         max=40,
-        step=1,
+        step=2,
         value=20,
-        marks={i: str(i) for i in range(0, 40, 5)},
+        marks={i: str(i) for i in range(0, 40, 4)},
         tooltip={
             "placement": "bottom",
             "always_visible": True,
@@ -75,7 +75,7 @@ def create_polar_rising_sliders():
                     min=1,
                     max=90,
                     step=90,
-                    value=[20, 30],
+                    value=[0, 30],
                     updatemode="drag",
                     marks={i: str(i) for i in range(0, 90, 5)},
                     pushable=1,
@@ -86,7 +86,7 @@ def create_polar_rising_sliders():
                 ),
                 daq.BooleanSwitch(
                     id="bool_rising_angle_use_range",
-                    on=False,
+                    on=True,
                     label="Use max range only:",
                     labelPosition="left",
                 ),
@@ -119,6 +119,7 @@ def create_polar_rising_sliders():
                                         "vmg_y_kt",
                                         "cable_strength_margin",
                                         "fk_name",
+                                        "failure",
                                     ],
                                     "extra_angle",
                                     id="data_color_polar_rising",
@@ -129,7 +130,13 @@ def create_polar_rising_sliders():
                             [
                                 html.Label("Symbol:"),
                                 dcc.Dropdown(
-                                    ["None", "cable_break", "cavitation", "fk_name"],
+                                    [
+                                        "None",
+                                        "cable_break",
+                                        "cavitation",
+                                        "fk_name",
+                                        "failure",
+                                    ],
                                     None,
                                     id="data_symbol_polar_rising",
                                 ),

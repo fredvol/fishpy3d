@@ -2,7 +2,7 @@ import dash
 import dash_bootstrap_components as dbc
 import os
 
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 # # for live
 pages_folder = os.path.join(os.path.dirname(__name__), "pages")  # for live
 

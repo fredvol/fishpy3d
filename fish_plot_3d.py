@@ -72,19 +72,17 @@ def plot_3d_cases_risingangle(
     )
     # fig.update_traces(marker=dict(color="red"))
 
-    dfsimplify = dfs[dfs["simplify"] == 1]
+    dfsimplify = dfs[dfs["simplify"]]
 
     fig.add_trace(
         go.Scatter(
             x=dfsimplify["vmg_x_kt"],
             y=dfsimplify["vmg_y_kt"],
             mode="markers",
+            name="simplify",
             marker=dict(
                 size=10,
-                # I want the color to be green if
-                # lower_limit ≤ y ≤ upper_limit
-                # else red
-                color="red",
+                color="black",
             ),
         )
     )
