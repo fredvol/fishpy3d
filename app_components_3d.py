@@ -30,7 +30,7 @@ operating_slider_components = [
         min=1,
         max=40,
         step=1,
-        value=15,
+        value=20,
         marks={i: str(i) for i in range(0, 40, 5)},
         tooltip={
             "placement": "bottom",
@@ -195,8 +195,8 @@ def create_fk_sliders(id):
                                         dbc.Input(
                                             type="number",
                                             id=f"cable_strength_{id}",
-                                            min=0,
-                                            max=1000,
+                                            min=100,
+                                            max=2000,
                                             step=1,
                                         ),
                                         dbc.Tooltip(
@@ -218,7 +218,7 @@ def create_fk_sliders(id):
                         dcc.Slider(
                             id=f"3d_slider-kite_area_{id}",
                             min=1,
-                            max=50,
+                            max=100,
                             step=1,
                             value=22,
                             updatemode="drag",
@@ -254,7 +254,7 @@ def create_fk_sliders(id):
                                         dbc.Input(
                                             type="number",
                                             id=f"input_kite_flat_ratio_{id}",
-                                            min=0,
+                                            min=0.5,
                                             max=1,
                                             step=0.01,
                                             className="custom-inputs",
@@ -270,9 +270,9 @@ def create_fk_sliders(id):
                                         dbc.Input(
                                             type="number",
                                             id=f"input_kite_aspect_ratio_{id}",
-                                            min=0,
-                                            max=10,
-                                            step=0.01,
+                                            min=1,
+                                            max=20,
+                                            step=0.1,
                                             className="custom-inputs",
                                         ),
                                     ]
@@ -291,9 +291,9 @@ def create_fk_sliders(id):
                                         dbc.Input(
                                             type="number",
                                             id=f"input_kite_profildrag_{id}",
-                                            min=0,
-                                            max=1,
-                                            step=0.01,
+                                            min=0.01,
+                                            max=0.1,
+                                            step=0.001,
                                             className="custom-inputs",
                                         ),
                                         dbc.Tooltip(
@@ -357,8 +357,8 @@ def create_fk_sliders(id):
                                         dbc.Input(
                                             type="number",
                                             id=f"input_kite_cx_air_{id}",
-                                            min=0,
-                                            max=1,
+                                            min=0.5,
+                                            max=2,
                                             step=0.01,
                                             className="custom-inputs",
                                         ),
@@ -382,11 +382,11 @@ def create_fk_sliders(id):
                         dcc.Slider(
                             id=f"3d_slider-fish_area_{id}",
                             min=0.01,
-                            max=0.2,
+                            max=1,
                             step=0.01,
                             value=0.1,
                             updatemode="drag",
-                            marks={i: f"{i:.2f}" for i in np.arange(0, 0.205, 0.05)},
+                            marks={i: f"{i:.2f}" for i in np.arange(0, 1.1, 0.1)},
                             tooltip={
                                 "placement": "bottom",
                                 "always_visible": True,
@@ -418,7 +418,7 @@ def create_fk_sliders(id):
                                         dbc.Input(
                                             type="number",
                                             id=f"input_fish_flat_ratio_{id}",
-                                            min=0,
+                                            min=0.1,
                                             max=1,
                                             step=0.01,
                                             className="custom-inputs",
@@ -435,7 +435,7 @@ def create_fk_sliders(id):
                                             type="number",
                                             id=f"input_fish_aspect_ratio_{id}",
                                             min=0,
-                                            max=10,
+                                            max=50,
                                             step=0.01,
                                             className="custom-inputs",
                                         ),
@@ -455,8 +455,8 @@ def create_fk_sliders(id):
                                         dbc.Input(
                                             type="number",
                                             id=f"input_fish_profildrag_{id}",
-                                            min=0,
-                                            max=1,
+                                            min=0.005,
+                                            max=0.05,
                                             step=0.01,
                                             className="custom-inputs",
                                         ),
@@ -495,8 +495,8 @@ def create_fk_sliders(id):
                                         dbc.Input(
                                             type="number",
                                             id=f"input_fish_tip_depth_{id}",
-                                            min=0,
-                                            max=100,
+                                            min=-0.5,
+                                            max=2,
                                             step=0.01,
                                             className="custom-inputs",
                                         ),
@@ -522,7 +522,7 @@ def create_fk_sliders(id):
                                             type="number",
                                             id=f"input_fish_cable_length_unstreamline_{id}",
                                             min=0,
-                                            max=100,
+                                            max=500,
                                             step=0.5,
                                             className="custom-inputs",
                                         ),
@@ -541,8 +541,8 @@ def create_fk_sliders(id):
                                         dbc.Input(
                                             type="number",
                                             id=f"input_fish_cx_unstreamline_{id}",
-                                            min=0,
-                                            max=1,
+                                            min=0.5,
+                                            max=2,
                                             step=0.01,
                                             className="custom-inputs",
                                         ),
@@ -562,7 +562,7 @@ def create_fk_sliders(id):
                                             type="number",
                                             id=f"input_fish_cable_length_streamline_{id}",
                                             min=0,
-                                            max=100,
+                                            max=5,
                                             step=0.5,
                                             className="custom-inputs",
                                         ),
@@ -581,7 +581,7 @@ def create_fk_sliders(id):
                                         dbc.Input(
                                             type="number",
                                             id=f"input_fish_cx_streamline_{id}",
-                                            min=0,
+                                            min=0.05,
                                             max=1,
                                             step=0.01,
                                             className="custom-inputs",
