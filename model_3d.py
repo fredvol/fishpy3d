@@ -225,6 +225,8 @@ class FishKite:
         return f"FishKite({self.name}): wind_speed[kt]:{ms_to_knot(self.wind_speed)} rising_angle:{self.rising_angle}  \n Kite:{self.kite}  \n Fish:{self.fish}"
 
     # Load and save
+    def to_json_str(self):
+        return jsonpickle.encode(self)
 
     def to_json(self, filename):
         """Convert to object to json
@@ -243,6 +245,10 @@ class FishKite:
     def from_json(cls, filename, classes=None):
         with open(filename, "r") as json_file:
             json_str = json_file.read()
+        return jsonpickle.decode(json_str, classes=classes)
+
+    @classmethod
+    def from_json_str(cls, json_str, classes=None):
         return jsonpickle.decode(json_str, classes=classes)
 
     # geometry

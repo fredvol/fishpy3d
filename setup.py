@@ -27,6 +27,7 @@ options = {
             "waitress",
             "dash_daq",
             "jsonpickle",
+            "openpyxl",
         ],
         "excludes": ["tkinter"],
     }

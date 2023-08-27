@@ -6,7 +6,8 @@
 # https://fishpy2d-9143325b137e.herokuapp.com/
 
 # imports
-
+import base64
+import io
 from model_3d import (
     Deflector,
     FishKite,
@@ -132,6 +133,21 @@ layout = dbc.Container(
                             dbc.Card(
                                 dbc.CardBody(
                                     [
+                                        dbc.Spinner(
+                                            [html.Div(id="df_info")],
+                                            color="primary",
+                                        ),
+                                        html.Div(
+                                            [
+                                                html.Button(
+                                                    "Download Excel (very long!)",
+                                                    id="btn_xlsx",
+                                                ),
+                                                dcc.Download(
+                                                    id="download-dataframe-xlsx"
+                                                ),
+                                            ]
+                                        ),
                                         dbc.Spinner(
                                             [html.Div(id="debug")],
                                             # html.P(id="my-output_3d"),
@@ -299,6 +315,54 @@ def update_possible_rising_angle(target_wind):
     return {int(i): str(i) for i in sorted(possibility)}
 
 
+###################################################### DOWNLOAD
+
+
+@callback(
+    Output("download-dataframe-xlsx", "data"),
+    Input("btn_xlsx", "n_clicks"),
+    prevent_initial_call=True,
+)
+def download_bigDF(n_clicks):
+    return dcc.send_data_frame(
+        dfG.to_excel, "df_general.xlsx", sheet_name="Sheet_name_1"
+    )
+
+
+@callback(
+    Output("download-fk1", "data"),
+    Input("export_fk0", "n_clicks"),
+    Input("export_fk1", "n_clicks"),
+    prevent_initial_call=True,
+)
+def download_fk(btn_fk0, btn_fk1):
+    button_clicked = ctx.triggered_id
+    if button_clicked == "export_fk0":
+        return dict(content=fk1.to_json_str(), filename=f"exported_{fk1.name}.txt")
+    elif button_clicked == "export_fk1":
+        return dict(content=fk2.to_json_str(), filename=f"exported_{fk2.name}.txt")
+    else:
+        print("Impossible to export : button_clicked", button_clicked)
+        raise PreventUpdate
+
+
+# upload
+# @callback(
+#     Input("inport_fk0", "n_clicks"),
+#     Input("inport_fk1", "n_clicks"),
+#     prevent_initial_call=True,
+# )
+# def import_fk(btn_fk0, btn_fk1):
+#     button_clicked = ctx.triggered_id
+#     if button_clicked == "export_fk0":
+#         print(" load fk0")
+#     elif button_clicked == "export_fk1":
+#         print(" load fk0")
+#     else:
+#         print("Impossible to export : button_clicked", button_clicked)
+#         raise PreventUpdate
+
+
 ######################################################  GUI
 ### update slider
 
@@ -326,6 +390,7 @@ roots_update_slider = [
     "input_fish_cx_streamline",
 ]
 
+
 list_outputs = [Output("model_state", "data")]
 for id in [0, 1]:
     for field in roots_update_slider:
@@ -335,8 +400,23 @@ for id in [0, 1]:
 @callback(
     list_outputs,
     Input("model_state", "data"),
+    Input("inport_fk0", "contents"),
+    Input("inport_fk1", "contents"),
 )
-def update_sliders(model_state):
+def update_sliders(model_state, data_import0, data_import1):
+    button_clicked = ctx.triggered_id
+    print(f" triger by {button_clicked}")
+
+    if button_clicked == "inport_fk0":
+        content_type, content_string = data_import0.split(",")
+        decoded = base64.b64decode(content_string)
+        proj.lst_fishkite[0] = FishKite.from_json_str(decoded)
+
+    if button_clicked == "inport_fk1":
+        content_type, content_string = data_import1.split(",")
+        decoded = base64.b64decode(content_string)
+        proj.lst_fishkite[1] = FishKite.from_json_str(decoded)
+
     if model_state["need_update_sliders"]:
         output_to_send = []
         for id in [0, 1]:
@@ -454,29 +534,29 @@ def update_polar_all_pts(model_state):
 # DF update callaback
 
 
-roots_update_slider2 = [
-    "fk_name",
-    "cable_strength",
-    "3d_slider-kite_area",
-    "3d_slider-kite_cl",
-    "input_kite_flat_ratio",
-    "input_kite_aspect_ratio",
-    "input_kite_profildrag",
-    "input_kite_parasitedrag",
-    "input_kite_cable_length",
-    "input_kite_cx_air",
-    "3d_slider-fish_area",
-    "3d_slider-fish_cl",
-    "input_fish_flat_ratio",
-    "input_fish_aspect_ratio",
-    "input_fish_profildrag",
-    "input_fish_parasitedrag",
-    "input_fish_tip_depth",
-    "input_fish_cable_length_unstreamline",
-    "input_fish_cx_unstreamline",
-    "input_fish_cable_length_streamline",
-    "input_fish_cx_streamline",
-]
+# roots_update_slider2 = [
+#     "fk_name",
+#     "cable_strength",
+#     "3d_slider-kite_area",
+#     "3d_slider-kite_cl",
+#     "input_kite_flat_ratio",
+#     "input_kite_aspect_ratio",
+#     "input_kite_profildrag",
+#     "input_kite_parasitedrag",
+#     "input_kite_cable_length",
+#     "input_kite_cx_air",
+#     "3d_slider-fish_area",
+#     "3d_slider-fish_cl",
+#     "input_fish_flat_ratio",
+#     "input_fish_aspect_ratio",
+#     "input_fish_profildrag",
+#     "input_fish_parasitedrag",
+#     "input_fish_tip_depth",
+#     "input_fish_cable_length_unstreamline",
+#     "input_fish_cx_unstreamline",
+#     "input_fish_cable_length_streamline",
+#     "input_fish_cx_streamline",
+# ]
 
 dict_input_update_model = {
     "all_inputs": {
@@ -489,13 +569,17 @@ dict_input_update_model = {
 for id in [0, 1]:
     d_i = {}
     d_i["3d_boolean"] = Input(f"3d_boolean_{id}", "on")
-    for field in roots_update_slider2:
+    for field in roots_update_slider:
         d_i[field] = Input(f"{field}_{id}", "value")
     dict_input_update_model["all_inputs"][id] = d_i
 
 
 @callback(
-    [Output("graph_need_update", "data"), Output("debug", "children")],
+    [
+        Output("graph_need_update", "data"),
+        Output("df_info", "children"),
+        Output("debug", "children"),
+    ],
     inputs=dict_input_update_model
     # {
     #     "all_inputs": {
@@ -574,8 +658,10 @@ def update(all_inputs):
     dfall = proj.create_df()
     dfG = dfall[dfall["fk_name"].isin(case_list)]
 
-    deb = f"updated df {dfG.shape} \n---\n={ c}"
-    return True, deb
+    info_df = f"Data Table: rows: {dfG.shape[0]} :cols: {dfG.shape[1]} , {sum(dfG.memory_usage())/1e6} mb"
+
+    deb = f"{ c}"
+    return True, info_df, deb
 
 
 if __name__ == "__main__":

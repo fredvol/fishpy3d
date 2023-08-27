@@ -182,11 +182,13 @@ def create_fk_sliders(id):
                             [
                                 html.H5(f"FishKite {id +1}"),
                                 daq.BooleanSwitch(id=f"3d_boolean_{id}", on=True),
-                                dbc.Button(
-                                    "Inport",
+                                dcc.Upload(
+                                    dbc.Button(
+                                        "Inport",
+                                        size="sm",
+                                        color="secondary",
+                                    ),
                                     id=f"inport_fk{id}",
-                                    size="sm",
-                                    color="secondary",
                                 ),
                                 dbc.Button(
                                     "Export",
@@ -194,6 +196,7 @@ def create_fk_sliders(id):
                                     size="sm",
                                     color="secondary",
                                 ),
+                                dcc.Download(id="download-fk1"),
                             ],
                             direction="horizontal",
                             gap=1,
