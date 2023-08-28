@@ -13,9 +13,9 @@
  v* APP: update list of parameter to display ( color , symbol)
  v* APP: export all data button
  v* APP make save and load
+ v* MODEL: adjust sampling for extra angle
+ ~* APP: add iso curves
  * APP: adjust graph position on page
- * MODEL: adjust sampling for rising angle
- * APP: add iso curves
  * APP: add side numerical table 
  * APP: add position graph in app
  * APP: clean env 
@@ -25,6 +25,10 @@
  * APP:add icon 
  
 
+## Luc's list 
+https://docs.google.com/spreadsheets/d/1swq6N3iLw-xxSvJpLyTnDc6XI8MoES9lr6Ldd3VTUpw/edit#gid=0
+
 # info 
  filter and tab : https://shapash-demo.ossbymaif.fr/
  click link : https://dash.gallery/dash-tsne/
+ plotly : https://plotly.com/python/creating-and-updating-figures/

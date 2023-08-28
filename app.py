@@ -2,14 +2,14 @@ import dash
 import dash_bootstrap_components as dbc
 import os
 
-__version__ = "2.0.2"
+__version__ = "2.0.3"
 # # for live
-pages_folder = os.path.join(os.path.dirname(__name__), "pages")  # for live
+# pages_folder = os.path.join(os.path.dirname(__name__), "pages")  # for live
 
 # for build
-# pages_folder = os.getcwd() + "/pages/"  # for exe
-# print("cwd:", os.getcwd())
-# print("Version: ", __version__)
+pages_folder = os.getcwd() + "/pages/"  # for exe
+print("cwd:", os.getcwd())
+print("Version: ", __version__)
 
 app = dash.Dash(
     __name__,
