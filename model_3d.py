@@ -737,17 +737,16 @@ class FishKite:
 
         df["broke_cable_or_cavitated"] = (df["cable_break"]) | (df["cavitation"])
 
-        def resume_failure(row):
-            if row["cable_break"] and row["cavitation"]:
-                return "broken + cavitation"
-            elif row["cable_break"]:
-                return "broken"
-            elif row["cavitation"]:
-                return "cavitation"
-            else:
-                return "no failure"
+        conditions = [
+            (df["cable_break"] & df["cavitation"]),
+            df["cable_break"],
+            df["cavitation"],
+            True,  # Default condition
+        ]
 
-        df["failure"] = df.apply(resume_failure, axis=1)
+        choices = ["broken cavitated", "break", "cavitation", "no failure"]
+
+        df["failure"] = np.select(conditions, choices, default=0)
 
         # %optimise size - was saving 10mo ( 113mb instead 122mb) but loose precision.
         # df["kite_cl"] = df["kite_cl"].astype(np.float32)
@@ -816,6 +815,7 @@ if __name__ == "__main__":
 
     dfM = proj.create_df()
 
+    # %%
     df1 = dfM[dfM["fk_name"] == "fk1"]
 
     # %%
