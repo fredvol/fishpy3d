@@ -405,7 +405,7 @@ for id in [0, 1]:
 )
 def update_sliders(model_state, data_import0, data_import1):
     button_clicked = ctx.triggered_id
-    print(f" triger by {button_clicked}")
+    # print(f" triger by {button_clicked}")
 
     if button_clicked == "inport_fk0":
         content_type, content_string = data_import0.split(",")
@@ -442,7 +442,7 @@ def update_sliders(model_state, data_import0, data_import1):
             output_to_send.append(proj.lst_fishkite[id].cable_length_fish_streamline)
             output_to_send.append(proj.lst_fishkite[id].cx_cable_water_streamline)
 
-        print(f" will update slider")
+        # print(f" will update slider")
 
         return model_state, *output_to_send
     else:
@@ -477,10 +477,25 @@ def Startup_call_back(data):
         Input("data_color_polar_rising", "value"),
         Input("data_symbol_polar_rising", "value"),
         Input("graph_need_update", "data"),
+        Input("3d_bool_orthogrid", "on"),
+        Input("3d_bool_isospeed", "on"),
+        Input("3d_bool_isoeft", "on"),
+        Input("3d_bool_isofluid", "on"),
+        Input("3d_slider-graph_size", "value"),
     ],
 )
 def update_polar_rising_angle(
-    rising_angle, use_max_only, target_wind, color_data, symbol_data, _data
+    rising_angle,
+    use_max_only,
+    target_wind,
+    color_data,
+    symbol_data,
+    _data,
+    bool_orthogrid,
+    bool_isospeed,
+    bool_isoeft,
+    bool_isofluid,
+    graph_size,
 ):
     if symbol_data == "None":
         symbol_data = None
@@ -496,6 +511,11 @@ def update_polar_rising_angle(
         target_wind=target_wind,
         what=color_data,
         symbol=symbol_data,
+        draw_ortho_grid=bool_orthogrid,
+        draw_iso_speed=bool_isospeed,
+        draw_iso_eft=bool_isoeft,
+        draw_iso_fluid=bool_isofluid,
+        height_size=graph_size,
     )
 
 
