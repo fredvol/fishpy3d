@@ -21,7 +21,7 @@ from model_3d import (
 import dash
 
 dash.register_page(__name__)
-
+import json
 from dash import dcc  # import dash_core_components as dcc   # from dash import dcc
 from dash import html  # import dash_html_components as html  # from dash import html
 import dash_bootstrap_components as dbc
@@ -57,7 +57,7 @@ proj = Project([fk1, fk2])
 # server = app.server
 dfG = proj.create_df()
 
-fig_rising_angle = plot_3d_cases_risingangle(dfG)
+fig_rising_angle = plot_3d_cases_risingangle(dfG[dfG["fk_name"] == fk1.name])
 fig_all_pts = plot_3d_cases(dfG)
 # df_table = proj.perf_table()
 # CSS
@@ -186,17 +186,38 @@ layout = dbc.Container(
                                 dcc.Tab(
                                     label="selected Rising angle",
                                     children=[
-                                        dbc.CardBody(
-                                            create_polar_rising_sliders(),
-                                            # dcc.Markdown("bidon")
-                                        ),
-                                        dcc.Graph(
-                                            id="fig1_3d_rising_angle",
-                                            figure=fig_rising_angle,
-                                            # style={
-                                            #     "position": "fixed",  # that imobilised the graph
-                                            # },
-                                        ),
+                                        dbc.Row(
+                                            [
+                                                dbc.Col(
+                                                    [
+                                                        dbc.CardBody(
+                                                            create_polar_rising_sliders(),
+                                                            # dcc.Markdown("bidon")
+                                                        ),
+                                                        dcc.Graph(
+                                                            id="fig1_3d_rising_angle",
+                                                            figure=fig_rising_angle,
+                                                            # style={
+                                                            #     "position": "fixed",  # that imobilised the graph
+                                                            # },
+                                                        ),
+                                                    ],
+                                                    width=9,
+                                                ),
+                                                dbc.Col(
+                                                    [
+                                                        html.Div("OP specific data:"),
+                                                        html.Pre(
+                                                            id="click_data",
+                                                        ),
+                                                        dash_table.DataTable(
+                                                            id="click_data_table"
+                                                        ),
+                                                    ],
+                                                    width=3,
+                                                ),
+                                            ]
+                                        )
                                     ],
                                     className="custom-tab",
                                     selected_className="custom-tab--selected",
@@ -204,17 +225,32 @@ layout = dbc.Container(
                                 dcc.Tab(
                                     label="All Rising angle",
                                     children=[
-                                        dbc.CardBody(
-                                            create_polar_all_pts_sliders(),
-                                            # dcc.Markdown("bidon")
-                                        ),
-                                        dcc.Graph(
-                                            id="fig1_3d_all_pts",
-                                            figure=fig_all_pts,
-                                            # style={
-                                            #     "position": "fixed",  # that imobilised the graph
-                                            # },
-                                        ),
+                                        dbc.Row(
+                                            [
+                                                dbc.Col(
+                                                    [
+                                                        dbc.CardBody(
+                                                            create_polar_all_pts_sliders(),
+                                                            # dcc.Markdown("bidon")
+                                                        ),
+                                                        dcc.Graph(
+                                                            id="fig1_3d_all_pts",
+                                                            figure=fig_all_pts,
+                                                            # style={
+                                                            #     "position": "fixed",  # that imobilised the graph
+                                                            # },
+                                                        ),
+                                                    ]
+                                                ),
+                                                dbc.Col(
+                                                    [
+                                                        html.Div(
+                                                            "One of three columns"
+                                                        ),
+                                                    ]
+                                                ),
+                                            ]
+                                        )
                                     ],
                                     className="custom-tab",
                                     selected_className="custom-tab--selected",
@@ -315,6 +351,65 @@ def update_possible_rising_angle(target_wind):
     return {int(i): str(i) for i in sorted(possibility)}
 
 
+###################################################### Click reaction
+summary_table_fields = [
+    "kite_cl",
+    "fish_cl",
+    "rising_angle",
+    "extra_angle",
+    "simplify",
+    "fish_center_depth",
+    "cable_length_in_water",
+    "cable_length_in_water_streamline",
+    "cable_length_in_water_unstreamline",
+    "cable_water_drag",
+    "cable_length_in_air",
+    "cable_air_drag",
+    "fish_lift",
+    "kite_lift",
+    "fish_induced_drag",
+    "kite_induced_drag",
+    "total_water_drag",
+    "total_air_drag",
+    "fish_total_force",
+    "kite_total_force",
+    "y_pilot",
+    "z_pilot",
+    "y_kite",
+    "z_kite",
+    "apparent_watter_kt",
+    "apparent_wind_kt",
+    "true_wind_calculated_kt",
+    "vmg_x_kt",
+    "vmg_y_kt",
+    "cable_strength_margin",
+    "cavitation",
+    "fk_name",
+    "failure",
+    "indexG",
+]
+
+
+@callback(
+    [
+        Output(component_id="click_data_table", component_property="data"),
+        Output(component_id="click_data_table", component_property="columns"),
+    ],
+    Input("fig1_3d_rising_angle", "clickData"),
+    prevent_initial_call=True,
+)
+def display_click_data(clickData):
+    print(clickData)
+    df_index = clickData["points"][0]["customdata"][-1]
+    df_click_select = dfG[dfG["indexG"] == df_index][summary_table_fields]
+    df_click = df_click_select.reset_index().T
+    print("df_click", df_click)
+    columns = [{"name": str(col), "id": str(col)} for col in df_click.columns]
+    data = df_click.to_dict(orient="records")
+
+    return data, columns
+
+
 ###################################################### DOWNLOAD
 
 
@@ -344,23 +439,6 @@ def download_fk(btn_fk0, btn_fk1):
     else:
         print("Impossible to export : button_clicked", button_clicked)
         raise PreventUpdate
-
-
-# upload
-# @callback(
-#     Input("inport_fk0", "n_clicks"),
-#     Input("inport_fk1", "n_clicks"),
-#     prevent_initial_call=True,
-# )
-# def import_fk(btn_fk0, btn_fk1):
-#     button_clicked = ctx.triggered_id
-#     if button_clicked == "export_fk0":
-#         print(" load fk0")
-#     elif button_clicked == "export_fk1":
-#         print(" load fk0")
-#     else:
-#         print("Impossible to export : button_clicked", button_clicked)
-#         raise PreventUpdate
 
 
 ######################################################  GUI
