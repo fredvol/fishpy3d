@@ -539,8 +539,7 @@ class FishKite:
                 "extra_angle": extra_angle.ravel(),
             }
         )
-        # add general index  to find back the data
-        df["indexG"] = df.index
+
         # add the simplify criteria
         balance_range = []
         df["simplify"] = False
@@ -797,6 +796,8 @@ class Project:
             df_list.append(dfi)
 
         df = pd.concat(df_list, ignore_index=True)
+        # add general index  to find back the data
+        df["indexG"] = df.index
         return df
 
     def plot(self, draw_ortho_grid=True, add_background_image=False):

@@ -316,7 +316,7 @@ def create_fk_sliders(id):
                                             max=20,
                                             step=0.1,
                                             debounce=True,
-                                            className="custom-inputs",
+                                            className="custom-inputs",  # {"height": "1.5em"}cd
                                         ),
                                     ]
                                 ),
