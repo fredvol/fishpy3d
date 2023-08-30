@@ -14,9 +14,12 @@
  v* APP: export all data button
  v* APP make save and load
  v* MODEL: adjust sampling for extra angle
- ~* APP: add iso curves
+ v* APP: add side numerical table 
+ v* APP: add iso curves
+ * APP: add pilot
+ * APP: update test suite
+ * APP: adjust X range 
  * APP: adjust graph position on page
- * APP: add side numerical table 
  * APP: add position graph in app
  * APP: clean env 
  * APP: auto open browser

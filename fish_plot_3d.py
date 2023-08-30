@@ -360,6 +360,7 @@ def plot_3d_cases_risingangle(
     list_hover_data = [
         "apparent_watter_kt",
         what,
+        "fk_name",  # fk_name should remain the last-1  for the side table data
         "indexG",  # index G should remain the last  for the side table data
     ]
 
@@ -419,6 +420,7 @@ def plot_3d_cases_risingangle(
                 size=12,
                 color="black",
             ),
+            hoverinfo="skip",
         )
     )
 
@@ -492,6 +494,7 @@ def plot_3d_cases_risingangle(
     fig.update_yaxes(range=[-35, 30])
 
     fig.update_layout(coloraxis_colorbar_x=-0.005)
+    fig.update_layout(clickmode="event+select")
     return fig
 
 

@@ -211,7 +211,39 @@ layout = dbc.Container(
                                                             id="click_data",
                                                         ),
                                                         dash_table.DataTable(
-                                                            id="click_data_table"
+                                                            id="click_data_table",
+                                                            style_data={
+                                                                "color": "black",
+                                                                "backgroundColor": "white",
+                                                                "font-size": "0.6em",
+                                                            },
+                                                            style_data_conditional=[
+                                                                {
+                                                                    "if": {
+                                                                        "row_index": "odd"
+                                                                    },
+                                                                    "backgroundColor": "rgb(220, 220, 220)",
+                                                                }
+                                                            ],
+                                                            style_header={
+                                                                "backgroundColor": "rgb(210, 210, 210)",
+                                                                "color": "black",
+                                                                "fontWeight": "bold",
+                                                            },
+                                                            # style_table={
+                                                            #     "height": "800px",
+                                                            #     "overflowY": "auto",
+                                                            # },
+                                                            css=[
+                                                                {
+                                                                    "selector": ".dash-spreadsheet tr",
+                                                                    "rule": "height: 10px;",
+                                                                },
+                                                                {
+                                                                    "selector": "tr:first-child",
+                                                                    "rule": "display: none",
+                                                                },
+                                                            ],
                                                         ),
                                                     ],
                                                     width=3,
@@ -399,11 +431,15 @@ summary_table_fields = [
     prevent_initial_call=True,
 )
 def display_click_data(clickData):
-    print(clickData)
     df_index = clickData["points"][0]["customdata"][-1]
-    df_click_select = dfG[dfG["indexG"] == df_index][summary_table_fields]
-    df_click = df_click_select.reset_index().T
-    print("df_click", df_click)
+    df_click_select = dfG[(dfG["indexG"] == df_index)][summary_table_fields]
+    # Identify numeric columns
+    numeric_cols = df_click_select.select_dtypes(include=[float, int]).columns
+
+    # Format numeric columns with n digits
+    df_click_select[numeric_cols] = df_click_select[numeric_cols].round(5)
+
+    df_click = df_click_select.reset_index().T.reset_index()
     columns = [{"name": str(col), "id": str(col)} for col in df_click.columns]
     data = df_click.to_dict(orient="records")
 
