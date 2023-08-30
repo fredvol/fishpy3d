@@ -27,7 +27,7 @@ GRAVITY = 9.81  # m/s-2
 RHO_AIR = 1.29  # kg/m3
 RHO_WATER = 1025  # kg/m3
 CONV_KTS_MS = 0.5144456333854638  # (m/s)/kt
-CABLE_STRENGTH_MM2 = 100  # daN/mm2
+#CABLE_STRENGTH_MM2 = 100  # daN/mm2
 
 data_folder = os.path.join(os.path.dirname(__file__), "data")
 
@@ -225,6 +225,7 @@ class FishKite:
         cx_cable_water_streamline: float,
         cx_cable_air: float,
         tip_fish_depth: float,
+        cable_strength_mm2: float,
     ):
         self.name = name
         self.wind_speed = wind_speed * CONV_KTS_MS  # input in kt converted in m/s
@@ -241,6 +242,8 @@ class FishKite:
         self.cx_cable_water_streamline = cx_cable_water_streamline  # no unit
         self.cx_cable_air = cx_cable_air  # no unit
         self.tip_fish_depth = tip_fish_depth  # no
+        self.cable_strength_mm2 = cable_strength_mm2  # DaN/mm2
+
         self.obj_version = 1
 
     def __repr__(self):
@@ -276,7 +279,10 @@ class FishKite:
     # geometry
 
     def cable_diameter(self):
-        return np.sqrt((self.cable_strength * 4) / (np.pi * CABLE_STRENGTH_MM2)) / 1000
+        return (
+            np.sqrt((self.cable_strength * 4) / (np.pi * self.cable_strength_mm2))
+            / 1000
+        )
 
     def fish_center_depth(self):  # m
         return self.tip_fish_depth + self.fish.projected_span() * 0.5 * np.cos(

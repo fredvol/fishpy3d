@@ -48,5 +48,6 @@
     "cx_cable_water_streamline": 0.5,
     "cx_cable_air": 1,
     "tip_fish_depth": 0.5,
+    "cable_strength_mm2": 100,
     "obj_version": 1
 }
