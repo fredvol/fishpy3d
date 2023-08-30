@@ -27,7 +27,7 @@ GRAVITY = 9.81  # m/s-2
 RHO_AIR = 1.29  # kg/m3
 RHO_WATER = 1025  # kg/m3
 CONV_KTS_MS = 0.5144456333854638  # (m/s)/kt
-#CABLE_STRENGTH_MM2 = 100  # daN/mm2
+# CABLE_STRENGTH_MM2 = 100  # daN/mm2
 
 data_folder = os.path.join(os.path.dirname(__file__), "data")
 
@@ -539,7 +539,8 @@ class FishKite:
                 "extra_angle": extra_angle.ravel(),
             }
         )
-
+        # add general index  to find back the data
+        df["indexG"] = df.index
         # add the simplify criteria
         balance_range = []
         df["simplify"] = False

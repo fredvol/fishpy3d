@@ -358,10 +358,9 @@ def plot_3d_cases_risingangle(
     ]
 
     list_hover_data = [
-        "apparent_watter_ms",
+        "apparent_watter_kt",
         what,
-        "fish_total_force",
-        "cable_strength_margin",
+        "indexG",  # index G should remain the last  for the side table data
     ]
 
     fig = px.scatter(
