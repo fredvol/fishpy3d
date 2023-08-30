@@ -685,7 +685,7 @@ def create_fk_sliders(id):
                                 dbc.Stack(
                                     [
                                         dbc.Label(
-                                            "strength mm²:",
+                                            "strength/mm²:",
                                             className="custom-labels",
                                         ),
                                         dbc.Input(
@@ -698,7 +698,7 @@ def create_fk_sliders(id):
                                             className="custom-inputs",
                                         ),
                                         dbc.Tooltip(
-                                            "no unit ",
+                                            "unit: DaN/mm² ",
                                             target=f"cable_strength_mm2_{id}",
                                         ),
                                     ]
