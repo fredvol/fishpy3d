@@ -229,13 +229,61 @@ def create_fk_sliders(id):
                             [
                                 dbc.Stack(
                                     [
-                                        dbc.Label(
-                                            "Name:",
+                                        dbc.Stack(
+                                            [
+                                                dbc.Label(
+                                                    "Name:",
+                                                    className="custom-labels",
+                                                ),
+                                                dbc.Input(
+                                                    type="text",
+                                                    id=f"fk_name_{id}",
+                                                    className="custom-inputs",
+                                                ),
+                                            ],
+                                            style={"width": "130%"},
                                         ),
-                                        dbc.Input(
-                                            type="text",
-                                            id=f"fk_name_{id}",
-                                            className="custom-inputs",
+                                        dbc.Stack(
+                                            [
+                                                dbc.Label(
+                                                    "Pilot mass:",
+                                                    className="custom-labels",
+                                                ),
+                                                dbc.Input(
+                                                    type="number",
+                                                    id=f"input_pilot_mass_{id}",
+                                                    min=1,
+                                                    max=250,
+                                                    step=1,
+                                                    debounce=True,
+                                                    className="custom-inputs",
+                                                ),
+                                                dbc.Tooltip(
+                                                    "unit: kg ",
+                                                    target=f"input_pilot_mass_{id}",
+                                                ),
+                                            ]
+                                        ),
+                                        dbc.Stack(
+                                            [
+                                                dbc.Label(
+                                                    "Pilot drag:",
+                                                    className="custom-labels",
+                                                ),
+                                                dbc.Input(
+                                                    type="number",
+                                                    id=f"input_pilot_drag_{id}",
+                                                    min=0.01,
+                                                    max=2,
+                                                    step=0.01,
+                                                    debounce=True,
+                                                    className="custom-inputs",
+                                                ),
+                                                dbc.Tooltip(
+                                                    "unit: m² ",
+                                                    target=f"input_pilot_drag_{id}",
+                                                ),
+                                            ]
                                         ),
                                     ],
                                     direction="horizontal",
