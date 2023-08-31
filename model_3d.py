@@ -643,15 +643,18 @@ class FishKite:
         )
 
         # For extra angle
-        df["efficiency_water_LD"] = df[f"fish_lift"] / df[f"total_water_drag"]
-
+        df["proj_efficiency_water_LD"] = (
+            df[f"fish_lift"] / df[f"total_water_drag"]
+        ) * np.cos(df["rising_angle_rad"])
         df["projected_efficiency_water_rad"] = np.arctan(
-            1 / (df["efficiency_water_LD"] * np.cos(df["rising_angle_rad"]))
+            1 / (df["proj_efficiency_water_LD"])
         )
 
-        df["efficiency_air_LD"] = df[f"kite_lift"] / df[f"total_air_drag"]
+        df["proj_efficiency_air_LD"] = (
+            df[f"kite_lift"] / df[f"total_air_drag"]
+        ) * np.cos(df["kite_roll_angle_rad"])
         df["kite_projected_efficiency_rad"] = np.arctan(
-            1 / (np.cos(df["kite_roll_angle_rad"]) * df["efficiency_air_LD"])
+            1 / (df["proj_efficiency_air_LD"])
         )
 
         df["total_efficiency_rad"] = (

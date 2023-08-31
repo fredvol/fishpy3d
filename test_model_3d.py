@@ -113,6 +113,7 @@ def test_save_load():
         cx_cable_water_unstreamline=1.1,
         cx_cable_air=1,
         tip_fish_depth=0.5,
+        cable_strength_mm2=120,
     )
 
     fk_test.to_json(fk_test_file)
