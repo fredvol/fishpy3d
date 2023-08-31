@@ -357,12 +357,18 @@ def plot_3d_cases_risingangle(
         & (df["true_wind_calculated_kt_rounded"] == target_wind)
     ]
 
-    list_hover_data = [
-        "apparent_watter_kt",
-        what,
-        "fk_name",  # fk_name should remain the last-1  for the side table data
-        "indexG",  # index G should remain the last  for the side table data
-    ]
+    dict_hover_data = {
+        "vmg_x_kt": True,  # add other column, default formatting
+        "vmg_y_kt": True,  # add other column, default formatting
+        "apparent_watter_kt": ":.2f",  # add other column, customized formatting
+        what: ":.2f",  # add other column, customized formatting
+        "fk_name": True,  # add other column
+        "indexG": True,  # add other column
+        # # data not in dataframe, default formatting
+        # "suppl_1": np.random.random(len(df)),
+        # # data not in dataframe, customized formatting
+        # "suppl_2": (":.3f", np.random.random(len(df))),
+    }
 
     fig = px.scatter(
         dfs,
@@ -370,7 +376,7 @@ def plot_3d_cases_risingangle(
         y="vmg_y_kt",
         color=what,
         symbol=symbol,
-        hover_data=list_hover_data,
+        hover_data=dict_hover_data,
     )
 
     # UPdate layout
