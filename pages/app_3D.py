@@ -503,6 +503,8 @@ roots_update_slider = [
     "input_fish_cable_length_streamline",
     "input_fish_cx_streamline",
     "cable_strength_mm2",
+    "input_pilot_mass",
+    "input_pilot_drag",
 ]
 
 
@@ -557,6 +559,8 @@ def update_sliders(model_state, data_import0, data_import1):
             output_to_send.append(proj.lst_fishkite[id].cable_length_fish_streamline)
             output_to_send.append(proj.lst_fishkite[id].cx_cable_water_streamline)
             output_to_send.append(proj.lst_fishkite[id].cable_strength_mm2)
+            output_to_send.append(proj.lst_fishkite[id].pilot.mass)
+            output_to_send.append(proj.lst_fishkite[id].pilot.pilot_drag)
 
         # print(f" will update slider")
 
@@ -783,6 +787,8 @@ def update(all_inputs):
         proj.lst_fishkite[idfk].cx_cable_air                 =c[idfk]["input_kite_cx_air"]["value"]
         proj.lst_fishkite[idfk].tip_fish_depth               =c[idfk]["input_fish_tip_depth"]["value"]
         proj.lst_fishkite[idfk].cable_strength_mm2           =c[idfk]["cable_strength_mm2"]["value"]
+        proj.lst_fishkite[idfk].pilot.mass                   =c[idfk]["input_pilot_mass"]["value"]
+        proj.lst_fishkite[idfk].pilot.pilot_drag             =c[idfk]["input_pilot_drag"]["value"]
 
     # fmt: on
     if c[0]["3d_boolean"]["value"]:
