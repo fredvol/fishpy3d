@@ -15,7 +15,7 @@ from model_3d import (
     Project,
     plot_3d_cases,
     plot_3d_cases_risingangle,
-    load_fish_kite,
+    perf_table,
 )
 
 import dash
@@ -36,7 +36,8 @@ import jsonpickle
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "1.0.3"
+__version__ = "2.0.6"
+print("Version: ", __version__)
 
 # %% Initial set up
 data_folder = os.path.join(
@@ -171,11 +172,10 @@ layout = dbc.Container(
                         #     id="analyze", color="primary", style={"margin": "5px"}),
                         html.Hr(),
                         dcc.Markdown("##### Numerical Results"),
-                        # dash_table.DataTable(
-                        #     df_table.to_dict("records"),
-                        #     [{"name": i, "id": i} for i in df_table.columns],
-                        #     id="perf_table_3d",
-                        # ),
+                        dcc.Markdown("compute for 'no failure' OP only:"),
+                        dash_table.DataTable(
+                            id="perf_table_3d",
+                        ),
                     ],
                     width=3,
                 ),
@@ -298,7 +298,7 @@ layout = dbc.Container(
             ]
         ),
         dcc.Markdown(
-            """
+            f"""
         ......................................  
 
         **Hypothesis:**
@@ -309,6 +309,8 @@ layout = dbc.Container(
          * OP = Operation point
          * fk = Fish-Kite
          * Fluid ratio = Apparent Water Speed / Apparent wind Speed
+
+        **Version: {__version__}
         """
         ),
     ],
@@ -405,6 +407,8 @@ summary_table_fields = [
     "total_air_drag",
     "fish_total_force",
     "kite_total_force",
+    "efficiency_water_LD",
+    "efficiency_air_LD",
     "y_pilot",
     "z_pilot",
     "y_kite",
@@ -719,6 +723,8 @@ for id in [0, 1]:
         Output("graph_need_update", "data"),
         Output("df_info", "children"),
         Output("debug", "children"),
+        Output("perf_table_3d", "columns"),
+        Output("perf_table_3d", "data"),
     ],
     inputs=dict_input_update_model
     # {
@@ -804,7 +810,12 @@ def update(all_inputs):
     info_df = f"Data Table: rows: {dfG.shape[0]} :cols: {dfG.shape[1]} , {sum(dfG.memory_usage())/1e6} mb"
 
     deb = f"{ c}"
-    return True, info_df, deb
+    # perf data
+    df_perf = perf_table(dfG[dfG["failure"] == "no failure"]).round(2).reset_index()
+
+    perf_columns = [{"name": str(i), "id": str(i)} for i in df_perf.columns]
+    perf_data = df_perf.to_dict("records")
+    return True, info_df, deb, perf_columns, perf_data
 
 
 if __name__ == "__main__":

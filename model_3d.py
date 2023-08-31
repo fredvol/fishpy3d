@@ -80,6 +80,19 @@ def cosspace_extra_angle(start: float = 0.0, stop: float = 90, cos_coef: float =
     return result
 
 
+def perf_table(df_big):
+    df_perf = (
+        df_big.groupby("fk_name")
+        .agg(
+            Max_apparent_watter_kt=("apparent_watter_kt", "max"),
+            VMG_Upwind=("vmg_y_kt", "max"),
+            VMG_Downwind=("vmg_y_kt", "min"),
+        )
+        .T
+    )
+    return df_perf
+
+
 # %% Class
 class Pilot:
     """class holding all infomation about the pilot"""
@@ -630,20 +643,15 @@ class FishKite:
         )
 
         # For extra angle
+        df["efficiency_water_LD"] = df[f"fish_lift"] / df[f"total_water_drag"]
+
         df["projected_efficiency_water_rad"] = np.arctan(
-            1
-            / (
-                (df[f"fish_lift"] / df[f"total_water_drag"])
-                * np.cos(df["rising_angle_rad"])
-            )
+            1 / (df["efficiency_water_LD"] * np.cos(df["rising_angle_rad"]))
         )
 
+        df["efficiency_air_LD"] = df[f"kite_lift"] / df[f"total_air_drag"]
         df["kite_projected_efficiency_rad"] = np.arctan(
-            1
-            / (
-                np.cos(df["kite_roll_angle_rad"])
-                * (df[f"kite_lift"] / df[f"total_air_drag"])
-            )
+            1 / (np.cos(df["kite_roll_angle_rad"]) * df["efficiency_air_LD"])
         )
 
         df["total_efficiency_rad"] = (
@@ -781,11 +789,6 @@ class Project:
             detail_str += "\n-\n"
             detail_str += str(i)
         return detail_str
-
-    def perf_table(self):
-        list_df = [fk.perf_table() for fk in self.lst_fishkite]
-        df = pd.concat(list_df)
-        return df.T.reset_index()
 
     def create_df(self):
         df_list = []
