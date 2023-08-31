@@ -36,7 +36,7 @@ import jsonpickle
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 print("Version: ", __version__)
 
 # %% Initial set up
@@ -172,7 +172,7 @@ layout = dbc.Container(
                         #     id="analyze", color="primary", style={"margin": "5px"}),
                         html.Hr(),
                         dcc.Markdown("##### Numerical Results"),
-                        dcc.Markdown("compute for 'no failure' OP only:"),
+                        dcc.Markdown("compute for 'no failure' OP only:WIP"),
                         dash_table.DataTable(
                             id="perf_table_3d",
                         ),
@@ -310,7 +310,7 @@ layout = dbc.Container(
          * fk = Fish-Kite
          * Fluid ratio = Apparent Water Speed / Apparent wind Speed
 
-        **Version: {__version__}
+        **Version:** {__version__}
         """
         ),
     ],
@@ -407,8 +407,8 @@ summary_table_fields = [
     "total_air_drag",
     "fish_total_force",
     "kite_total_force",
-    "efficiency_water_LD",
-    "efficiency_air_LD",
+    "proj_efficiency_water_LD",
+    "proj_efficiency_air_LD",
     "y_pilot",
     "z_pilot",
     "y_kite",
@@ -723,8 +723,8 @@ for id in [0, 1]:
         Output("graph_need_update", "data"),
         Output("df_info", "children"),
         Output("debug", "children"),
-        Output("perf_table_3d", "columns"),
-        Output("perf_table_3d", "data"),
+        # Output("perf_table_3d", "columns"),
+        # Output("perf_table_3d", "data"),
     ],
     inputs=dict_input_update_model
     # {
@@ -815,7 +815,11 @@ def update(all_inputs):
 
     perf_columns = [{"name": str(i), "id": str(i)} for i in df_perf.columns]
     perf_data = df_perf.to_dict("records")
-    return True, info_df, deb, perf_columns, perf_data
+    return (
+        True,
+        info_df,
+        deb,
+    )  # perf_columns, perf_data
 
 
 if __name__ == "__main__":
