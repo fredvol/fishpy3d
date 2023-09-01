@@ -80,9 +80,13 @@ def cosspace_extra_angle(start: float = 0.0, stop: float = 90, cos_coef: float =
     return result
 
 
-def perf_table(df_big):
+def perf_table(df_big, target_wind):
     df_perf = (
-        df_big.groupby("fk_name")
+        df_big[
+            (df_big["isValid"])
+            & (df_big["true_wind_calculated_kt_rounded"] == target_wind)
+        ]
+        .groupby("fk_name")
         .agg(
             Max_apparent_watter_kt=("apparent_watter_kt", "max"),
             VMG_Upwind=("vmg_y_kt", "max"),
@@ -91,6 +95,39 @@ def perf_table(df_big):
         .T
     )
     return df_perf
+
+
+def perf_table_general(df_big, proj):
+    list_dfi = []
+    for fk in proj.lst_fishkite:
+        dfi = df_big[df_big["fk_name"] == fk.name]
+        dfi_valid = dfi[dfi["isValid"]]
+
+        # wind range
+        min_TW = round(dfi_valid["true_wind_calculated_kt"].min(), 1)
+        max_TW = round(dfi_valid["true_wind_calculated_kt"].max(), 1)
+
+        # pct valid
+        true_count = dfi["isValid"].sum()
+        total_count = len(dfi)
+
+        if total_count == 0:
+            percentage = "NA"
+        else:
+            percentage = round((true_count / total_count) * 100, 1)
+
+        dict_stats = {
+            "cable_diam_mm": round(fk.cable_diameter() * 1000, 2),
+            "true_wind_range": f"[{min_TW}:{max_TW}]",
+            "pct_of_OPvalid": f"{percentage} %",
+        }
+
+        dfi = pd.DataFrame(dict_stats, index=[fk.name])
+
+        list_dfi.append(dfi)
+
+    df_perf_G = pd.concat(list_dfi)
+    return df_perf_G
 
 
 # %% Class
@@ -752,7 +789,7 @@ class FishKite:
         ]
         df["cavitation"] = np.select(cavitation_conditions, [True], default=False)
 
-        df["broke_cable_or_cavitated"] = (df["cable_break"]) | (df["cavitation"])
+        df["isValid"] = ~(df["cavitation"] | df["cable_break"])
 
         conditions = [
             (df["cable_break"] & df["cavitation"]),
@@ -821,19 +858,15 @@ class Project:
 if __name__ == "__main__":
     fk1_file = os.path.join(data_folder, "saved_fk1.json")
     fk2_file = os.path.join(data_folder, "saved_fk2.json")
+    fk3_file = os.path.join(data_folder, "exported_fk3.txt")
 
     fk1 = FishKite.from_json(fk1_file)
     fk2 = FishKite.from_json(fk2_file)
+    fk3 = FishKite.from_json(fk3_file)
 
-    proj = Project([fk1, fk2])
+    proj = Project([fk1, fk2, fk3])
 
     dfM = proj.create_df()
-
-    # %% side view
-
-    df_OP = dfM[(dfM["indexG"] == 32545)]
-    fig_side = plot_side_view(df_OP.to_dict("records")[0], proj.lst_fishkite[0])
-    fig_side.show()
 
     # %%
     df1 = dfM[dfM["fk_name"] == "fk1"]

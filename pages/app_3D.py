@@ -16,6 +16,7 @@ from model_3d import (
     plot_3d_cases,
     plot_3d_cases_risingangle,
     perf_table,
+    perf_table_general,
 )
 from fish_plot_3d import plot_side_view
 import dash
@@ -36,7 +37,7 @@ import jsonpickle
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.0.8"
+__version__ = "2.0.9"
 print("Version: ", __version__)
 
 # %% Initial set up
@@ -171,10 +172,16 @@ layout = dbc.Container(
                         #     "Analyze",
                         #     id="analyze", color="primary", style={"margin": "5px"}),
                         html.Hr(),
-                        dcc.Markdown("##### Numerical Results"),
-                        dcc.Markdown("compute for 'no failure' OP only:WIP"),
+                        dcc.Markdown(
+                            "##### Numerical Results: (*'no failure' OP only*)"
+                        ),
+                        dcc.Markdown(" * At selected wind:"),
                         dash_table.DataTable(
-                            id="perf_table_3d",
+                            id="perf_table_3d_selectedW",
+                        ),
+                        dcc.Markdown(" * All True winds:"),
+                        dash_table.DataTable(
+                            id="perf_table_3d_allW",
                         ),
                     ],
                     width=3,
@@ -734,8 +741,10 @@ for id in [0, 1]:
         Output("graph_need_update", "data"),
         Output("df_info", "children"),
         Output("debug", "children"),
-        # Output("perf_table_3d", "columns"),
-        # Output("perf_table_3d", "data"),
+        Output("perf_table_3d_selectedW", "columns"),
+        Output("perf_table_3d_selectedW", "data"),
+        Output("perf_table_3d_allW", "columns"),
+        Output("perf_table_3d_allW", "data"),
     ],
     inputs=dict_input_update_model
     # {
@@ -769,6 +778,7 @@ def update(all_inputs):
 
     # fmt: off
     for idfk in [0, 1]:
+        
 
         proj.lst_fishkite[idfk].wind_speed = c["general"]["wind_speed"]["value"]
 
@@ -821,15 +831,29 @@ def update(all_inputs):
     info_df = f"Data Table: rows: {dfG.shape[0]} :cols: {dfG.shape[1]} , {sum(dfG.memory_usage())/1e6} mb"
 
     deb = f"{ c}"
-    # perf data
-    df_perf = perf_table(dfG[dfG["failure"] == "no failure"]).round(2).reset_index()
+    # perf data _selectedWind
+    target_wind = c["general"]["wind_speed"]["value"]
+    df_perf = perf_table(dfG, target_wind=target_wind).round(2).reset_index()
 
-    perf_columns = [{"name": str(i), "id": str(i)} for i in df_perf.columns]
-    perf_data = df_perf.to_dict("records")
+    perf_columns_selectedWind = [
+        {"name": str(i), "id": str(i)} for i in df_perf.columns
+    ]
+    perf_data_selectedWind = df_perf.to_dict("records")
+
+    # perf general
+    df_perf_general = perf_table_general(dfG, proj).T.reset_index()
+    perf_columns_general = [
+        {"name": str(i), "id": str(i)} for i in df_perf_general.columns
+    ]
+    perf_data_general = df_perf_general.to_dict("records")
     return (
         True,
         info_df,
         deb,
+        perf_columns_selectedWind,
+        perf_data_selectedWind,
+        perf_columns_general,
+        perf_data_general,
     )  # perf_columns, perf_data
 
 
