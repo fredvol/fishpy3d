@@ -17,7 +17,7 @@ from model_3d import (
     plot_3d_cases_risingangle,
     perf_table,
 )
-
+from fish_plot_3d import plot_side_view
 import dash
 
 dash.register_page(__name__)
@@ -36,7 +36,7 @@ import jsonpickle
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 print("Version: ", __version__)
 
 # %% Initial set up
@@ -197,6 +197,12 @@ layout = dbc.Container(
                                                         dcc.Graph(
                                                             id="fig1_3d_rising_angle",
                                                             figure=fig_rising_angle,
+                                                            # style={
+                                                            #     "position": "fixed",  # that imobilised the graph
+                                                            # },
+                                                        ),
+                                                        dcc.Graph(
+                                                            id="fig1_3d_side_view",
                                                             # style={
                                                             #     "position": "fixed",  # that imobilised the graph
                                                             # },
@@ -430,24 +436,29 @@ summary_table_fields = [
     [
         Output(component_id="click_data_table", component_property="data"),
         Output(component_id="click_data_table", component_property="columns"),
+        Output("fig1_3d_side_view", "figure"),
     ],
     Input("fig1_3d_rising_angle", "clickData"),
     prevent_initial_call=True,
 )
 def display_click_data(clickData):
     df_index = clickData["points"][0]["customdata"][-1]
-    df_click_select = dfG[(dfG["indexG"] == df_index)][summary_table_fields]
+    df_OP = dfG[(dfG["indexG"] == df_index)]
+    df_click_select = df_OP[summary_table_fields]
     # Identify numeric columns
     numeric_cols = df_click_select.select_dtypes(include=[float, int]).columns
 
     # Format numeric columns with n digits
-    df_click_select[numeric_cols] = df_click_select[numeric_cols].round(5)
+    df_click_select[numeric_cols] = df_click_select[numeric_cols].round(4)
 
     df_click = df_click_select.reset_index().T.reset_index()
     columns = [{"name": str(col), "id": str(col)} for col in df_click.columns]
     data = df_click.to_dict(orient="records")
 
-    return data, columns
+    # side view
+    fig_side = plot_side_view(df_OP.to_dict("records")[0], proj.lst_fishkite[0])
+
+    return data, columns, fig_side
 
 
 ###################################################### DOWNLOAD

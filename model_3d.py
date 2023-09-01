@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 from itertools import product
 import jsonpickle
 
-from fish_plot_3d import plot_3d_cases, plot_3d_cases_risingangle
+from fish_plot_3d import plot_3d_cases, plot_3d_cases_risingangle, plot_side_view
 
 import scipy.optimize as opt
 
@@ -829,6 +829,12 @@ if __name__ == "__main__":
 
     dfM = proj.create_df()
 
+    # %% side view
+
+    df_OP = dfM[(dfM["indexG"] == 32545)]
+    fig_side = plot_side_view(df_OP.to_dict("records")[0], proj.lst_fishkite[0])
+    fig_side.show()
+
     # %%
     df1 = dfM[dfM["fk_name"] == "fk1"]
 
@@ -1037,82 +1043,3 @@ if __name__ == "__main__":
         scaleratio=1,
     )
     fig.show()
-    # %%
-    # df_kt = df[df["true_wind_calculated_kt_rounded"] == target_wind]
-    # fig = px.density_contour(
-    #     dfs,
-    #     x="vmg_x_kt",
-    #     y="vmg_y_kt",
-    #     z="rising_angle",
-    #     color="rising_angle",
-    #     title=f"Polar contour for TW={target_wind} kt",
-    # )
-
-    # dfsimplify = dfs[dfs["simplify"] == 1]
-    # fig.add_trace(
-    #     go.Scatter(
-    #         x=dfsimplify["vmg_x_kt"],
-    #         y=dfsimplify["vmg_y_kt"],
-    #         mode="markers",
-    #         marker=dict(
-    #             size=8,
-    #             # I want the color to be green if
-    #             # lower_limit ≤ y ≤ upper_limit
-    #             # else red
-    #             color="red",
-    #         ),
-    #     )
-    # )
-    # fig.update_yaxes(
-    #     scaleanchor="x",
-    #     scaleratio=1,
-    # )
-
-    # fig.show()
-    # %% Validation pivot table
-
-    # validation_rising_angle = 30
-
-    # validation_extra_angle = 20
-    # dfv = df[
-    #     (df["fish_cl"].isin(range_fish))
-    #     & (df["kite_cl"].isin(range_kite))
-    #     & (df["rising_angle"] == validation_rising_angle)
-    #     & (df["extra_angle"] == validation_extra_angle)
-    # ]
-
-    # pd.pivot_table(
-    #     dfv,
-    #     values="true_wind_calculated_kt",
-    #     index=["kite_cl"],
-    #     columns=["fish_cl"],
-    #     aggfunc=np.sum,
-    # )
-    # %%
-
-    dfx = df[df["true_wind_calculated_kt_rounded"] == 30]
-    fig = px.scatter(
-        dfx,
-        x="vmg_x_kt",
-        y="vmg_y_kt",
-        color="rising_angle",  # "extra_angle",
-        title=f"Polar pts",
-    )
-    fig.show()
-    # %%
-    from scipy.spatial import ConvexHull, convex_hull_plot_2d
-
-    rng = np.random.default_rng()
-
-    points = dfx[["vmg_x_kt", "vmg_y_kt"]].to_numpy()  # 30 random points in 2-D
-
-    hull = ConvexHull(points)
-    # %%
-
-    import matplotlib.pyplot as plt
-
-    plt.plot(points[:, 0], points[:, 1], "o")
-
-    for simplex in hull.simplices:
-        plt.plot(points[simplex, 0], points[simplex, 1], "k-")
-    # %%
