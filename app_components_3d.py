@@ -76,7 +76,7 @@ def create_polar_rising_sliders():
                     max=90,
                     step=90,
                     value=[0, 30],
-                    updatemode="drag",
+                    updatemode="mouseup",
                     marks={i: str(i) for i in range(0, 90, 5)},
                     pushable=1,
                     tooltip={
