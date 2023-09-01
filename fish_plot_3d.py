@@ -36,8 +36,52 @@ data_background = {
     },
 }
 
+# %%# Class
 
-### Functions
+
+class Line:
+    def __init__(self, pt1=None, pt2=None, center=None, length=None):
+        if center is not None and length is not None:
+            half_length = length / 2
+            self.pt1 = np.array([center[0] - half_length, center[1]])
+            self.pt2 = np.array([center[0] + half_length, center[1]])
+        elif pt2 is not None:
+            self.pt1 = np.array(pt1)
+            self.pt2 = np.array(pt2)
+        else:
+            raise ValueError(
+                "Invalid arguments. Provide either 'point1' and 'point2' or 'center' and 'length'."
+            )
+
+    def get_center(self):
+        center = (self.point1 + self.point2) / 2
+        return tuple(center)
+
+    def move(self, dx, dy):
+        self.pt1 += np.array([dx, dy])
+        self.pt2 += np.array([dx, dy])
+
+    def rotate(self, theta_degrees, center=None):
+        if center is None:
+            center = self.get_center()
+
+        # Convert angle from degrees to radians
+        theta_rad = np.radians(theta_degrees)
+
+        # Create a rotation matrix
+        rotation_matrix = np.array(
+            [
+                [np.cos(theta_rad), -np.sin(theta_rad)],
+                [np.sin(theta_rad), np.cos(theta_rad)],
+            ]
+        )
+
+        # Translate to the origin, rotate, and then translate back
+        self.pt1 = np.dot(rotation_matrix, self.pt1 - center) + center
+        self.pt2 = np.dot(rotation_matrix, self.pt2 - center) + center
+
+
+# %%## Functions
 def centers(y1, y2, r, x1=0, x2=0):
     q = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
     x3 = (x1 + x2) / 2
@@ -46,6 +90,34 @@ def centers(y1, y2, r, x1=0, x2=0):
     xx = (r**2 - (q / 2) ** 2) ** 0.5 * (y1 - y2) / q
     yy = (r**2 - (q / 2) ** 2) ** 0.5 * (x2 - x1) / q
     return (x3 + xx, y3 + yy)
+
+
+def rotate_lines(line, deg=-90):
+    """Rotate self.polylines the given angle about their centers."""
+    theta = radians(deg)  # Convert angle from degrees to radians
+    cosang, sinang = cos(theta), sin(theta)
+
+    for pl in self.polylines:
+        # Find logical center (avg x and avg y) of entire polyline
+        n = len(pl.lines) * 2  # Total number of points in polyline
+        cx = sum(sum(line.get_xdata()) for line in pl.lines) / n
+        cy = sum(sum(line.get_ydata()) for line in pl.lines) / n
+
+        for line in pl.lines:
+            # Retrieve vertices of the line
+            x1, x2 = line.get_xdata()
+            y1, y2 = line.get_ydata()
+
+            # Rotate each around whole polyline's center point
+            tx1, ty1 = x1 - cx, y1 - cy
+            p1x = (tx1 * cosang + ty1 * sinang) + cx
+            p1y = (-tx1 * sinang + ty1 * cosang) + cy
+            tx2, ty2 = x2 - cx, y2 - cy
+            p2x = (tx2 * cosang + ty2 * sinang) + cx
+            p2y = (-tx2 * sinang + ty2 * cosang) + cy
+
+            # Replace vertices with updated values
+            pl.set_line(line, [p1x, p2x], [p1y, p2y])
 
 
 def add_line(
@@ -531,6 +603,103 @@ def plot_3d_cases(df, target_wind=30, what="rising_angle", height_size=850):
     return fig
 
 
+def plot_side_view(row, fk1):
+    span_fish = fk1.fish.projected_span()
+    span_kite = fk1.kite.projected_span()
+
+    center_fish = (0, -row["fish_center_depth"])
+    fish_line = Line(center=center_fish, length=span_fish)
+    fish_line.rotate(theta_degrees=90 + row["rising_angle"], center=center_fish)
+
+    center_kite = (row["y_kite"], row["z_kite"])
+    kite_line = Line(center=center_kite, length=span_kite)
+    kite_line.rotate(theta_degrees=90 + row["kite_roll_angle"], center=center_kite)
+
+    fig = go.Figure()
+    fig.update_layout(
+        title=go.layout.Title(text=f"Side view"),
+        # autosize=True,
+        plot_bgcolor="rgba(240,240,240,0.7)",
+        height=320,
+        # width=height_size * 0.8,
+        xaxis_range=[-1, 45],
+        legend=dict(
+            # y=1,
+            # x=0.1,
+            groupclick="toggleitem",
+        ),
+    )
+
+    # water
+    fig.add_trace(
+        add_line(
+            (-1, 0),
+            (row["y_kite"] + 1, 0),
+            m_name="water",
+            group_name="water",
+            extra_dict=dict(width=2, color="blue"),
+        )
+    )
+
+    # fishcable
+    fig.add_trace(
+        add_line(
+            center_fish,
+            (row["y_pilot"], row["z_pilot"]),
+            m_name="fish_cable",
+            group_name="fish_cable",
+            extra_dict=dict(width=3, color="red"),
+        )
+    )
+
+    # fish
+    fig.add_trace(
+        add_line(
+            fish_line.pt1,
+            fish_line.pt2,
+            m_name="fish",
+            group_name="fish",
+            extra_dict=dict(width=3, color="black"),
+        )
+    )
+
+    # Kitecable
+    fig.add_trace(
+        add_line(
+            (row["y_pilot"], row["z_pilot"]),
+            (row["y_kite"], row["z_kite"]),
+            m_name="Kite_cable",
+            group_name="Kite_cable",
+            extra_dict=dict(width=3, color="green"),
+        )
+    )
+
+    # kite
+    fig.add_trace(
+        add_line(
+            kite_line.pt1,
+            kite_line.pt2,
+            m_name="kite",
+            group_name="kite",
+            extra_dict=dict(width=3, color="black"),
+        )
+    )
+
+    # #add pilot
+    # fig.add_shape(type="circle",
+    #     xref="x", yref="y",
+    #     x0=1, y0=1, x1=3, y1=3,
+    #     line_color="LightSeaGreen",
+    # )
+
+    fig.update_yaxes(
+        scaleanchor="x",
+        scaleratio=1,
+    )
+
+    return fig
+
+
 # %% Initial set up
 
 if __name__ == "__main__":
@@ -558,4 +727,5 @@ if __name__ == "__main__":
         draw_iso_fluid=True,
     )
     fig.show()
+
 # %%
