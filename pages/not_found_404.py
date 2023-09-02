@@ -21,7 +21,7 @@ layout = html.Div(
                     )
                 )
                 for page in dash.page_registry.values()
-                if page["module"] != "/pages/.not_found_404"
+                if not "404" in str(page["module"])
             ],
             gap=2,
         ),

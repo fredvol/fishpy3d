@@ -69,7 +69,25 @@ def create_polar_rising_sliders():
     s = html.Div(
         dbc.Col(
             [
-                html.Label("rising Angle [deg]"),
+                dbc.Stack(
+                    [
+                        html.H6("Rising Angle [deg] : "),
+                        # daq.BooleanSwitch(
+                        #     id="bool_rising_angle_use_range",
+                        #     on=True,
+                        #     label="Use max range only:",
+                        #     labelPosition="top",
+                        # ),
+                        dbc.Switch(
+                            id="bool_rising_angle_use_range",
+                            label="range mode",
+                            value=False,
+                            class_name="custom-switch",
+                            label_class_name="custom-switch-label",
+                        ),
+                    ],
+                    direction="horizontal",
+                ),
                 dcc.RangeSlider(
                     id=f"slider-rising_angle_polar",
                     min=1,
@@ -84,13 +102,7 @@ def create_polar_rising_sliders():
                         "always_visible": True,
                     },
                 ),
-                daq.BooleanSwitch(
-                    id="bool_rising_angle_use_range",
-                    on=True,
-                    label="Use max range only:",
-                    labelPosition="left",
-                ),
-                dbc.Row(
+                dbc.Col(
                     [
                         dbc.Col(
                             [
@@ -123,8 +135,12 @@ def create_polar_rising_sliders():
                                         "fk_name",
                                         "failure",
                                     ],
-                                    "extra_angle",
+                                    value="extra_angle",
                                     id="data_color_polar_rising",
+                                    # style={
+                                    #     "height": "15px",
+                                    #     "display": "inline-block",
+                                    # },
                                 ),
                             ]
                         ),

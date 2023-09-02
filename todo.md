@@ -16,11 +16,12 @@
  v* MODEL: adjust sampling for extra angle
  v* APP: add side numerical table 
  v* APP: add iso curves
- * APP: add pilot
+ v* APP: add pilot
+ v* APP: add position graph in app
+ V* APP: adjust graph position on page
+ V* APP: move graph control on right
  * APP: update test suite
  * APP: adjust X range 
- * APP: adjust graph position on page
- * APP: add position graph in app
  * APP: clean env 
  * APP: auto open browser
  * APP:make msi file 
