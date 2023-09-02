@@ -37,7 +37,7 @@ import jsonpickle
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.0.9"
+__version__ = "2.0.10"
 print("Version: ", __version__)
 
 # %% Initial set up
@@ -197,10 +197,6 @@ layout = dbc.Container(
                                             [
                                                 dbc.Col(
                                                     [
-                                                        dbc.CardBody(
-                                                            create_polar_rising_sliders(),
-                                                            # dcc.Markdown("bidon")
-                                                        ),
                                                         dcc.Graph(
                                                             id="fig1_3d_rising_angle",
                                                             figure=fig_rising_angle,
@@ -219,44 +215,66 @@ layout = dbc.Container(
                                                 ),
                                                 dbc.Col(
                                                     [
-                                                        html.Div("OP specific data:"),
-                                                        html.Pre(
-                                                            id="click_data",
+                                                        html.Div(
+                                                            [
+                                                                html.H5(
+                                                                    "Graph control:"
+                                                                ),
+                                                                dbc.CardBody(
+                                                                    create_polar_rising_sliders(),
+                                                                    # dcc.Markdown("bidon")
+                                                                ),
+                                                            ]
                                                         ),
-                                                        dash_table.DataTable(
-                                                            id="click_data_table",
-                                                            style_data={
-                                                                "color": "black",
-                                                                "backgroundColor": "white",
-                                                                "font-size": "0.6em",
-                                                            },
-                                                            style_data_conditional=[
-                                                                {
-                                                                    "if": {
-                                                                        "row_index": "odd"
+                                                        #
+                                                        html.Br(),
+                                                        dbc.Stack(
+                                                            [
+                                                                html.H5(
+                                                                    "OP specific data:"
+                                                                ),
+                                                                dash_table.DataTable(
+                                                                    id="click_data_table",
+                                                                    export_format="csv",
+                                                                    editable=True,
+                                                                    style_data={
+                                                                        "color": "black",
+                                                                        "backgroundColor": "white",
+                                                                        "font-size": "0.6em",
                                                                     },
-                                                                    "backgroundColor": "rgb(220, 220, 220)",
-                                                                }
-                                                            ],
-                                                            style_header={
-                                                                "backgroundColor": "rgb(210, 210, 210)",
-                                                                "color": "black",
-                                                                "fontWeight": "bold",
-                                                            },
-                                                            # style_table={
-                                                            #     "height": "800px",
-                                                            #     "overflowY": "auto",
-                                                            # },
-                                                            css=[
-                                                                {
-                                                                    "selector": ".dash-spreadsheet tr",
-                                                                    "rule": "height: 10px;",
-                                                                },
-                                                                {
-                                                                    "selector": "tr:first-child",
-                                                                    "rule": "display: none",
-                                                                },
-                                                            ],
+                                                                    style_data_conditional=[
+                                                                        {
+                                                                            "if": {
+                                                                                "row_index": "odd"
+                                                                            },
+                                                                            "backgroundColor": "rgb(220, 220, 220)",
+                                                                        }
+                                                                    ],
+                                                                    style_header={
+                                                                        "backgroundColor": "rgb(210, 210, 210)",
+                                                                        "color": "black",
+                                                                        "fontWeight": "bold",
+                                                                    },
+                                                                    # style_table={
+                                                                    #     "height": "800px",
+                                                                    #     "overflowY": "auto",
+                                                                    # },
+                                                                    css=[
+                                                                        {
+                                                                            "selector": ".dash-spreadsheet tr",
+                                                                            "rule": "height: 10px;",
+                                                                        },
+                                                                        {
+                                                                            "selector": "tr:first-child",
+                                                                            "rule": "display: none",
+                                                                        },
+                                                                        {
+                                                                            "selector": ".export",
+                                                                            "rule": "position:absolute;right:-15px;bottom:-30px",
+                                                                        },
+                                                                    ],
+                                                                ),
+                                                            ]
                                                         ),
                                                     ],
                                                     width=3,
@@ -614,7 +632,7 @@ def Startup_call_back(data):
     Output("fig1_3d_rising_angle", "figure"),
     [
         Input("slider-rising_angle_polar", "value"),
-        Input("bool_rising_angle_use_range", "on"),
+        Input("bool_rising_angle_use_range", "value"),
         Input("3d_slider-wind_speed", "value"),
         Input("data_color_polar_rising", "value"),
         Input("data_symbol_polar_rising", "value"),
@@ -628,7 +646,7 @@ def Startup_call_back(data):
 )
 def update_polar_rising_angle(
     rising_angle,
-    use_max_only,
+    use_range,
     target_wind,
     color_data,
     symbol_data,
@@ -643,7 +661,7 @@ def update_polar_rising_angle(
         symbol_data = None
 
     rising_low, rising_upper = rising_angle
-    if use_max_only:
+    if not use_range:
         rising_low = rising_upper
 
     return plot_3d_cases_risingangle(
