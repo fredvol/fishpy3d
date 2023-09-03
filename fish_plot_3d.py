@@ -441,6 +441,12 @@ def plot_3d_cases_risingangle(
         # # data not in dataframe, customized formatting
         # "suppl_2": (":.3f", np.random.random(len(df))),
     }
+    # symbol management
+    fix_list = ["circle", "circle-open", "x", "hash", "hexagrame"]
+    custom_symbol_sequence = []
+    if symbol is not None:
+        if len(dfs[symbol].unique()) <= len(fix_list):
+            custom_symbol_sequence = fix_list
 
     fig = px.scatter(
         dfs,
@@ -449,6 +455,7 @@ def plot_3d_cases_risingangle(
         color=what,
         symbol=symbol,
         hover_data=dict_hover_data,
+        symbol_sequence=custom_symbol_sequence,
     )
 
     # UPdate layout
@@ -456,11 +463,11 @@ def plot_3d_cases_risingangle(
         title=go.layout.Title(
             text=f"Rising angle: [{target_rising_angle_low},{target_rising_angle_upper}] , TrueWind = {target_wind} kt"
         ),
-        # autosize=True,
+        autosize=True,
         plot_bgcolor="rgba(240,240,240,0.7)",
         xaxis=dict(showgrid=False, visible=False),
         height=height_size,
-        # width=height_size * 0.8,
+        # width=height_size*0.6,
         yaxis=dict(showgrid=False, visible=False),
         xaxis_range=[-1, 45],
         legend=dict(
@@ -502,7 +509,7 @@ def plot_3d_cases_risingangle(
         )
     )
 
-    fig.update_yaxes(
+    fig.update_yaxes(  # make suare ratio
         scaleanchor="x",
         scaleratio=1,
     )
@@ -568,10 +575,11 @@ def plot_3d_cases_risingangle(
 
     # )
 
-    fig.update_xaxes(range=[-1, 45])
-    fig.update_yaxes(range=[-35, 30])
+    fig.update_xaxes(range=[-5, 50], constrain="domain")
+    fig.update_yaxes(range=[-40, 20], constrain="domain")
 
-    fig.update_layout(coloraxis_colorbar_x=-0.005)
+    fig.update_layout(coloraxis_colorbar_x=0.9)
+    fig.update_layout(legend=dict(yanchor="bottom", y=0.05, xanchor="right", x=0.85))
     fig.update_layout(clickmode="event+select")
     return fig
 
@@ -711,16 +719,21 @@ if __name__ == "__main__":
     fk2_file = os.path.join(data_folder, "saved_fk2.json")
 
     fk1 = FishKite.from_json(fk1_file)
-    fk2 = FishKite.from_json(fk2_file, classes=FishKite)
+    fk2 = FishKite.from_json(fk2_file)
 
-    # # %%
     df = fk1.create_df()
+
+    # addmising col as is not comming from a project
+    df["fk_name"] = "fk1"
+    df["indexG"] = df.index
 
     fig = plot_3d_cases_risingangle(
         df,
         target_rising_angle_low=20,
         target_rising_angle_upper=30,
+        what="z_kite",
         symbol="failure",
+        target_wind=30,
         draw_ortho_grid=True,
         draw_iso_speed=True,
         draw_iso_eft=True,

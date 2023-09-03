@@ -20,8 +20,8 @@
  v* APP: add position graph in app
  V* APP: adjust graph position on page
  V* APP: move graph control on right
+ V* APP: adjust X range 
  * APP: update test suite
- * APP: adjust X range 
  * APP: clean env 
  * APP: auto open browser
  * APP:make msi file 
