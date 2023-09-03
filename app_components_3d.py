@@ -14,7 +14,7 @@ operating_slider_components = [
                 min=500,
                 max=1000,
                 step=50,
-                value=800,
+                value=900,
                 marks={i: f"{i} px" for i in range(500, 1100, 100)},
                 tooltip={
                     "placement": "bottom",
