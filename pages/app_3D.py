@@ -37,8 +37,9 @@ import jsonpickle
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.0.10"
+__version__ = "2.0.11"
 print("Version: ", __version__)
+
 
 # %% Initial set up
 data_folder = os.path.join(

@@ -92,34 +92,6 @@ def centers(y1, y2, r, x1=0, x2=0):
     return (x3 + xx, y3 + yy)
 
 
-def rotate_lines(line, deg=-90):
-    """Rotate self.polylines the given angle about their centers."""
-    theta = radians(deg)  # Convert angle from degrees to radians
-    cosang, sinang = cos(theta), sin(theta)
-
-    for pl in self.polylines:
-        # Find logical center (avg x and avg y) of entire polyline
-        n = len(pl.lines) * 2  # Total number of points in polyline
-        cx = sum(sum(line.get_xdata()) for line in pl.lines) / n
-        cy = sum(sum(line.get_ydata()) for line in pl.lines) / n
-
-        for line in pl.lines:
-            # Retrieve vertices of the line
-            x1, x2 = line.get_xdata()
-            y1, y2 = line.get_ydata()
-
-            # Rotate each around whole polyline's center point
-            tx1, ty1 = x1 - cx, y1 - cy
-            p1x = (tx1 * cosang + ty1 * sinang) + cx
-            p1y = (-tx1 * sinang + ty1 * cosang) + cy
-            tx2, ty2 = x2 - cx, y2 - cy
-            p2x = (tx2 * cosang + ty2 * sinang) + cx
-            p2y = (-tx2 * sinang + ty2 * cosang) + cy
-
-            # Replace vertices with updated values
-            pl.set_line(line, [p1x, p2x], [p1y, p2y])
-
-
 def add_line(
     pt1,
     pt2,
@@ -405,24 +377,6 @@ def plot_3d_cases_risingangle(
             data_background["iso_fluid"], target_wind, position_angle_label=15
         )
         shape_list.extend(shapes_isofluid)
-
-    # fig = go.Figure(
-    #     layout=go.Layout(
-    #         title=go.layout.Title(
-    #             text=f"Rising angle: [{target_rising_angle_low},{target_rising_angle_upper}] , TrueWind = {target_wind} kt"
-    #         ),
-    #         autosize=True,
-    #         plot_bgcolor="rgba(240,240,240,0.7)",
-    #         xaxis=dict(showgrid=False, visible=False),
-    #         yaxis=dict(showgrid=False, visible=False),
-    #         legend=dict(
-    #             y=1,
-    #             x=0.8,
-    #             groupclick="toggleitem",
-    #         ),
-    #         margin=dict(l=50, r=50, b=5, t=30, pad=3),
-    #     ),
-    # )
 
     dfs = df[
         (df["rising_angle"].between(target_rising_angle_low, target_rising_angle_upper))
