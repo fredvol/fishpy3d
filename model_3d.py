@@ -858,13 +858,11 @@ class Project:
 if __name__ == "__main__":
     fk1_file = os.path.join(data_folder, "saved_fk1.json")
     fk2_file = os.path.join(data_folder, "saved_fk2.json")
-    fk3_file = os.path.join(data_folder, "exported_fk3.txt")
 
     fk1 = FishKite.from_json(fk1_file)
     fk2 = FishKite.from_json(fk2_file)
-    fk3 = FishKite.from_json(fk3_file)
 
-    proj = Project([fk1, fk2, fk3])
+    proj = Project([fk1, fk2])
 
     dfM = proj.create_df()
 
