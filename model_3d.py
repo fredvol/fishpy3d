@@ -561,13 +561,32 @@ class FishKite:
         """
         range_fish = np.linspace(
             self.fish.cl_range["min"], self.fish.cl_range["max"], nb_points
-        )
+        ).round(3)
         range_kite = np.linspace(
             self.kite.cl_range["min"], self.kite.cl_range["max"], nb_points
-        )
-        range_fish = [round(i, 3) for i in range_fish]
-        range_kite = [round(i, 3) for i in range_kite]
-        range_rising_angle = range_rising_angle = [1] + list(np.arange(5, 90, 5))
+        ).round(3)
+        # range_fish = [round(i, 3) for i in range_fish]
+        # range_kite = [round(i, 3) for i in range_kite]
+        range_rising_angle = [
+            1,
+            5,
+            10,
+            15,
+            20,
+            25,
+            30,
+            35,
+            40,
+            45,
+            50,
+            55,
+            60,
+            65,
+            70,
+            75,
+            80,
+            85,
+        ]  #  [1] + list(np.arange(5, 90, 5))
         # range_extra_angle = np.arange(2, 90, 1)
         range_extra_angle = cosspace_extra_angle(2, 84, 0.5)
 
@@ -590,6 +609,9 @@ class FishKite:
             }
         )
 
+        # reduce momery size
+        df["rising_angle"] = df["rising_angle"].astype("int32")
+
         # add the simplify criteria
         balance_range = []
         df["simplify"] = False
@@ -602,11 +624,16 @@ class FishKite:
             ] = True
 
         df[f"kite_roll_angle"] = df[f"rising_angle"] + df["extra_angle"]
-        df.drop(df[df["kite_roll_angle"] >= 90].index, inplace=True)
+        # df.drop(df[df["kite_roll_angle"] >= 90].index, inplace=True)
+        df = df[df["kite_roll_angle"] < 90]
 
-        df["rising_angle_rad"] = df["rising_angle"].apply(np.radians)
-        df["extra_angle_rad"] = df["extra_angle"].apply(np.radians)
-        df["kite_roll_angle_rad"] = df["kite_roll_angle"].apply(np.radians)
+        # df["rising_angle_rad"] = df["rising_angle"].apply(np.radians)
+        # df["extra_angle_rad"] = df["extra_angle"].apply(np.radians)
+        # df["kite_roll_angle_rad"] = df["kite_roll_angle"].apply(np.radians)
+
+        df["rising_angle_rad"] = np.radians(df["rising_angle"])
+        df["extra_angle_rad"] = np.radians(df["extra_angle"])
+        df["kite_roll_angle_rad"] = np.radians(df["kite_roll_angle"])
 
         # cable
         df[
@@ -854,6 +881,9 @@ class Project:
         return fig
 
 
+# %%
+
+
 # %%# Parameter
 if __name__ == "__main__":
     fk1_file = os.path.join(data_folder, "saved_fk1.json")
@@ -864,6 +894,7 @@ if __name__ == "__main__":
 
     proj = Project([fk1, fk2])
 
+    # %%
     dfM = proj.create_df()
 
     # %%
