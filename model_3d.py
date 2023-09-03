@@ -565,8 +565,8 @@ class FishKite:
         range_kite = np.linspace(
             self.kite.cl_range["min"], self.kite.cl_range["max"], nb_points
         ).round(3)
-        # range_fish = [round(i, 3) for i in range_fish]
-        # range_kite = [round(i, 3) for i in range_kite]
+        # range_fish = [round(i, 3) for i in range_fish]  #slow
+        # range_kite = [round(i, 3) for i in range_kite]  #slow
         range_rising_angle = [
             1,
             5,
@@ -586,7 +586,7 @@ class FishKite:
             75,
             80,
             85,
-        ]  #  [1] + list(np.arange(5, 90, 5))
+        ]  # was generated before by :#  [1] + list(np.arange(5, 90, 5))
         # range_extra_angle = np.arange(2, 90, 1)
         range_extra_angle = cosspace_extra_angle(2, 84, 0.5)
 
@@ -613,10 +613,10 @@ class FishKite:
         df["rising_angle"] = df["rising_angle"].astype("int32")
 
         # add the simplify criteria
-        balance_range = []
+        # balance_range = []
         df["simplify"] = False
         for i in range(nb_points):
-            balance_range.append((range_kite[i], range_fish[-(i + 1)]))
+            # balance_range.append((range_kite[i], range_fish[-(i + 1)]))
             df.loc[
                 (df["kite_cl"] == range_kite[i])
                 & (df["fish_cl"] == range_fish[-(i + 1)]),
@@ -870,14 +870,6 @@ class Project:
         df["indexG"] = df.index
         return df
 
-    def plot(self, draw_ortho_grid=True, add_background_image=False):
-        fig = plot_cases(
-            self.lst_fishkite,
-            draw_ortho_grid,
-            draw_iso_speed=True,
-            add_background_image=add_background_image,
-        )
-
         return fig
 
 
@@ -893,6 +885,8 @@ if __name__ == "__main__":
     fk2 = FishKite.from_json(fk2_file)
 
     proj = Project([fk1, fk2])
+
+    df = fk1.create_df()
 
     # %%
     dfM = proj.create_df()
