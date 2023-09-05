@@ -37,7 +37,7 @@ import jsonpickle
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 print("Version: ", __version__)
 
 
@@ -200,7 +200,7 @@ layout = dbc.Container(
                                                     [
                                                         dcc.Graph(
                                                             id="fig1_3d_rising_angle",
-                                                            figure=fig_rising_angle,
+                                                            # figure=fig_rising_angle,
                                                             # style={
                                                             #     "position": "fixed",  # that imobilised the graph
                                                             # },
@@ -241,7 +241,7 @@ layout = dbc.Container(
                                                                     style_data={
                                                                         "color": "black",
                                                                         "backgroundColor": "white",
-                                                                        "font-size": "0.6em",
+                                                                        "font-size": "0.7em",
                                                                     },
                                                                     style_data_conditional=[
                                                                         {
@@ -643,6 +643,7 @@ def Startup_call_back(data):
         Input("3d_bool_isoeft", "on"),
         Input("3d_bool_isofluid", "on"),
         Input("3d_slider-graph_size", "value"),
+        Input("bool_validOP_only", "value"),
     ],
 )
 def update_polar_rising_angle(
@@ -657,6 +658,7 @@ def update_polar_rising_angle(
     bool_isoeft,
     bool_isofluid,
     graph_size,
+    bool_ValidOP_only,
 ):
     if symbol_data == "None":
         symbol_data = None
@@ -665,8 +667,13 @@ def update_polar_rising_angle(
     if not use_range:
         rising_low = rising_upper
 
+    if bool_ValidOP_only:
+        df_rising_angle = dfG[dfG["isValid"]]
+    else:
+        df_rising_angle = dfG
+
     return plot_3d_cases_risingangle(
-        dfG,
+        df_rising_angle,
         target_rising_angle_low=rising_low,
         target_rising_angle_upper=rising_upper,
         target_wind=target_wind,

@@ -72,16 +72,17 @@ def create_polar_rising_sliders():
                 dbc.Stack(
                     [
                         html.H6("Rising Angle [deg] : "),
-                        # daq.BooleanSwitch(
-                        #     id="bool_rising_angle_use_range",
-                        #     on=True,
-                        #     label="Use max range only:",
-                        #     labelPosition="top",
-                        # ),
                         dbc.Switch(
                             id="bool_rising_angle_use_range",
                             label="range mode",
                             value=False,
+                            class_name="custom-switch",
+                            label_class_name="custom-switch-label",
+                        ),
+                        dbc.Switch(
+                            id="bool_validOP_only",
+                            label="Valid Only",
+                            value=True,
                             class_name="custom-switch",
                             label_class_name="custom-switch-label",
                         ),
@@ -594,21 +595,21 @@ def create_fk_sliders(id):
                                 dbc.Stack(
                                     [
                                         dbc.Label(
-                                            "length Kite:",
+                                            "length streamline:",
                                             className="custom-labels",
                                         ),
                                         dbc.Input(
                                             type="number",
-                                            id=f"input_kite_cable_length_{id}",
+                                            id=f"input_fish_cable_length_streamline_{id}",
                                             min=0,
-                                            max=100,
+                                            max=5,
                                             step=0.5,
                                             debounce=True,
                                             className="custom-inputs",
                                         ),
                                         dbc.Tooltip(
                                             "unit: m ",
-                                            target=f"input_kite_cable_length_{id}",
+                                            target=f"input_fish_cable_length_streamline_{id}",
                                         ),
                                     ]
                                 ),
@@ -637,21 +638,21 @@ def create_fk_sliders(id):
                                 dbc.Stack(
                                     [
                                         dbc.Label(
-                                            "length streamline:",
+                                            "length Kite:",
                                             className="custom-labels",
                                         ),
                                         dbc.Input(
                                             type="number",
-                                            id=f"input_fish_cable_length_streamline_{id}",
+                                            id=f"input_kite_cable_length_{id}",
                                             min=0,
-                                            max=5,
+                                            max=100,
                                             step=0.5,
                                             debounce=True,
                                             className="custom-inputs",
                                         ),
                                         dbc.Tooltip(
                                             "unit: m ",
-                                            target=f"input_fish_cable_length_streamline_{id}",
+                                            target=f"input_kite_cable_length_{id}",
                                         ),
                                     ]
                                 ),
@@ -664,21 +665,21 @@ def create_fk_sliders(id):
                                 dbc.Stack(
                                     [
                                         dbc.Label(
-                                            "CX air:",
+                                            "CX water streamline:",
                                             className="custom-labels",
                                         ),
                                         dbc.Input(
                                             type="number",
-                                            id=f"input_kite_cx_air_{id}",
-                                            min=0.5,
-                                            max=2,
+                                            id=f"input_fish_cx_streamline_{id}",
+                                            min=0.05,
+                                            max=1,
                                             step=0.01,
                                             debounce=True,
                                             className="custom-inputs",
                                         ),
                                         dbc.Tooltip(
                                             "no unit ",
-                                            target=f"input_kite_cx_air_{id}",
+                                            target=f"input_fish_cx_streamline_{id}",
                                         ),
                                     ]
                                 ),
@@ -706,21 +707,21 @@ def create_fk_sliders(id):
                                 dbc.Stack(
                                     [
                                         dbc.Label(
-                                            "CX water streamline:",
+                                            "CX air:",
                                             className="custom-labels",
                                         ),
                                         dbc.Input(
                                             type="number",
-                                            id=f"input_fish_cx_streamline_{id}",
-                                            min=0.05,
-                                            max=1,
+                                            id=f"input_kite_cx_air_{id}",
+                                            min=0.5,
+                                            max=2,
                                             step=0.01,
                                             debounce=True,
                                             className="custom-inputs",
                                         ),
                                         dbc.Tooltip(
                                             "no unit ",
-                                            target=f"input_fish_cx_streamline_{id}",
+                                            target=f"input_kite_cx_air_{id}",
                                         ),
                                     ]
                                 ),

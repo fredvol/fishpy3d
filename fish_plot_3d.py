@@ -423,15 +423,23 @@ def plot_3d_cases_risingangle(
             showgrid=False,
             visible=False,
         ),  # , side="top"),
+        yaxis=dict(
+            showgrid=False,
+            visible=False,
+            title=dict(standoff=0),
+        ),  # , side="top"),
         height=height_size,
         # width=height_size*0.6,
-        yaxis=dict(showgrid=False, visible=False),
         legend=dict(
-            y=1,
-            x=0.1,
-            groupclick="toggleitem",
+            y=0.05, x=0.22, groupclick="toggleitem", yanchor="bottom", xanchor="right"
         ),
-        margin=dict(l=50, r=50, b=5, t=30, pad=3),
+        margin=dict(
+            l=3,
+            r=3,
+            b=5,
+            t=30,
+            pad=3,
+        ),
         shapes=shape_list,
     )
 
@@ -531,11 +539,11 @@ def plot_3d_cases_risingangle(
 
     # )
 
-    fig.update_xaxes(range=[-5, 50], constrain="domain")
+    fig.update_xaxes(range=[-1, 50], constrain="domain")
     fig.update_yaxes(range=[-30, 20], constrain="domain")
 
     fig.update_layout(coloraxis_colorbar_x=0.9)
-    fig.update_layout(legend=dict(yanchor="bottom", y=0.05, xanchor="right", x=0.85))
+
     fig.update_layout(clickmode="event+select")
     return fig
 
@@ -587,9 +595,10 @@ def plot_side_view(row, fk1):
         height=320,
         # width=height_size * 0.8,
         xaxis_range=[-1, 45],
+        yaxis=dict(dtick=5),
         legend=dict(
-            # y=1,
-            # x=0.1,
+            y=1,
+            x=0.1,
             groupclick="toggleitem",
         ),
         margin=dict(l=20, r=20, t=0, b=20, pad=3),
@@ -611,7 +620,7 @@ def plot_side_view(row, fk1):
         add_line(
             center_fish,
             (row["y_pilot"], row["z_pilot"]),
-            m_name="fish_cable",
+            m_name="fishCable",
             group_name="fish_cable",
             extra_dict=dict(width=3, color="red"),
         )
@@ -633,7 +642,7 @@ def plot_side_view(row, fk1):
         add_line(
             (row["y_pilot"], row["z_pilot"]),
             (row["y_kite"], row["z_kite"]),
-            m_name="Kite_cable",
+            m_name="KiteCable",
             group_name="Kite_cable",
             extra_dict=dict(width=3, color="green"),
         )
