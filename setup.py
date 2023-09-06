@@ -37,8 +37,7 @@ options = {
 
 executables = [
     Executable(
-        "server.py",
-        base="console",
+        "server.py", base="console", icon="Icone_fish.ico"
     )  # targetName="halliburton_dash_rig.exe")
 ]
 
