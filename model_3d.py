@@ -88,7 +88,7 @@ def perf_table(df_big, target_wind):
         ]
         .groupby("fk_name")
         .agg(
-            Max_apparent_watter_kt=("apparent_watter_kt", "max"),
+            Max_apparent_water_kt=("apparent_water_kt", "max"),
             VMG_Upwind=("vmg_y_kt", "max"),
             VMG_Downwind=("vmg_y_kt", "min"),
         )
@@ -489,7 +489,7 @@ class FishKite:
         )
         return apparent_wind_ms
 
-    def apparent_watter_ms(self):  # m/s
+    def apparent_water_ms(self):  # m/s
         apparent_water_ms = np.sqrt(
             self.fish_total_force()
             / (self.fish_c_force() * 0.5 * RHO_WATER * self.fish.projected_area())
@@ -500,11 +500,11 @@ class FishKite:
         # Apparent water / wind (degrees. = Boat course relative to wind)
         angle = np.arccos(
             (
-                self.apparent_watter_ms() ** 2
+                self.apparent_water_ms() ** 2
                 - self.apparent_wind_ms() ** 2
                 + self.true_wind_calculated() ** 2
             )
-            / (2 * self.apparent_watter_ms() * self.true_wind_calculated())
+            / (2 * self.apparent_water_ms() * self.true_wind_calculated())
         )
         return 180 - np.degrees(angle)
 
@@ -512,12 +512,12 @@ class FishKite:
         return -self.total_efficiency() + self.apparent_water_wind_angle()
 
     def vmg_x(self):  # m/s
-        return self.apparent_watter_ms() * np.sin(
+        return self.apparent_water_ms() * np.sin(
             np.radians(self.apparent_water_wind_angle())
         )
 
     def vmg_y(self):  # m/s
-        return self.apparent_watter_ms() * np.cos(
+        return self.apparent_water_ms() * np.cos(
             np.radians(self.apparent_water_wind_angle())
         )
 
@@ -529,10 +529,10 @@ class FishKite:
 
     def true_wind_calculated(self):  # m/s
         return np.sqrt(
-            self.apparent_watter_ms() ** 2
+            self.apparent_water_ms() ** 2
             + self.apparent_wind_ms() ** 2
             - 2
-            * self.apparent_watter_ms()
+            * self.apparent_water_ms()
             * self.apparent_wind_ms()
             * np.cos(np.radians(self.total_efficiency()))
         )
@@ -759,12 +759,12 @@ class FishKite:
         )
 
         # speeds
-        df["apparent_watter_ms"] = np.sqrt(
+        df["apparent_water_ms"] = np.sqrt(
             df["fish_total_force"]
             / (df["fish_c_force"] * 0.5 * RHO_WATER * self.fish.projected_area())
         )
 
-        df["apparent_watter_kt"] = df["apparent_watter_ms"] / CONV_KTS_MS
+        df["apparent_water_kt"] = df["apparent_water_ms"] / CONV_KTS_MS
 
         df["apparent_wind_ms"] = np.sqrt(
             df["kite_total_force"]
@@ -774,10 +774,10 @@ class FishKite:
         df["apparent_wind_kt"] = df["apparent_wind_ms"] / CONV_KTS_MS
 
         df["true_wind_calculated"] = np.sqrt(
-            df["apparent_watter_ms"] ** 2
+            df["apparent_water_ms"] ** 2
             + df["apparent_wind_ms"] ** 2
             - 2
-            * df["apparent_watter_ms"]
+            * df["apparent_water_ms"]
             * df["apparent_wind_ms"]
             * np.cos(df["total_efficiency_rad"])
         )
@@ -786,15 +786,15 @@ class FishKite:
 
         df["apparent_water_wind_rad"] = np.pi - np.arccos(
             (
-                df["apparent_watter_ms"] ** 2
+                df["apparent_water_ms"] ** 2
                 - df["apparent_wind_ms"] ** 2
                 + df["true_wind_calculated"] ** 2
             )
-            / (2 * df["apparent_watter_ms"] * df["true_wind_calculated"])
+            / (2 * df["apparent_water_ms"] * df["true_wind_calculated"])
         )
 
-        df["vmg_x"] = df["apparent_watter_ms"] * np.sin(df["apparent_water_wind_rad"])
-        df["vmg_y"] = df["apparent_watter_ms"] * np.cos(df["apparent_water_wind_rad"])
+        df["vmg_x"] = df["apparent_water_ms"] * np.sin(df["apparent_water_wind_rad"])
+        df["vmg_y"] = df["apparent_water_ms"] * np.cos(df["apparent_water_wind_rad"])
 
         df["vmg_x_kt"] = df["vmg_x"] / CONV_KTS_MS
         df["vmg_y_kt"] = df["vmg_y"] / CONV_KTS_MS
@@ -811,7 +811,7 @@ class FishKite:
         ).round() * 2  # round to even numbers
 
         cavitation_conditions = [
-            (df["apparent_watter_kt"] > 40)
+            (df["apparent_water_kt"] > 40)
             | ((df["fish_total_force"] / self.fish.flat_area()) > 50000),
         ]
         df["cavitation"] = np.select(cavitation_conditions, [True], default=False)
@@ -849,6 +849,11 @@ class Project:
 
     def __str__(self):
         return f"{self.name}"
+
+        # Load and save
+
+    def to_json_str(self):
+        return jsonpickle.encode(self)
 
     def detail(self):
         detail_str = f"Project contains {len(self.lst_fishkite)} FiskKite(s):"
@@ -903,7 +908,7 @@ if __name__ == "__main__":
         y="vmg_y_kt",
         color=what,
         hover_data=[
-            "apparent_watter_ms",
+            "apparent_water_ms",
             what,
             "fish_total_force",
             "cable_strength_margin",
