@@ -11,7 +11,7 @@
         "flat_ratio": 0.64,
         "flat_aspect_ratio": 8.5,
         "profil_drag_coeff": 0.01,
-        "_parasite_drag_pct": 0.06,
+        "_parasite_drag_pct": 0.01,
         "cl_range": {
             "min": 0.2,
             "max": 0.6
@@ -36,7 +36,7 @@
     "pilot": {
         "py/object": "model_3d.Pilot",
         "mass": 80,
-        "pilot_drag": 0.25,
+        "pilot_drag": 0.5,
         "obj_version": 1
     },
     "_extra_angle": 10,
@@ -48,5 +48,6 @@
     "cx_cable_water_streamline": 0.5,
     "cx_cable_air": 1,
     "tip_fish_depth": 0.5,
+    "cable_strength_mm2": 100,
     "obj_version": 1
 }

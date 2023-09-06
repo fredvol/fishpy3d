@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 from itertools import product
 import jsonpickle
 
-from fish_plot_3d import plot_3d_cases, plot_3d_cases_risingangle
+from fish_plot_3d import plot_3d_cases, plot_3d_cases_risingangle, plot_side_view
 
 import scipy.optimize as opt
 
@@ -27,7 +27,7 @@ GRAVITY = 9.81  # m/s-2
 RHO_AIR = 1.29  # kg/m3
 RHO_WATER = 1025  # kg/m3
 CONV_KTS_MS = 0.5144456333854638  # (m/s)/kt
-CABLE_STRENGTH_MM2 = 100  # daN/mm2
+# CABLE_STRENGTH_MM2 = 100  # daN/mm2
 
 data_folder = os.path.join(os.path.dirname(__file__), "data")
 
@@ -56,6 +56,78 @@ def ms_to_knot(value):
 
 def load_fish_kite(m_path):
     return FishKite.from_json(m_path)
+
+
+def cosspace_extra_angle(start: float = 0.0, stop: float = 90, cos_coef: float = 0.5):
+    """
+    Makes a cosine-spaced vector.
+    Assuming average step = 1 !
+    Args:
+        start: Value to start at.
+        end: Value to end at.
+        cos_coef: coeficient to apply the cosinus.
+    """
+    num = stop - start + 1
+    step_length = [1 - np.cos(np.radians(i * 180 / num)) * cos_coef for i in range(num)]
+    result = [start]
+    for i in range(num - 1):
+        result.append(result[-1] + step_length[i + 1])
+
+    # Fix the endpoints, which might not be exactly right due to floating-point error.
+    result[0] = start
+    result[-1] = stop
+
+    return result
+
+
+def perf_table(df_big, target_wind):
+    df_perf = (
+        df_big[
+            (df_big["isValid"])
+            & (df_big["true_wind_calculated_kt_rounded"] == target_wind)
+        ]
+        .groupby("fk_name")
+        .agg(
+            Max_apparent_water_kt=("apparent_water_kt", "max"),
+            VMG_Upwind=("vmg_y_kt", "max"),
+            VMG_Downwind=("vmg_y_kt", "min"),
+        )
+        .T
+    )
+    return df_perf
+
+
+def perf_table_general(df_big, proj):
+    list_dfi = []
+    for fk in proj.lst_fishkite:
+        dfi = df_big[df_big["fk_name"] == fk.name]
+        dfi_valid = dfi[dfi["isValid"]]
+
+        # wind range
+        min_TW = round(dfi_valid["true_wind_calculated_kt"].min(), 1)
+        max_TW = round(dfi_valid["true_wind_calculated_kt"].max(), 1)
+
+        # pct valid
+        true_count = dfi["isValid"].sum()
+        total_count = len(dfi)
+
+        if total_count == 0:
+            percentage = "NA"
+        else:
+            percentage = round((true_count / total_count) * 100, 1)
+
+        dict_stats = {
+            "cable_diam_mm": round(fk.cable_diameter() * 1000, 2),
+            "true_wind_range": f"[{min_TW}:{max_TW}]",
+            "pct_of_OPvalid": f"{percentage} %",
+        }
+
+        dfi = pd.DataFrame(dict_stats, index=[fk.name])
+
+        list_dfi.append(dfi)
+
+    df_perf_G = pd.concat(list_dfi)
+    return df_perf_G
 
 
 # %% Class
@@ -203,6 +275,7 @@ class FishKite:
         cx_cable_water_streamline: float,
         cx_cable_air: float,
         tip_fish_depth: float,
+        cable_strength_mm2: float,
     ):
         self.name = name
         self.wind_speed = wind_speed * CONV_KTS_MS  # input in kt converted in m/s
@@ -219,12 +292,16 @@ class FishKite:
         self.cx_cable_water_streamline = cx_cable_water_streamline  # no unit
         self.cx_cable_air = cx_cable_air  # no unit
         self.tip_fish_depth = tip_fish_depth  # no
+        self.cable_strength_mm2 = cable_strength_mm2  # DaN/mm2
+
         self.obj_version = 1
 
     def __repr__(self):
         return f"FishKite({self.name}): wind_speed[kt]:{ms_to_knot(self.wind_speed)} rising_angle:{self.rising_angle}  \n Kite:{self.kite}  \n Fish:{self.fish}"
 
     # Load and save
+    def to_json_str(self):
+        return jsonpickle.encode(self)
 
     def to_json(self, filename):
         """Convert to object to json
@@ -245,10 +322,17 @@ class FishKite:
             json_str = json_file.read()
         return jsonpickle.decode(json_str, classes=classes)
 
+    @classmethod
+    def from_json_str(cls, json_str, classes=None):
+        return jsonpickle.decode(json_str, classes=classes)
+
     # geometry
 
     def cable_diameter(self):
-        return np.sqrt((self.cable_strength * 4) / (np.pi * CABLE_STRENGTH_MM2)) / 1000
+        return (
+            np.sqrt((self.cable_strength * 4) / (np.pi * self.cable_strength_mm2))
+            / 1000
+        )
 
     def fish_center_depth(self):  # m
         return self.tip_fish_depth + self.fish.projected_span() * 0.5 * np.cos(
@@ -405,7 +489,7 @@ class FishKite:
         )
         return apparent_wind_ms
 
-    def apparent_watter_ms(self):  # m/s
+    def apparent_water_ms(self):  # m/s
         apparent_water_ms = np.sqrt(
             self.fish_total_force()
             / (self.fish_c_force() * 0.5 * RHO_WATER * self.fish.projected_area())
@@ -416,11 +500,11 @@ class FishKite:
         # Apparent water / wind (degrees. = Boat course relative to wind)
         angle = np.arccos(
             (
-                self.apparent_watter_ms() ** 2
+                self.apparent_water_ms() ** 2
                 - self.apparent_wind_ms() ** 2
                 + self.true_wind_calculated() ** 2
             )
-            / (2 * self.apparent_watter_ms() * self.true_wind_calculated())
+            / (2 * self.apparent_water_ms() * self.true_wind_calculated())
         )
         return 180 - np.degrees(angle)
 
@@ -428,12 +512,12 @@ class FishKite:
         return -self.total_efficiency() + self.apparent_water_wind_angle()
 
     def vmg_x(self):  # m/s
-        return self.apparent_watter_ms() * np.sin(
+        return self.apparent_water_ms() * np.sin(
             np.radians(self.apparent_water_wind_angle())
         )
 
     def vmg_y(self):  # m/s
-        return self.apparent_watter_ms() * np.cos(
+        return self.apparent_water_ms() * np.cos(
             np.radians(self.apparent_water_wind_angle())
         )
 
@@ -445,10 +529,10 @@ class FishKite:
 
     def true_wind_calculated(self):  # m/s
         return np.sqrt(
-            self.apparent_watter_ms() ** 2
+            self.apparent_water_ms() ** 2
             + self.apparent_wind_ms() ** 2
             - 2
-            * self.apparent_watter_ms()
+            * self.apparent_water_ms()
             * self.apparent_wind_ms()
             * np.cos(np.radians(self.total_efficiency()))
         )
@@ -477,14 +561,34 @@ class FishKite:
         """
         range_fish = np.linspace(
             self.fish.cl_range["min"], self.fish.cl_range["max"], nb_points
-        )
+        ).round(3)
         range_kite = np.linspace(
             self.kite.cl_range["min"], self.kite.cl_range["max"], nb_points
-        )
-        range_fish = [round(i, 3) for i in range_fish]
-        range_kite = [round(i, 3) for i in range_kite]
-        range_rising_angle = range_rising_angle = [1] + list(np.arange(5, 90, 5))
-        range_extra_angle = np.arange(2, 90, 1)
+        ).round(3)
+        # range_fish = [round(i, 3) for i in range_fish]  #slow
+        # range_kite = [round(i, 3) for i in range_kite]  #slow
+        range_rising_angle = [
+            1,
+            5,
+            10,
+            15,
+            20,
+            25,
+            30,
+            35,
+            40,
+            45,
+            50,
+            55,
+            60,
+            65,
+            70,
+            75,
+            80,
+            85,
+        ]  # was generated before by :#  [1] + list(np.arange(5, 90, 5))
+        # range_extra_angle = np.arange(2, 90, 1)
+        range_extra_angle = cosspace_extra_angle(2, 84, 0.5)
 
         ##  previous data generation method  ( slow 15s)
         # dfa = pd.DataFrame(
@@ -505,11 +609,14 @@ class FishKite:
             }
         )
 
+        # reduce momery size
+        df["rising_angle"] = df["rising_angle"].astype("int32")
+
         # add the simplify criteria
-        balance_range = []
+        # balance_range = []
+        df["simplify"] = False
         for i in range(nb_points):
-            balance_range.append((range_kite[i], range_fish[-(i + 1)]))
-            df["simplify"] = False
+            # balance_range.append((range_kite[i], range_fish[-(i + 1)]))
             df.loc[
                 (df["kite_cl"] == range_kite[i])
                 & (df["fish_cl"] == range_fish[-(i + 1)]),
@@ -517,11 +624,16 @@ class FishKite:
             ] = True
 
         df[f"kite_roll_angle"] = df[f"rising_angle"] + df["extra_angle"]
-        df.drop(df[df["kite_roll_angle"] >= 90].index, inplace=True)
+        # df.drop(df[df["kite_roll_angle"] >= 90].index, inplace=True)
+        df = df[df["kite_roll_angle"] < 90]
 
-        df["rising_angle_rad"] = df["rising_angle"].apply(np.radians)
-        df["extra_angle_rad"] = df["extra_angle"].apply(np.radians)
-        df["kite_roll_angle_rad"] = df["kite_roll_angle"].apply(np.radians)
+        # df["rising_angle_rad"] = df["rising_angle"].apply(np.radians)
+        # df["extra_angle_rad"] = df["extra_angle"].apply(np.radians)
+        # df["kite_roll_angle_rad"] = df["kite_roll_angle"].apply(np.radians)
+
+        df["rising_angle_rad"] = np.radians(df["rising_angle"])
+        df["extra_angle_rad"] = np.radians(df["extra_angle"])
+        df["kite_roll_angle_rad"] = np.radians(df["kite_roll_angle"])
 
         # cable
         df[
@@ -595,20 +707,18 @@ class FishKite:
         )
 
         # For extra angle
+        df["proj_efficiency_water_LD"] = (
+            df[f"fish_lift"] / df[f"total_water_drag"]
+        ) * np.cos(df["rising_angle_rad"])
         df["projected_efficiency_water_rad"] = np.arctan(
-            1
-            / (
-                (df[f"fish_lift"] / df[f"total_water_drag"])
-                * np.cos(df["rising_angle_rad"])
-            )
+            1 / (df["proj_efficiency_water_LD"])
         )
 
+        df["proj_efficiency_air_LD"] = (
+            df[f"kite_lift"] / df[f"total_air_drag"]
+        ) * np.cos(df["kite_roll_angle_rad"])
         df["kite_projected_efficiency_rad"] = np.arctan(
-            1
-            / (
-                np.cos(df["kite_roll_angle_rad"])
-                * (df[f"kite_lift"] / df[f"total_air_drag"])
-            )
+            1 / (df["proj_efficiency_air_LD"])
         )
 
         df["total_efficiency_rad"] = (
@@ -649,12 +759,12 @@ class FishKite:
         )
 
         # speeds
-        df["apparent_watter_ms"] = np.sqrt(
+        df["apparent_water_ms"] = np.sqrt(
             df["fish_total_force"]
             / (df["fish_c_force"] * 0.5 * RHO_WATER * self.fish.projected_area())
         )
 
-        df["apparent_watter_kt"] = df["apparent_watter_ms"] / CONV_KTS_MS
+        df["apparent_water_kt"] = df["apparent_water_ms"] / CONV_KTS_MS
 
         df["apparent_wind_ms"] = np.sqrt(
             df["kite_total_force"]
@@ -664,10 +774,10 @@ class FishKite:
         df["apparent_wind_kt"] = df["apparent_wind_ms"] / CONV_KTS_MS
 
         df["true_wind_calculated"] = np.sqrt(
-            df["apparent_watter_ms"] ** 2
+            df["apparent_water_ms"] ** 2
             + df["apparent_wind_ms"] ** 2
             - 2
-            * df["apparent_watter_ms"]
+            * df["apparent_water_ms"]
             * df["apparent_wind_ms"]
             * np.cos(df["total_efficiency_rad"])
         )
@@ -676,15 +786,15 @@ class FishKite:
 
         df["apparent_water_wind_rad"] = np.pi - np.arccos(
             (
-                df["apparent_watter_ms"] ** 2
+                df["apparent_water_ms"] ** 2
                 - df["apparent_wind_ms"] ** 2
                 + df["true_wind_calculated"] ** 2
             )
-            / (2 * df["apparent_watter_ms"] * df["true_wind_calculated"])
+            / (2 * df["apparent_water_ms"] * df["true_wind_calculated"])
         )
 
-        df["vmg_x"] = df["apparent_watter_ms"] * np.sin(df["apparent_water_wind_rad"])
-        df["vmg_y"] = df["apparent_watter_ms"] * np.cos(df["apparent_water_wind_rad"])
+        df["vmg_x"] = df["apparent_water_ms"] * np.sin(df["apparent_water_wind_rad"])
+        df["vmg_y"] = df["apparent_water_ms"] * np.cos(df["apparent_water_wind_rad"])
 
         df["vmg_x_kt"] = df["vmg_x"] / CONV_KTS_MS
         df["vmg_y_kt"] = df["vmg_y"] / CONV_KTS_MS
@@ -696,15 +806,28 @@ class FishKite:
         df["cable_break"] = df["cable_strength_margin"] <= 1
 
         # group data
-        df["true_wind_calculated_kt_rounded"] = df["true_wind_calculated_kt"].round()
+        df["true_wind_calculated_kt_rounded"] = (
+            df["true_wind_calculated_kt"] / 2
+        ).round() * 2  # round to even numbers
 
         cavitation_conditions = [
-            (df["apparent_watter_kt"] > 40)
+            (df["apparent_water_kt"] > 40)
             | ((df["fish_total_force"] / self.fish.flat_area()) > 50000),
         ]
         df["cavitation"] = np.select(cavitation_conditions, [True], default=False)
 
-        df["broke_cable_or_cavitated"] = (df["cable_break"]) | (df["cavitation"])
+        df["isValid"] = ~(df["cavitation"] | df["cable_break"])
+
+        conditions = [
+            (df["cable_break"] & df["cavitation"]),
+            df["cable_break"],
+            df["cavitation"],
+            True,  # Default condition
+        ]
+
+        choices = ["broken cavitated", "break", "cavitation", "no failure"]
+
+        df["failure"] = np.select(conditions, choices, default=0)
 
         # %optimise size - was saving 10mo ( 113mb instead 122mb) but loose precision.
         # df["kite_cl"] = df["kite_cl"].astype(np.float32)
@@ -727,17 +850,17 @@ class Project:
     def __str__(self):
         return f"{self.name}"
 
+        # Load and save
+
+    def to_json_str(self):
+        return jsonpickle.encode(self)
+
     def detail(self):
         detail_str = f"Project contains {len(self.lst_fishkite)} FiskKite(s):"
         for i in self.lst_fishkite:
             detail_str += "\n-\n"
             detail_str += str(i)
         return detail_str
-
-    def perf_table(self):
-        list_df = [fk.perf_table() for fk in self.lst_fishkite]
-        df = pd.concat(list_df)
-        return df.T.reset_index()
 
     def create_df(self):
         df_list = []
@@ -748,17 +871,14 @@ class Project:
             df_list.append(dfi)
 
         df = pd.concat(df_list, ignore_index=True)
+        # add general index  to find back the data
+        df["indexG"] = df.index
         return df
 
-    def plot(self, draw_ortho_grid=True, add_background_image=False):
-        fig = plot_cases(
-            self.lst_fishkite,
-            draw_ortho_grid,
-            draw_iso_speed=True,
-            add_background_image=add_background_image,
-        )
-
         return fig
+
+
+# %%
 
 
 # %%# Parameter
@@ -771,8 +891,12 @@ if __name__ == "__main__":
 
     proj = Project([fk1, fk2])
 
+    df = fk1.create_df()
+
+    # %%
     dfM = proj.create_df()
 
+    # %%
     df1 = dfM[dfM["fk_name"] == "fk1"]
 
     # %%
@@ -784,7 +908,7 @@ if __name__ == "__main__":
         y="vmg_y_kt",
         color=what,
         hover_data=[
-            "apparent_watter_ms",
+            "apparent_water_ms",
             what,
             "fish_total_force",
             "cable_strength_margin",
@@ -980,82 +1104,3 @@ if __name__ == "__main__":
         scaleratio=1,
     )
     fig.show()
-    # %%
-    # df_kt = df[df["true_wind_calculated_kt_rounded"] == target_wind]
-    # fig = px.density_contour(
-    #     dfs,
-    #     x="vmg_x_kt",
-    #     y="vmg_y_kt",
-    #     z="rising_angle",
-    #     color="rising_angle",
-    #     title=f"Polar contour for TW={target_wind} kt",
-    # )
-
-    # dfsimplify = dfs[dfs["simplify"] == 1]
-    # fig.add_trace(
-    #     go.Scatter(
-    #         x=dfsimplify["vmg_x_kt"],
-    #         y=dfsimplify["vmg_y_kt"],
-    #         mode="markers",
-    #         marker=dict(
-    #             size=8,
-    #             # I want the color to be green if
-    #             # lower_limit ≤ y ≤ upper_limit
-    #             # else red
-    #             color="red",
-    #         ),
-    #     )
-    # )
-    # fig.update_yaxes(
-    #     scaleanchor="x",
-    #     scaleratio=1,
-    # )
-
-    # fig.show()
-    # %% Validation pivot table
-
-    # validation_rising_angle = 30
-
-    # validation_extra_angle = 20
-    # dfv = df[
-    #     (df["fish_cl"].isin(range_fish))
-    #     & (df["kite_cl"].isin(range_kite))
-    #     & (df["rising_angle"] == validation_rising_angle)
-    #     & (df["extra_angle"] == validation_extra_angle)
-    # ]
-
-    # pd.pivot_table(
-    #     dfv,
-    #     values="true_wind_calculated_kt",
-    #     index=["kite_cl"],
-    #     columns=["fish_cl"],
-    #     aggfunc=np.sum,
-    # )
-    # %%
-
-    dfx = df[df["true_wind_calculated_kt_rounded"] == 30]
-    fig = px.scatter(
-        dfx,
-        x="vmg_x_kt",
-        y="vmg_y_kt",
-        color="rising_angle",  # "extra_angle",
-        title=f"Polar pts",
-    )
-    fig.show()
-    # %%
-    from scipy.spatial import ConvexHull, convex_hull_plot_2d
-
-    rng = np.random.default_rng()
-
-    points = dfx[["vmg_x_kt", "vmg_y_kt"]].to_numpy()  # 30 random points in 2-D
-
-    hull = ConvexHull(points)
-    # %%
-
-    import matplotlib.pyplot as plt
-
-    plt.plot(points[:, 0], points[:, 1], "o")
-
-    for simplex in hull.simplices:
-        plt.plot(points[simplex, 0], points[simplex, 1], "k-")
-    # %%

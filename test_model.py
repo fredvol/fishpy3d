@@ -73,10 +73,10 @@ def test_cable_tension(fk1, fk2, fk3):
     assert fk3.cable_tension() == 130.75025597711434
 
 
-def test_apparent_watter(fk1, fk2, fk3):
-    assert fk1.apparent_watter() == 22.496637897925087
-    assert fk2.apparent_watter() == 45.72015638713615
-    assert fk3.apparent_watter() == 15.524093042426685
+def test_apparent_water(fk1, fk2, fk3):
+    assert fk1.apparent_water() == 22.496637897925087
+    assert fk2.apparent_water() == 45.72015638713615
+    assert fk3.apparent_water() == 15.524093042426685
 
 
 def test_flight_creation_and_add(fk1, fk2, fk3):

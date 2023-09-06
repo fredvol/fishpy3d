@@ -6,7 +6,8 @@
 # https://fishpy2d-9143325b137e.herokuapp.com/
 
 # imports
-
+import base64
+import io
 from model_3d import (
     Deflector,
     FishKite,
@@ -14,28 +15,28 @@ from model_3d import (
     Project,
     plot_3d_cases,
     plot_3d_cases_risingangle,
-    load_fish_kite,
+    perf_table,
+    perf_table_general,
 )
-
+from fish_plot_3d import plot_side_view
 import dash
 
 dash.register_page(__name__)
-
+import json
 from dash import dcc  # import dash_core_components as dcc   # from dash import dcc
 from dash import html  # import dash_html_components as html  # from dash import html
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 from dash.dependencies import Input, Output, State
 
-import numpy as np
-import copy
-import pandas as pd
+
 import os
-import jsonpickle
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "1.0.3"
+__version__ = "2.0.13"
+print("Version: ", __version__)
+
 
 # %% Initial set up
 data_folder = os.path.join(
@@ -56,7 +57,7 @@ proj = Project([fk1, fk2])
 # server = app.server
 dfG = proj.create_df()
 
-fig_rising_angle = plot_3d_cases_risingangle(dfG)
+fig_rising_angle = plot_3d_cases_risingangle(dfG[dfG["fk_name"] == fk1.name])
 fig_all_pts = plot_3d_cases(dfG)
 # df_table = proj.perf_table()
 # CSS
@@ -133,10 +134,29 @@ layout = dbc.Container(
                                 dbc.CardBody(
                                     [
                                         dbc.Spinner(
+                                            [html.Div(id="df_info")],
+                                            color="primary",
+                                        ),
+                                        html.Div(
+                                            [
+                                                html.Button(
+                                                    "Download Excel (very long!)",
+                                                    id="btn_xlsx",
+                                                ),
+                                                dcc.Download(
+                                                    id="download-dataframe-xlsx"
+                                                ),
+                                            ]
+                                        ),
+                                        html.Hr(),
+                                        html.Div("Model state:"),
+                                        dbc.Spinner(
                                             [html.Div(id="debug")],
                                             # html.P(id="my-output_3d"),
                                             color="primary",
                                         ),
+                                        html.Hr(),
+                                        html.Div("Debug:"),
                                         dbc.Spinner(
                                             [html.Div(id="debug2")],
                                             # html.P(id="my-output_3d"),
@@ -154,12 +174,17 @@ layout = dbc.Container(
                         #     "Analyze",
                         #     id="analyze", color="primary", style={"margin": "5px"}),
                         html.Hr(),
-                        dcc.Markdown("##### Numerical Results"),
-                        # dash_table.DataTable(
-                        #     df_table.to_dict("records"),
-                        #     [{"name": i, "id": i} for i in df_table.columns],
-                        #     id="perf_table_3d",
-                        # ),
+                        dcc.Markdown(
+                            "##### Numerical Results: (*'no failure' OP only*)"
+                        ),
+                        dcc.Markdown(" * At selected wind:"),
+                        dash_table.DataTable(
+                            id="perf_table_3d_selectedW",
+                        ),
+                        dcc.Markdown(" * All True winds:"),
+                        dash_table.DataTable(
+                            id="perf_table_3d_allW",
+                        ),
                     ],
                     width=3,
                 ),
@@ -170,17 +195,94 @@ layout = dbc.Container(
                                 dcc.Tab(
                                     label="selected Rising angle",
                                     children=[
-                                        dbc.CardBody(
-                                            create_polar_rising_sliders(),
-                                            # dcc.Markdown("bidon")
-                                        ),
-                                        dcc.Graph(
-                                            id="fig1_3d_rising_angle",
-                                            figure=fig_rising_angle,
-                                            # style={
-                                            #     "position": "fixed",  # that imobilised the graph
-                                            # },
-                                        ),
+                                        dbc.Row(
+                                            [
+                                                dbc.Col(
+                                                    [
+                                                        dcc.Graph(
+                                                            id="fig1_3d_rising_angle",
+                                                            # figure=fig_rising_angle,
+                                                            # style={
+                                                            #     "position": "fixed",  # that imobilised the graph
+                                                            # },
+                                                        ),
+                                                        dcc.Graph(
+                                                            id="fig1_3d_side_view",
+                                                            # style={
+                                                            #     "position": "fixed",  # that imobilised the graph
+                                                            # },
+                                                        ),
+                                                    ],
+                                                    width=9,
+                                                ),
+                                                dbc.Col(
+                                                    [
+                                                        html.Div(
+                                                            [
+                                                                html.H5(
+                                                                    "Graph control:"
+                                                                ),
+                                                                dbc.CardBody(
+                                                                    create_polar_rising_sliders(),
+                                                                    # dcc.Markdown("bidon")
+                                                                ),
+                                                            ]
+                                                        ),
+                                                        #
+                                                        html.Br(),
+                                                        dbc.Stack(
+                                                            [
+                                                                html.H5(
+                                                                    "OP specific data:"
+                                                                ),
+                                                                dash_table.DataTable(
+                                                                    id="click_data_table",
+                                                                    export_format="csv",
+                                                                    editable=True,
+                                                                    style_data={
+                                                                        "color": "black",
+                                                                        "backgroundColor": "white",
+                                                                        "font-size": "0.7em",
+                                                                    },
+                                                                    style_data_conditional=[
+                                                                        {
+                                                                            "if": {
+                                                                                "row_index": "odd"
+                                                                            },
+                                                                            "backgroundColor": "rgb(220, 220, 220)",
+                                                                        }
+                                                                    ],
+                                                                    style_header={
+                                                                        "backgroundColor": "rgb(210, 210, 210)",
+                                                                        "color": "black",
+                                                                        "fontWeight": "bold",
+                                                                    },
+                                                                    # style_table={
+                                                                    #     "height": "800px",
+                                                                    #     "overflowY": "auto",
+                                                                    # },
+                                                                    css=[
+                                                                        {
+                                                                            "selector": ".dash-spreadsheet tr",
+                                                                            "rule": "height: 10px;",
+                                                                        },
+                                                                        {
+                                                                            "selector": "tr:first-child",
+                                                                            "rule": "display: none",
+                                                                        },
+                                                                        {
+                                                                            "selector": ".export",
+                                                                            "rule": "position:absolute;right:-15px;bottom:-30px",
+                                                                        },
+                                                                    ],
+                                                                ),
+                                                            ]
+                                                        ),
+                                                    ],
+                                                    width=3,
+                                                ),
+                                            ]
+                                        )
                                     ],
                                     className="custom-tab",
                                     selected_className="custom-tab--selected",
@@ -188,17 +290,32 @@ layout = dbc.Container(
                                 dcc.Tab(
                                     label="All Rising angle",
                                     children=[
-                                        dbc.CardBody(
-                                            create_polar_all_pts_sliders(),
-                                            # dcc.Markdown("bidon")
-                                        ),
-                                        dcc.Graph(
-                                            id="fig1_3d_all_pts",
-                                            figure=fig_all_pts,
-                                            # style={
-                                            #     "position": "fixed",  # that imobilised the graph
-                                            # },
-                                        ),
+                                        dbc.Row(
+                                            [
+                                                dbc.Col(
+                                                    [
+                                                        dbc.CardBody(
+                                                            create_polar_all_pts_sliders(),
+                                                            # dcc.Markdown("bidon")
+                                                        ),
+                                                        dcc.Graph(
+                                                            id="fig1_3d_all_pts",
+                                                            figure=fig_all_pts,
+                                                            # style={
+                                                            #     "position": "fixed",  # that imobilised the graph
+                                                            # },
+                                                        ),
+                                                    ]
+                                                ),
+                                                dbc.Col(
+                                                    [
+                                                        html.Div(
+                                                            "One of three columns"
+                                                        ),
+                                                    ]
+                                                ),
+                                            ]
+                                        )
                                     ],
                                     className="custom-tab",
                                     selected_className="custom-tab--selected",
@@ -214,7 +331,7 @@ layout = dbc.Container(
             ]
         ),
         dcc.Markdown(
-            """
+            f"""
         ......................................  
 
         **Hypothesis:**
@@ -225,6 +342,8 @@ layout = dbc.Container(
          * OP = Operation point
          * fk = Fish-Kite
          * Fluid ratio = Apparent Water Speed / Apparent wind Speed
+
+        **Version:** {__version__}
         """
         ),
     ],
@@ -299,6 +418,107 @@ def update_possible_rising_angle(target_wind):
     return {int(i): str(i) for i in sorted(possibility)}
 
 
+###################################################### Click reaction
+summary_table_fields = [
+    "kite_cl",
+    "fish_cl",
+    "rising_angle",
+    "extra_angle",
+    "simplify",
+    "fish_center_depth",
+    "cable_length_in_water",
+    "cable_length_in_water_streamline",
+    "cable_length_in_water_unstreamline",
+    "cable_water_drag",
+    "cable_length_in_air",
+    "cable_air_drag",
+    "fish_lift",
+    "kite_lift",
+    "fish_induced_drag",
+    "kite_induced_drag",
+    "total_water_drag",
+    "total_air_drag",
+    "fish_total_force",
+    "kite_total_force",
+    "proj_efficiency_water_LD",
+    "proj_efficiency_air_LD",
+    "y_pilot",
+    "z_pilot",
+    "y_kite",
+    "z_kite",
+    "apparent_water_kt",
+    "apparent_wind_kt",
+    "true_wind_calculated_kt",
+    "vmg_x_kt",
+    "vmg_y_kt",
+    "cable_strength_margin",
+    "cavitation",
+    "fk_name",
+    "failure",
+    "indexG",
+]
+
+
+@callback(
+    [
+        Output(component_id="click_data_table", component_property="data"),
+        Output(component_id="click_data_table", component_property="columns"),
+        Output("fig1_3d_side_view", "figure"),
+    ],
+    Input("fig1_3d_rising_angle", "clickData"),
+    prevent_initial_call=True,
+)
+def display_click_data(clickData):
+    df_index = clickData["points"][0]["customdata"][-1]
+    df_OP = dfG[(dfG["indexG"] == df_index)]
+    df_click_select = df_OP[summary_table_fields]
+    # Identify numeric columns
+    numeric_cols = df_click_select.select_dtypes(include=[float, int]).columns
+
+    # Format numeric columns with n digits
+    df_click_select[numeric_cols] = df_click_select[numeric_cols].round(4)
+
+    df_click = df_click_select.reset_index().T.reset_index()
+    columns = [{"name": str(col), "id": str(col)} for col in df_click.columns]
+    data = df_click.to_dict(orient="records")
+
+    # side view
+    fig_side = plot_side_view(df_OP.to_dict("records")[0], proj.lst_fishkite[0])
+
+    return data, columns, fig_side
+
+
+###################################################### DOWNLOAD
+
+
+@callback(
+    Output("download-dataframe-xlsx", "data"),
+    Input("btn_xlsx", "n_clicks"),
+    prevent_initial_call=True,
+)
+def download_bigDF(n_clicks):
+    return dcc.send_data_frame(
+        dfG.to_excel, "df_general.xlsx", sheet_name="Sheet_name_1"
+    )
+
+
+@callback(
+    Output("download-fk1", "data"),
+    Input("export_fk0", "n_clicks"),
+    Input("export_fk1", "n_clicks"),
+    prevent_initial_call=True,
+)
+def download_fk(btn_fk0, btn_fk1):
+    button_clicked = ctx.triggered_id
+    if button_clicked == "export_fk0":
+        return dict(content=fk1.to_json_str(), filename=f"exported_{fk1.name}.txt")
+    elif button_clicked == "export_fk1":
+        return dict(content=fk2.to_json_str(), filename=f"exported_{fk2.name}.txt")
+    else:
+        print("Impossible to export : button_clicked", button_clicked)
+        raise PreventUpdate
+
+
 ######################################################  GUI
 ### update slider
 
@@ -324,7 +544,11 @@ roots_update_slider = [
     "input_fish_cx_unstreamline",
     "input_fish_cable_length_streamline",
     "input_fish_cx_streamline",
+    "cable_strength_mm2",
+    "input_pilot_mass",
+    "input_pilot_drag",
 ]
+
 
 list_outputs = [Output("model_state", "data")]
 for id in [0, 1]:
@@ -335,8 +559,23 @@ for id in [0, 1]:
 @callback(
     list_outputs,
     Input("model_state", "data"),
+    Input("inport_fk0", "contents"),
+    Input("inport_fk1", "contents"),
 )
-def update_sliders(model_state):
+def update_sliders(model_state, data_import0, data_import1):
+    button_clicked = ctx.triggered_id
+    # print(f" triger by {button_clicked}")
+
+    if button_clicked == "inport_fk0":
+        content_type, content_string = data_import0.split(",")
+        decoded = base64.b64decode(content_string)
+        proj.lst_fishkite[0] = FishKite.from_json_str(decoded)
+
+    if button_clicked == "inport_fk1":
+        content_type, content_string = data_import1.split(",")
+        decoded = base64.b64decode(content_string)
+        proj.lst_fishkite[1] = FishKite.from_json_str(decoded)
+
     if model_state["need_update_sliders"]:
         output_to_send = []
         for id in [0, 1]:
@@ -361,8 +600,11 @@ def update_sliders(model_state):
             output_to_send.append(proj.lst_fishkite[id].cx_cable_water_unstreamline)
             output_to_send.append(proj.lst_fishkite[id].cable_length_fish_streamline)
             output_to_send.append(proj.lst_fishkite[id].cx_cable_water_streamline)
+            output_to_send.append(proj.lst_fishkite[id].cable_strength_mm2)
+            output_to_send.append(proj.lst_fishkite[id].pilot.mass)
+            output_to_send.append(proj.lst_fishkite[id].pilot.pilot_drag)
 
-        print(f" will update slider")
+        # print(f" will update slider")
 
         return model_state, *output_to_send
     else:
@@ -392,30 +634,57 @@ def Startup_call_back(data):
     Output("fig1_3d_rising_angle", "figure"),
     [
         Input("slider-rising_angle_polar", "value"),
-        Input("bool_rising_angle_use_range", "on"),
+        Input("bool_rising_angle_use_range", "value"),
         Input("3d_slider-wind_speed", "value"),
         Input("data_color_polar_rising", "value"),
         Input("data_symbol_polar_rising", "value"),
         Input("graph_need_update", "data"),
+        Input("3d_bool_orthogrid", "on"),
+        Input("3d_bool_isospeed", "on"),
+        Input("3d_bool_isoeft", "on"),
+        Input("3d_bool_isofluid", "on"),
+        Input("3d_slider-graph_size", "value"),
+        Input("bool_validOP_only", "value"),
     ],
 )
 def update_polar_rising_angle(
-    rising_angle, use_max_only, target_wind, color_data, symbol_data, _data
+    rising_angle,
+    use_range,
+    target_wind,
+    color_data,
+    symbol_data,
+    _data,
+    bool_orthogrid,
+    bool_isospeed,
+    bool_isoeft,
+    bool_isofluid,
+    graph_size,
+    bool_ValidOP_only,
 ):
     if symbol_data == "None":
         symbol_data = None
 
     rising_low, rising_upper = rising_angle
-    if use_max_only:
+    if not use_range:
         rising_low = rising_upper
 
+    if bool_ValidOP_only:
+        df_rising_angle = dfG[dfG["isValid"]]
+    else:
+        df_rising_angle = dfG
+
     return plot_3d_cases_risingangle(
-        dfG,
+        df_rising_angle,
         target_rising_angle_low=rising_low,
         target_rising_angle_upper=rising_upper,
         target_wind=target_wind,
         what=color_data,
         symbol=symbol_data,
+        draw_ortho_grid=bool_orthogrid,
+        draw_iso_speed=bool_isospeed,
+        draw_iso_eft=bool_isoeft,
+        draw_iso_fluid=bool_isofluid,
+        height_size=graph_size,
     )
 
 
@@ -454,29 +723,29 @@ def update_polar_all_pts(model_state):
 # DF update callaback
 
 
-roots_update_slider2 = [
-    "fk_name",
-    "cable_strength",
-    "3d_slider-kite_area",
-    "3d_slider-kite_cl",
-    "input_kite_flat_ratio",
-    "input_kite_aspect_ratio",
-    "input_kite_profildrag",
-    "input_kite_parasitedrag",
-    "input_kite_cable_length",
-    "input_kite_cx_air",
-    "3d_slider-fish_area",
-    "3d_slider-fish_cl",
-    "input_fish_flat_ratio",
-    "input_fish_aspect_ratio",
-    "input_fish_profildrag",
-    "input_fish_parasitedrag",
-    "input_fish_tip_depth",
-    "input_fish_cable_length_unstreamline",
-    "input_fish_cx_unstreamline",
-    "input_fish_cable_length_streamline",
-    "input_fish_cx_streamline",
-]
+# roots_update_slider2 = [
+#     "fk_name",
+#     "cable_strength",
+#     "3d_slider-kite_area",
+#     "3d_slider-kite_cl",
+#     "input_kite_flat_ratio",
+#     "input_kite_aspect_ratio",
+#     "input_kite_profildrag",
+#     "input_kite_parasitedrag",
+#     "input_kite_cable_length",
+#     "input_kite_cx_air",
+#     "3d_slider-fish_area",
+#     "3d_slider-fish_cl",
+#     "input_fish_flat_ratio",
+#     "input_fish_aspect_ratio",
+#     "input_fish_profildrag",
+#     "input_fish_parasitedrag",
+#     "input_fish_tip_depth",
+#     "input_fish_cable_length_unstreamline",
+#     "input_fish_cx_unstreamline",
+#     "input_fish_cable_length_streamline",
+#     "input_fish_cx_streamline",
+# ]
 
 dict_input_update_model = {
     "all_inputs": {
@@ -489,13 +758,21 @@ dict_input_update_model = {
 for id in [0, 1]:
     d_i = {}
     d_i["3d_boolean"] = Input(f"3d_boolean_{id}", "on")
-    for field in roots_update_slider2:
+    for field in roots_update_slider:
         d_i[field] = Input(f"{field}_{id}", "value")
     dict_input_update_model["all_inputs"][id] = d_i
 
 
 @callback(
-    [Output("graph_need_update", "data"), Output("debug", "children")],
+    [
+        Output("graph_need_update", "data"),
+        Output("df_info", "children"),
+        Output("debug", "children"),
+        Output("perf_table_3d_selectedW", "columns"),
+        Output("perf_table_3d_selectedW", "data"),
+        Output("perf_table_3d_allW", "columns"),
+        Output("perf_table_3d_allW", "data"),
+    ],
     inputs=dict_input_update_model
     # {
     #     "all_inputs": {
@@ -528,6 +805,7 @@ def update(all_inputs):
 
     # fmt: off
     for idfk in [0, 1]:
+        
 
         proj.lst_fishkite[idfk].wind_speed = c["general"]["wind_speed"]["value"]
 
@@ -562,6 +840,9 @@ def update(all_inputs):
         proj.lst_fishkite[idfk].cx_cable_water_streamline    =c[idfk]["input_fish_cx_streamline"]["value"]
         proj.lst_fishkite[idfk].cx_cable_air                 =c[idfk]["input_kite_cx_air"]["value"]
         proj.lst_fishkite[idfk].tip_fish_depth               =c[idfk]["input_fish_tip_depth"]["value"]
+        proj.lst_fishkite[idfk].cable_strength_mm2           =c[idfk]["cable_strength_mm2"]["value"]
+        proj.lst_fishkite[idfk].pilot.mass                   =c[idfk]["input_pilot_mass"]["value"]
+        proj.lst_fishkite[idfk].pilot.pilot_drag             =c[idfk]["input_pilot_drag"]["value"]
 
     # fmt: on
     if c[0]["3d_boolean"]["value"]:
@@ -574,8 +855,33 @@ def update(all_inputs):
     dfall = proj.create_df()
     dfG = dfall[dfall["fk_name"].isin(case_list)]
 
-    deb = f"updated df {dfG.shape} \n---\n={ c}"
-    return True, deb
+    info_df = f"Data Table: rows: {dfG.shape[0]} :cols: {dfG.shape[1]} , {sum(dfG.memory_usage())/1e6} mb"
+
+    model_state = proj.to_json_str()
+    # perf data _selectedWind
+    target_wind = c["general"]["wind_speed"]["value"]
+    df_perf = perf_table(dfG, target_wind=target_wind).round(2).reset_index()
+
+    perf_columns_selectedWind = [
+        {"name": str(i), "id": str(i)} for i in df_perf.columns
+    ]
+    perf_data_selectedWind = df_perf.to_dict("records")
+
+    # perf general
+    df_perf_general = perf_table_general(dfG, proj).T.reset_index()
+    perf_columns_general = [
+        {"name": str(i), "id": str(i)} for i in df_perf_general.columns
+    ]
+    perf_data_general = df_perf_general.to_dict("records")
+    return (
+        True,
+        info_df,
+        model_state,
+        perf_columns_selectedWind,
+        perf_data_selectedWind,
+        perf_columns_general,
+        perf_data_general,
+    )  # perf_columns, perf_data
 
 
 if __name__ == "__main__":

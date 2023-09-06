@@ -7,6 +7,7 @@ options = {
         "include_files": [
             "pages/",
             "data/",
+            "assets/",
             "model.py",
             "model_3d.py",
             "fish_plot.py",
@@ -27,6 +28,7 @@ options = {
             "waitress",
             "dash_daq",
             "jsonpickle",
+            "openpyxl",
         ],
         "excludes": ["tkinter"],
     }
@@ -35,8 +37,7 @@ options = {
 
 executables = [
     Executable(
-        "server.py",
-        base="console",
+        "server.py", base="console", icon="Icone_fish.ico"
     )  # targetName="halliburton_dash_rig.exe")
 ]
 
