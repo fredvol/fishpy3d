@@ -29,15 +29,12 @@ import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 from dash.dependencies import Input, Output, State
 
-import numpy as np
-import copy
-import pandas as pd
+
 import os
-import jsonpickle
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.0.12"
+__version__ = "2.0.13"
 print("Version: ", __version__)
 
 
@@ -151,11 +148,15 @@ layout = dbc.Container(
                                                 ),
                                             ]
                                         ),
+                                        html.Hr(),
+                                        html.Div("Model state:"),
                                         dbc.Spinner(
                                             [html.Div(id="debug")],
                                             # html.P(id="my-output_3d"),
                                             color="primary",
                                         ),
+                                        html.Hr(),
+                                        html.Div("Debug:"),
                                         dbc.Spinner(
                                             [html.Div(id="debug2")],
                                             # html.P(id="my-output_3d"),
@@ -445,7 +446,7 @@ summary_table_fields = [
     "z_pilot",
     "y_kite",
     "z_kite",
-    "apparent_watter_kt",
+    "apparent_water_kt",
     "apparent_wind_kt",
     "true_wind_calculated_kt",
     "vmg_x_kt",
@@ -856,7 +857,7 @@ def update(all_inputs):
 
     info_df = f"Data Table: rows: {dfG.shape[0]} :cols: {dfG.shape[1]} , {sum(dfG.memory_usage())/1e6} mb"
 
-    deb = f"{ c}"
+    model_state = proj.to_json_str()
     # perf data _selectedWind
     target_wind = c["general"]["wind_speed"]["value"]
     df_perf = perf_table(dfG, target_wind=target_wind).round(2).reset_index()
@@ -875,7 +876,7 @@ def update(all_inputs):
     return (
         True,
         info_df,
-        deb,
+        model_state,
         perf_columns_selectedWind,
         perf_data_selectedWind,
         perf_columns_general,

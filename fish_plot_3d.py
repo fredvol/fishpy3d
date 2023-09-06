@@ -386,7 +386,7 @@ def plot_3d_cases_risingangle(
     dict_hover_data = {
         "vmg_x_kt": False,  # add other column, default formatting
         "vmg_y_kt": ":.1f",  # add other column, default formatting
-        "apparent_watter_kt": ":.1f",  # add other column, customized formatting
+        "apparent_water_kt": ":.1f",  # add other column, customized formatting
         what: ":.1f",  # add other column, customized formatting
         "fk_name": True,  # add other column
         "indexG": True,  # add other column
@@ -707,7 +707,7 @@ def plot_side_view(row, fk1):
     fig.add_annotation(
         x=x_label_ldfish - 4,
         y=y_label_ldfish,
-        text=f"L/D:{efficiency_water_LD:.1f} <br>{row['apparent_watter_kt']:.1f} kt ",
+        text=f"L/D:{efficiency_water_LD:.1f} <br>{row['apparent_water_kt']:.1f} kt ",
         showarrow=False,
         align="right",
         font=font_label,

@@ -143,7 +143,7 @@ class FishKite:
         )
         return apparent_wind_kt
 
-    def apparent_watter(self, velocity_ratio=None):
+    def apparent_water(self, velocity_ratio=None):
         if velocity_ratio is None:
             velocity_ratio = self.fluid_velocity_ratio()
 
@@ -160,7 +160,7 @@ class FishKite:
             * RHO_WATER
             * self.fish.area
             * self.fish.cl
-            * (self.apparent_watter(velocity_ratio) * CONV_KTS_MS) ** 2
+            * (self.apparent_water(velocity_ratio) * CONV_KTS_MS) ** 2
             / 10  # to convert to DaN
         )
         return cable_tension_dan
@@ -185,19 +185,19 @@ class FishKite:
         df_polar["apparent_wind_pct"] = (
             df_polar["apparent_wind_kt"] / self.wind_speed * 100
         )
-        df_polar["apparent_watter_kt"] = (
+        df_polar["apparent_water_kt"] = (
             df_polar["velocity_ratio"] * df_polar["apparent_wind_kt"]
         )
-        df_polar["apparent_watter_pct"] = (
-            df_polar["apparent_watter_kt"] / self.wind_speed * 100
+        df_polar["apparent_water_pct"] = (
+            df_polar["apparent_water_kt"] / self.wind_speed * 100
         )
-        df_polar["x_watter_pct"] = df_polar["apparent_watter_pct"] * np.sin(
+        df_polar["x_water_pct"] = df_polar["apparent_water_pct"] * np.sin(
             np.radians(df_polar["true_wind_angle"])
         )
-        df_polar["y_watter_pct"] = df_polar["apparent_watter_pct"] * np.cos(
+        df_polar["y_water_pct"] = df_polar["apparent_water_pct"] * np.cos(
             np.radians(df_polar["true_wind_angle"])
         )
-        df_polar["y_watter_kt"] = df_polar["apparent_watter_kt"] * np.cos(
+        df_polar["y_water_kt"] = df_polar["apparent_water_kt"] * np.cos(
             np.radians(df_polar["true_wind_angle"])
         )
 
@@ -206,41 +206,41 @@ class FishKite:
         # add special points
         df_polar["note"] = ""
         df_polar.loc[
-            df_polar["apparent_watter_kt"].idxmax(), "note"
-        ] += " Max Watter_speed"
-        df_polar.loc[df_polar["y_watter_kt"].idxmax(), "note"] += " Vmg UpW"
-        df_polar.loc[df_polar["y_watter_kt"].idxmin(), "note"] += " Vmg downW"
+            df_polar["apparent_water_kt"].idxmax(), "note"
+        ] += " Max water_speed"
+        df_polar.loc[df_polar["y_water_kt"].idxmax(), "note"] += " Vmg UpW"
+        df_polar.loc[df_polar["y_water_kt"].idxmin(), "note"] += " Vmg downW"
         return df_polar
 
     def perf_table(self):
         df = self.compute_polar()
         dict_stats = {
             "Total Efficiency [°]": self.total_efficiency(),
-            "Max Water speed [kt]": df["apparent_watter_kt"].max(),
-            "VMG UpWind [kt]": df["y_watter_kt"].max(),
-            "VMG DownWind [kt]": df["y_watter_kt"].min(),
-            "OP Water speed [kt]": self.apparent_watter(),
+            "Max Water speed [kt]": df["apparent_water_kt"].max(),
+            "VMG UpWind [kt]": df["y_water_kt"].max(),
+            "VMG DownWind [kt]": df["y_water_kt"].min(),
+            "OP Water speed [kt]": self.apparent_water(),
             "OP Cable tension [DaN]": self.cable_tension(),
         }
         return pd.DataFrame(dict_stats, index=[self.name])
 
     def data_to_plot_polar(self):
         vr = self.fluid_velocity_ratio()
-        current_apparent_watter_pct = self.apparent_watter(vr) / self.wind_speed * 100
+        current_apparent_water_pct = self.apparent_water(vr) / self.wind_speed * 100
         current_true_wind_angle = self.true_wind_angle(vr)
 
         anchor = [0, 0]
         wind = [0, -100]
-        op_point = pol2cart(current_apparent_watter_pct, current_true_wind_angle)
+        op_point = pol2cart(current_apparent_water_pct, current_true_wind_angle)
         polar_pts = self.compute_polar()
-        watter_speed_kt = self.apparent_watter()
+        water_speed_kt = self.apparent_water()
 
         return {
             "anchor": anchor,
             "wind": wind,
             "op_point": op_point,
             "polar_pts": polar_pts,
-            "watter_speed_kt": watter_speed_kt,
+            "water_speed_kt": water_speed_kt,
         }
 
     def plot(self, draw_ortho_grid=True, add_background_image=False):
@@ -253,7 +253,7 @@ class FishKite:
 
         def generate_hover_text(row):
             return (
-                f"{row['name']}: {round(row['apparent_watter_kt'],1)} kts {row['note']}"
+                f"{row['name']}: {round(row['apparent_water_kt'],1)} kts {row['note']}"
             )
 
         def generate_marker_size(row):
@@ -279,8 +279,8 @@ class FishKite:
         fig.add_trace(
             (
                 go.Scatter(
-                    x=df_polar["x_watter_pct"],
-                    y=df_polar["y_watter_pct"],
+                    x=df_polar["x_water_pct"],
+                    y=df_polar["y_water_pct"],
                     # mode="lines",
                     legendgrouptitle_text=self.name,
                     name=f"Polar{legend_name}",
@@ -310,7 +310,7 @@ class FishKite:
         fig.add_annotation(
             x=data_plot["op_point"][0],
             y=data_plot["op_point"][1],
-            text=f'{round(data_plot["watter_speed_kt"],1)} kts',
+            text=f'{round(data_plot["water_speed_kt"],1)} kts',
             showarrow=True,
             xanchor="center",
             arrowhead=1,
@@ -433,7 +433,7 @@ if __name__ == "__main__":
     vr = fk2.fluid_velocity_ratio()
     print(f"{fk2.true_wind_angle(vr) =}")
     print(f"{fk2.apparent_wind(vr) =}")
-    print(f"{fk2.apparent_watter(vr) =}")
+    print(f"{fk2.apparent_water(vr) =}")
 
 # %%
 
