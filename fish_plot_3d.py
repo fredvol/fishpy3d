@@ -54,7 +54,7 @@ class Line:
             )
 
     def get_center(self):
-        center = (self.point1 + self.point2) / 2
+        center = (self.pt1 + self.pt2) / 2
         return tuple(center)
 
     def move(self, dx, dy):
@@ -637,6 +637,20 @@ def plot_side_view(row, fk1):
         )
     )
 
+    # add pilot
+    scale_pilot = 1.5 / 100  #  1.5m/100kg
+
+    # Kitecable
+    fig.add_trace(
+        add_line(
+            (row["y_pilot"], row["z_pilot"]),
+            (row["y_pilot"], row["z_pilot"] - (fk1.pilot.mass * scale_pilot)),
+            m_name="Pilot",
+            group_name="Pilot",
+            extra_dict=dict(width=2, color="purple"),
+        )
+    )
+
     # Kitecable
     fig.add_trace(
         add_line(
@@ -659,12 +673,63 @@ def plot_side_view(row, fk1):
         )
     )
 
-    # #add pilot
-    # fig.add_shape(type="circle",
-    #     xref="x", yref="y",
-    #     x0=1, y0=1, x1=3, y1=3,
-    #     line_color="LightSeaGreen",
-    # )
+    # #add labels
+    font_label = dict(
+        family="Courier New, monospace",
+        size=12,
+    )
+
+    # label fish load
+    cable_fish = Line(center_fish, (row["y_pilot"], row["z_pilot"]))
+    x_label_load, y_label_load = cable_fish.get_center()
+    fig.add_annotation(
+        x=x_label_load,
+        y=y_label_load,
+        text=f"{row['fish_total_force']/10:.0f} daN",
+        showarrow=True,
+        bordercolor="red",
+        borderwidth=2,
+        borderpad=3,
+        bgcolor="#fffffe",
+        yshift=3,
+        opacity=0.8,
+        font=font_label,
+    )
+
+    # label fish L/D
+    efficiency_water_LD = row["proj_efficiency_water_LD"] / np.cos(
+        row["rising_angle_rad"]
+    )
+    efficiency_air_LD = row["proj_efficiency_air_LD"] / np.cos(
+        row["kite_roll_angle_rad"]
+    )
+    x_label_ldfish, y_label_ldfish = fish_line.get_center()
+    fig.add_annotation(
+        x=x_label_ldfish - 4,
+        y=y_label_ldfish,
+        text=f"L/D:{efficiency_water_LD:.1f} <br>{row['apparent_watter_kt']:.1f} kt ",
+        showarrow=False,
+        align="right",
+        font=font_label,
+        # bordercolor="black",
+        # borderwidth=2,
+        # borderpad=3,
+        # bgcolor="#fffffe",
+    )
+
+    x_label_ldkite, y_label_ldkite = kite_line.get_center()
+    fig.add_annotation(
+        x=x_label_ldkite + 4,
+        y=y_label_ldkite + 2,
+        text=f"L/D:{efficiency_air_LD:.1f} <br>{row['apparent_wind_kt']:.1f} kt",
+        showarrow=False,
+        align="left",
+        font=font_label,
+        # bordercolor="black",
+        # borderwidth=2,
+        # borderpad=3,
+        # bgcolor="#fffffe",
+    )
 
     fig.update_yaxes(
         scaleanchor="x",
