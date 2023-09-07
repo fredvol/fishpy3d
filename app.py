@@ -1,6 +1,8 @@
 import dash
 import dash_bootstrap_components as dbc
 import os
+from threading import Timer
+import webbrowser
 
 
 # # for live
@@ -25,6 +27,19 @@ app.layout = dbc.Container(
     fluid=True,
 )
 
+port=8049
+
+
+def open_browser():
+    if not os.environ.get("WERKZEUG_RUN_MAIN"):  # to prevent to open twice
+        
+        webbrowser.open_new(f'http://127.0.0.1:{port}/')
+
+
+
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    
+    Timer(1, open_browser).start()
+    
+    app.run_server(debug=True,port=port)
     # app.run_server(host="0.0.0.0", debug=True)

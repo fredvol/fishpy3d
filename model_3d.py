@@ -6,21 +6,21 @@
 # Notes:
 #     All angles are store in degrees and convert in rad inside the functions.
 # %%  impot librairies
-from bdb import effective
+#from bdb import effective
 import os
 import numpy as np
 import pandas as pd
 
 import plotly.express as px
-import plotly.figure_factory as ff
-import plotly.offline as po
+#import plotly.figure_factory as ff
+#import plotly.offline as po
 import plotly.graph_objects as go
-from itertools import product
+
 import jsonpickle
 
 from fish_plot_3d import plot_3d_cases, plot_3d_cases_risingangle, plot_side_view
 
-import scipy.optimize as opt
+#import scipy.optimize as opt
 
 # %% constants
 GRAVITY = 9.81  # m/s-2
@@ -544,11 +544,11 @@ class FishKite:
 
         return self.true_wind_calculated() - self.wind_speed
 
-    def find_raising_angle(self):
-        fun = lambda x: ((self.modified_extra_angle(x) - self.wind_speed) ** 2) ** 0.5
-        # results = opt.minimize_scalar(fun, bounds=(0.1, 89), method='bounded')
-        results = opt.minimize(fun, x0=(30), bounds=((0.1), (89)))
-        return results
+    # def find_raising_angle(self):
+    #     fun = lambda x: ((self.modified_extra_angle(x) - self.wind_speed) ** 2) ** 0.5
+    #     # results = opt.minimize_scalar(fun, bounds=(0.1, 89), method='bounded')
+    #     results = opt.minimize(fun, x0=(30), bounds=((0.1), (89)))
+    #     return results
 
     def create_df(self, nb_points=20):
         """Create df with all the data
