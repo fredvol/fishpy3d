@@ -1,6 +1,10 @@
 # fishpy
 fish
 
+
+## requirement 
+ * python 3.10 +
+ 
 # activate env
     & c:/Users/fred/Kite_fish/fishpy/.venv/Scripts/Activate.ps1
 
