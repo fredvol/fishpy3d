@@ -11,8 +11,15 @@ import os, sys
 
 ## For exe
 sys.path.append(os.getcwd())
-print("open browser at http://127.0.0.1:8049/")
+print("---")
+print("FishPy starting")
+print("Open your browser at: ")
+print("http://127.0.0.1:8049/")
+print("")
+print("(few seconds for the initialisation of the browser can be needed)")
+
 print("--")
+
 ##
 
 from model import Deflector, FishKite, Project, plot_cases

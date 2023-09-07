@@ -20,7 +20,7 @@ from pytest import fixture
 from copy import deepcopy
 import math
 import numpy as np
-
+import zipfile
 
 cwd = os.getcwd()
 test_folder = os.path.join(os.path.dirname(__file__), "test_assets")
@@ -113,6 +113,7 @@ def test_save_load():
         cx_cable_water_unstreamline=1.1,
         cx_cable_air=1,
         tip_fish_depth=0.5,
+        cable_strength_mm2=120,
     )
 
     fk_test.to_json(fk_test_file)
@@ -135,21 +136,43 @@ def test_save_load():
 
 # %%
 def test_df_creation(fk1, fk2):
+    overwrite_test_assets = False
     df1 = fk1.create_df()
     df2 = fk2.create_df()
 
-    df1_ref_path = os.path.join(test_folder, "df_fk1_table.pkl")
-    df2_ref_path = os.path.join(test_folder, "df_fk2_table.pkl")
+    df1_filename = "df_fk1_table"
+    df2_filename = "df_fk2_table"
+
+    df1_ref_path = os.path.join(test_folder, f"{df1_filename}.pkl")
+    df1_ref_path_zip = os.path.join(test_folder, f"{df1_filename}.zip")
+    df2_ref_path = os.path.join(test_folder, f"{df2_filename}.pkl")
+    # df1_ref_path_zip = os.path.join(test_folder, "df_fk1_table.zip")
+    df2_ref_path_zip = os.path.join(test_folder, f"{df2_filename}.zip")
 
     # export for reference, this section should be commented for real test
-    # df1.to_pickle(df1_ref_path)
-    # df2.to_pickle(df2_ref_path)
+    if overwrite_test_assets:
+        print("/!\\ Test asset has been overwriten !! ")
+        df1.to_pickle(df1_ref_path)
+        with zipfile.ZipFile(df1_ref_path_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
+            zipf.write(df1_ref_path, arcname=f"{df1_filename}.pkl")
+
+        # df2.to_pickle(df2_ref_path)
+        df2.to_pickle(df2_ref_path)
+        with zipfile.ZipFile(df2_ref_path_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
+            zipf.write(df2_ref_path, arcname=f"{df2_filename}.pkl")
 
     df_ref1 = pd.read_pickle(df1_ref_path)
-    df_ref2 = pd.read_pickle(df2_ref_path)
-
     pd.testing.assert_frame_equal(df1, df_ref1)
-    pd.testing.assert_frame_equal(df2, df_ref2)
+
+    with zipfile.ZipFile(df1_ref_path_zip, mode="r") as archive:
+        with archive.open(f"{df1_filename}.pkl") as pickle_file:
+            df_ref1 = pd.read_pickle(pickle_file)
+            pd.testing.assert_frame_equal(df1, df_ref1)
+
+    with zipfile.ZipFile(df2_ref_path_zip, mode="r") as archive:
+        with archive.open(f"{df2_filename}.pkl") as pickle_file:
+            df_ref2 = pd.read_pickle(pickle_file)
+            pd.testing.assert_frame_equal(df2, df_ref2)
 
 
 # %%
