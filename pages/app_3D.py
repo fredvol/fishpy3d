@@ -36,7 +36,10 @@ from dash import ctx, dash_table, callback
 
 __version__ = "2.1.0"
 print("Version: ", __version__)
+print("The browser will try to start automatically.")
+print("(few seconds for the initialisation of the browser can be needed)")
 
+print("--")
 
 # %% Initial set up
 data_folder = os.path.join(

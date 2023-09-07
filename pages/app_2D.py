@@ -13,12 +13,12 @@ import os, sys
 sys.path.append(os.getcwd())
 print("---")
 print("FishPy starting")
-print("Open your browser at: ")
+print("Accesible via your browser at: ")
 print("http://127.0.0.1:8049/")
 print("")
-print("(few seconds for the initialisation of the browser can be needed)")
 
-print("--")
+
+
 
 ##
 

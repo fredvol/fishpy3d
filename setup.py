@@ -12,6 +12,7 @@ options = {
             "model_3d.py",
             "fish_plot.py",
             "fish_plot_3d.py",
+            "app.py",
             "app_components_3d.py",
             "app_components.py",
         ],
@@ -29,8 +30,9 @@ options = {
             "dash_daq",
             "jsonpickle",
             "openpyxl",
+            "pandas"
         ],
-        "excludes": ["tkinter"],
+        "excludes": ["tkinter","scipy"],
     }
 }
 
@@ -44,7 +46,7 @@ executables = [
 setup(
     name="fishpy3d_app",
     packages=find_packages(),
-    version="2.0.0",
+    version="2.1.0",
     description="fishpy_app",
     executables=executables,
     options=options,
