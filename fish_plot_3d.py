@@ -28,8 +28,16 @@ data_background = {
         "opacity": 0.2,
     },
     "iso_fluid": {
-        # "step": [10.0, 5.0, 3.34, 2.5, 2.0, 1.67, 1.43, 1.25, 1.12],
-        "step": [10.0, 5.0, 3.34, 2.5, 2.0, 1.67, 1.43, 1.25, 1.12],
+        "step": [
+            10.0,
+            5.0,
+            3.34,
+            2.5,
+            2.0,
+            1.67,
+            1.43,
+            1.25,
+        ],  # 1.12],
         "extra_step": [],  # [0.95, 0.98],
         "color": "green",
         "opacity": 0.3,
@@ -235,7 +243,7 @@ def create_iso_fluid(dict_param, wind_speed, position_angle_label=10):
             type="line",
             x0=1,
             y0=-wind_speed / 2,
-            x1=300,
+            x1=100,
             y1=-wind_speed / 2,
             opacity=dict_param["opacity"],
             layer="below",
@@ -246,8 +254,8 @@ def create_iso_fluid(dict_param, wind_speed, position_angle_label=10):
         )
     )
     label_straight = {
-        "x": 535,
-        "y": -44,
+        "x": 45,
+        "y": -wind_speed - 2,
         "text": f"ratio:1",
         "angle": 0,
         "color": dict_param["color"],
@@ -263,14 +271,14 @@ def create_iso_fluid(dict_param, wind_speed, position_angle_label=10):
         center_x = 0
         center_y = -wind_speed - (wind_speed / (k**2 - 1))
 
-        if (center_y - r - 5) > -300:  # TODO to sort the label position
-            x_label = 5
-            y_label = center_y - r - 5
-        else:
-            dict_x_position = {1.12: 420, 1.25: 240, 1.43: 105}
+        # if (center_y - r - 5) > -300:  # TODO to sort the label position
+        x_label = -1
+        y_label = center_y - r
+        # else:
+        #     dict_x_position = {1.12: 420, 1.25: 240, 1.43: 105}
 
-            x_label = dict_x_position[k]
-            y_label = -300
+        #     x_label = dict_x_position[k]
+        #     y_label = -300
 
         label_f = {
             "x": x_label,
