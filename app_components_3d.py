@@ -604,7 +604,7 @@ def create_fk_sliders(id):
                                             type="number",
                                             id=f"input_fish_cable_length_streamline_{id}",
                                             min=0,
-                                            max=5,
+                                            max=30,
                                             step=0.5,
                                             debounce=True,
                                             className="custom-inputs",

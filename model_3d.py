@@ -426,8 +426,10 @@ class FishKite:
         return self._extra_angle
 
     def position_pilot(self):
-        x_pilot = self.cable_length_fish() * np.cos(np.radians(self.rising_angle))
-        y_pilot = self.cable_length_fish() * np.sin(np.radians(self.rising_angle))
+        x_pilot = 0 + self.cable_length_fish() * np.cos(np.radians(self.rising_angle))
+        y_pilot = -self.fish_center_depth + self.cable_length_fish() * np.sin(
+            np.radians(self.rising_angle)
+        )
         return (x_pilot, y_pilot)
 
     def position_kite(self):
@@ -537,13 +539,6 @@ class FishKite:
             * self.apparent_wind_ms()
             * np.cos(np.radians(self.total_efficiency()))
         )
-
-    def speed_gap_modified_extra_angle(self, angle, debug=True):
-        self._extra_angle = angle
-        if debug:
-            print(angle)
-
-        return self.true_wind_calculated() - self.wind_speed
 
     # def find_raising_angle(self):
     #     fun = lambda x: ((self.modified_extra_angle(x) - self.wind_speed) ** 2) ** 0.5
@@ -749,8 +744,10 @@ class FishKite:
 
         # position ( pilot , kite)
 
-        df["y_pilot"] = self.cable_length_fish() * np.cos(df["rising_angle_rad"])
-        df["z_pilot"] = self.cable_length_fish() * np.sin(df["rising_angle_rad"])
+        df["y_pilot"] = 0 + self.cable_length_fish() * np.cos(df["rising_angle_rad"])
+        df["z_pilot"] = -df["fish_center_depth"] + self.cable_length_fish() * np.sin(
+            df["rising_angle_rad"]
+        )
 
         df["y_kite"] = df["y_pilot"] + self.cable_length_kite * np.cos(
             df["kite_roll_angle_rad"]
@@ -956,7 +953,6 @@ if __name__ == "__main__":
         "add_plot_elements",
         "plot",
         "compute_polar",
-        "speed_gap_modified_extra_angle",
         "find_raising_angle",
         "data_to_plot_polar",
         "perf_table",

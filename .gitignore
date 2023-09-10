@@ -163,26 +163,7 @@ cython_debug/
 .~lock.*
 documentation/~$VPP fish Box1.xlsx
 documentation/~$VPP fish 3D.xlsx
-inspiration/multi_page_example1/app.py
-inspiration/multi_page_example1/pages/__init__.py
-inspiration/multi_page_example1/pages/bar_charts.py
-inspiration/multi_page_example1/pages/heatmaps.py
-inspiration/multi_page_example1/pages/histograms.py
-inspiration/multi_page_example1/pages/not_found_404.py
-inspiration/multi_page_sync_components2/app.py
-inspiration/multi_page_sync_components2/pages/__init__.py
-inspiration/multi_page_sync_components2/pages/page1.py
-inspiration/multi_page_sync_components2/pages/page2.py
-inspiration/multi_page_sync_components2/pages/page3.py
-inspiration/multi_page_table_links/app.py
-inspiration/multi_page_table_links/pages/not_found_404.py
-inspiration/multi_page_table_links/pages/portfolio.py
-inspiration/multi_page_table_links/pages/stocks.py
-inspiration/multi_page_update_url_in_callback_V292/app.py
-inspiration/multi_page_update_url_in_callback_V292/pages/home.py
-inspiration/multi_page_update_url_in_callback_V292/pages/not_found_404.py
-inspiration/multi_page_update_url_in_callback_V292/pages/stocks.py
-inspiration/dcc_store/app.py
+inspiration/*
 build_old/*
 build201/*
 build/*

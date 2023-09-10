@@ -635,6 +635,25 @@ def plot_side_view(row, fk1):
         )
     )
 
+    # fishcable stream
+    cable_length_fish_streamline = fk1.cable_length_fish_streamline
+
+    end_pt_y = center_fish[0] + cable_length_fish_streamline * np.cos(
+        row["rising_angle_rad"]
+    )
+    end_pt_z = center_fish[1] + cable_length_fish_streamline * np.sin(
+        row["rising_angle_rad"]
+    )
+    fig.add_trace(
+        add_line(
+            center_fish,
+            (end_pt_y, end_pt_z),
+            m_name="fishCable_strm",
+            group_name="fish_cable",
+            extra_dict=dict(width=6, color="red"),
+        )
+    )
+
     # fish
     fig.add_trace(
         add_line(
