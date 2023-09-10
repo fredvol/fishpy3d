@@ -161,9 +161,6 @@ def test_df_creation(fk1, fk2):
         with zipfile.ZipFile(df2_ref_path_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
             zipf.write(df2_ref_path, arcname=f"{df2_filename}.pkl")
 
-    df_ref1 = pd.read_pickle(df1_ref_path)
-    pd.testing.assert_frame_equal(df1, df_ref1)
-
     with zipfile.ZipFile(df1_ref_path_zip, mode="r") as archive:
         with archive.open(f"{df1_filename}.pkl") as pickle_file:
             df_ref1 = pd.read_pickle(pickle_file)
