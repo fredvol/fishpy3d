@@ -2,3 +2,8 @@
     font-size: 0.7em;
     ;
 }
+
+.loading-labels {
+    font: italic 400 12px courier;
+    ;
+}

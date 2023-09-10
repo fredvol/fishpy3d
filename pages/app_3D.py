@@ -34,7 +34,7 @@ import os
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.1.2"
+__version__ = "2.1.3"
 print("Version: ", __version__)
 print("The browser will try to start automatically.")
 print("(few seconds for the initialisation of the browser can be needed)")
@@ -81,10 +81,33 @@ layout = dbc.Container(
             [
                 dbc.Col(
                     [
-                        dbc.Button(
-                            "Modify Operating Conditions",
-                            color="danger",
-                            id="operating_button_3d",
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    dbc.Button(
+                                        "Modify Operating Conditions",
+                                        color="danger",
+                                        id="operating_button_3d",
+                                    )
+                                ),
+                                dbc.Col(
+                                    dcc.Loading(
+                                        id="loading-1",
+                                        type="default",
+                                        children=[
+                                            html.Br(),
+                                            html.Div(
+                                                "State: ready ",
+                                                id="load",
+                                                className="loading-labels",
+                                            ),
+                                            html.Div(" ", id="load_model"),
+                                            html.Div(" ", id="load_graph"),
+                                        ],
+                                    ),
+                                    width={"size": 3, "order": 5},
+                                ),
+                            ]
                         ),
                         dbc.Collapse(
                             dbc.Card(
@@ -661,6 +684,7 @@ def Startup_call_back(data):
 ### Callback to update polar selected  rising angle
 @callback(
     Output("fig1_3d_rising_angle", "figure"),
+    Output("load_graph", "children"),
     [
         Input("slider-rising_angle_polar", "value"),
         Input("bool_rising_angle_use_range", "value"),
@@ -702,18 +726,23 @@ def update_polar_rising_angle(
     else:
         df_rising_angle = dfG
 
-    return plot_3d_cases_risingangle(
-        df_rising_angle,
-        target_rising_angle_low=rising_low,
-        target_rising_angle_upper=rising_upper,
-        target_wind=target_wind,
-        what=color_data,
-        symbol=symbol_data,
-        draw_ortho_grid=bool_orthogrid,
-        draw_iso_speed=bool_isospeed,
-        draw_iso_eft=bool_isoeft,
-        draw_iso_fluid=bool_isofluid,
-        height_size=graph_size,
+    empty_for_load = " "
+
+    return (
+        plot_3d_cases_risingangle(
+            df_rising_angle,
+            target_rising_angle_low=rising_low,
+            target_rising_angle_upper=rising_upper,
+            target_wind=target_wind,
+            what=color_data,
+            symbol=symbol_data,
+            draw_ortho_grid=bool_orthogrid,
+            draw_iso_speed=bool_isospeed,
+            draw_iso_eft=bool_isoeft,
+            draw_iso_fluid=bool_isofluid,
+            height_size=graph_size,
+        ),
+        empty_for_load,
     )
 
 
@@ -801,6 +830,7 @@ for id in [0, 1]:
         Output("perf_table_3d_selectedW", "data"),
         Output("perf_table_3d_allW", "columns"),
         Output("perf_table_3d_allW", "data"),
+        Output("load_model", "children"),
     ],
     inputs=dict_input_update_model
     # {
@@ -902,6 +932,7 @@ def update(all_inputs):
         {"name": str(i), "id": str(i)} for i in df_perf_general.columns
     ]
     perf_data_general = df_perf_general.to_dict("records")
+    empty_for_loading = " "
     return (
         True,
         info_df,
@@ -910,6 +941,7 @@ def update(all_inputs):
         perf_data_selectedWind,
         perf_columns_general,
         perf_data_general,
+        empty_for_loading,
     )  # perf_columns, perf_data
 
 
