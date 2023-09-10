@@ -242,6 +242,14 @@ layout = dbc.Container(
                                                                     id="click_data_table",
                                                                     export_format="csv",
                                                                     editable=True,
+                                                                    style_cell_conditional=[
+                                                                        {
+                                                                            "if": {
+                                                                                "column_id": "Unit"
+                                                                            },
+                                                                            "textAlign": "left",
+                                                                        }
+                                                                    ],
                                                                     style_data={
                                                                         "color": "black",
                                                                         "backgroundColor": "white",
@@ -356,7 +364,7 @@ layout = dbc.Container(
 ## callback
 
 
-### Callback to make shape parameters menu expand
+### Callback to parameters menus expand
 @callback(
     Output("shape1_collapse_3d", "is_open"),
     [Input("shape1_button_3d", "n_clicks")],
@@ -368,7 +376,6 @@ def toggle_shape_collapse(n_clicks, is_open):
     return is_open
 
 
-### Callback to make shape parameters menu expand
 @callback(
     Output("shape2_collapse_3d", "is_open"),
     [Input("shape2_button_3d", "n_clicks")],
@@ -380,7 +387,6 @@ def toggle_shape_collapse(n_clicks, is_open):
     return is_open
 
 
-### Callback to make operating parameters menu expand
 @callback(
     Output("operating_collapse_3d", "is_open"),
     [Input("operating_button_3d", "n_clicks")],
@@ -392,7 +398,6 @@ def toggle_shape_collapse(n_clicks, is_open):
     return is_open
 
 
-### Callback to make coordinates menu expand
 @callback(
     Output("coordinates_collapse_3d", "is_open"),
     [Input("coordinates_button_3d", "n_clicks")],
@@ -422,44 +427,55 @@ def update_possible_rising_angle(target_wind):
 
 
 ###################################################### Click reaction
-summary_table_fields = [
-    "kite_cl",
-    "fish_cl",
-    "rising_angle",
-    "extra_angle",
-    "simplify",
-    "fish_center_depth",
-    "cable_length_in_water",
-    "cable_length_in_water_streamline",
-    "cable_length_in_water_unstreamline",
-    "cable_water_drag",
-    "cable_length_in_air",
-    "cable_air_drag",
-    "fish_lift",
-    "kite_lift",
-    "fish_induced_drag",
-    "kite_induced_drag",
-    "total_water_drag",
-    "total_air_drag",
-    "fish_total_force",
-    "kite_total_force",
-    "proj_efficiency_water_LD",
-    "proj_efficiency_air_LD",
-    "y_pilot",
-    "z_pilot",
-    "y_kite",
-    "z_kite",
-    "apparent_water_kt",
-    "apparent_wind_kt",
-    "true_wind_calculated_kt",
-    "vmg_x_kt",
-    "vmg_y_kt",
-    "cable_strength_margin",
-    "cavitation",
-    "fk_name",
-    "failure",
-    "indexG",
-]
+
+
+def to_camel_case(snake_str):
+    return "".join(x.capitalize() for x in snake_str.lower().split("_"))
+
+
+summary_table_fields = {
+    "kite_cl": " ",
+    "fish_cl": " ",
+    "rising_angle": "°",
+    "extra_angle": "°",
+    "simplify": " ",
+    "fish_center_depth": "m",
+    "cable_length_in_water": "m",
+    "cable_length_in_water_streamline": "m",
+    "cable_length_in_water_unstreamline": "m",
+    "cable_water_drag": "m²",
+    "cable_length_in_air": "m",
+    "cable_air_drag": "m²",
+    "fish_lift": "N",
+    "kite_lift": "N",
+    "fish_induced_drag": "m²",
+    "kite_induced_drag": "m²",
+    "total_water_drag": "m²",
+    "total_air_drag": "m²",
+    "fish_total_force": "N",
+    "kite_total_force": "N",
+    "proj_efficiency_water_LD": " ",
+    "proj_efficiency_air_LD": " ",
+    "y_pilot": "m",
+    "z_pilot": "m",
+    "y_kite": "m",
+    "z_kite": "m",
+    "apparent_water_kt": "kt",
+    "apparent_wind_kt": "kt",
+    "true_wind_calculated_kt": "kt",
+    "vmg_x_kt": "kt",
+    "vmg_y_kt": "kt",
+    "cable_strength_margin": " ",
+    "cavitation": " ",
+    "fk_name": " ",
+    "failure": " ",
+    "indexG": " ",
+}
+
+shorter_name = {
+    "cable_length_in_water_streamline": "cable_lngth_water_stream",
+    "cable_length_in_water_unstreamline": "cable_lngth_water_unstream",
+}
 
 
 @callback(
@@ -474,7 +490,7 @@ summary_table_fields = [
 def display_click_data(clickData):
     df_index = clickData["points"][0]["customdata"][-1]
     df_OP = dfG[(dfG["indexG"] == df_index)]
-    df_click_select = df_OP[summary_table_fields]
+    df_click_select = df_OP[summary_table_fields.keys()]
     # Identify numeric columns
     numeric_cols = df_click_select.select_dtypes(include=[float, int]).columns
 
@@ -482,6 +498,14 @@ def display_click_data(clickData):
     df_click_select[numeric_cols] = df_click_select[numeric_cols].round(4)
 
     df_click = df_click_select.reset_index().T.reset_index()
+
+    # rename
+    df_click["index"] = df_click["index"].replace(shorter_name)
+
+    # add units:
+    df_click["Unit"] = df_click["index"].map(summary_table_fields)
+
+    # conver to dash format
     columns = [{"name": str(col), "id": str(col)} for col in df_click.columns]
     data = df_click.to_dict(orient="records")
 

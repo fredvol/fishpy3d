@@ -188,3 +188,6 @@ build201/*
 build/*
 build2/*
 build*
+test_assets/df_fk1_table.pkl
+test_assets/df_fk2_table.pkl
+
