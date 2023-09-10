@@ -5,6 +5,7 @@ This tools is a VPP for the FishKite project.
 
 ## Overview
 This app is a Dash app. it is accessible via a browser ( Firefox,Chromium, Chrome)
+The python code is cross platform ( linux , windows, mac)
 
 
 
@@ -23,11 +24,16 @@ This app is a Dash app. it is accessible via a browser ( Firefox,Chromium, Chrom
 
 
 ## Run the app 
-
 The start point is : app.py
 
     c:; cd 'c:\Users\fred\Kite_fish\fishpy3d'; & 'c:\Users\fred\Kite_fish\fishpy3d\.venv_dev\Scripts\python.exe' 'c:\Users\fred\.vscode\extensions\ms-python.python-2023.16.0\pythonFiles\lib\python\debugpy\adapter/../..\debugpy\launcher' '61355' '--' 'C:\Users\fred\Kite_fish\fishpy3d\app.py' 
 
 ## create exe 
+Tested only for windows
 run
      python setup.py build
+
+## Test 
+the test suite is done with pytest , just run in the devellopement environement: 
+    pytest
+
