@@ -6,21 +6,22 @@
 # Notes:
 #     All angles are store in degrees and convert in rad inside the functions.
 # %%  impot librairies
-#from bdb import effective
+# from bdb import effective
 import os
 import numpy as np
 import pandas as pd
 
 import plotly.express as px
-#import plotly.figure_factory as ff
-#import plotly.offline as po
+
+# import plotly.figure_factory as ff
+# import plotly.offline as po
 import plotly.graph_objects as go
 
 import jsonpickle
 
 from fish_plot_3d import plot_3d_cases, plot_3d_cases_risingangle, plot_side_view
 
-#import scipy.optimize as opt
+# import scipy.optimize as opt
 
 # %% constants
 GRAVITY = 9.81  # m/s-2
@@ -736,15 +737,15 @@ class FishKite:
             / np.sin(df[f"extra_angle_rad"])
         )  # N
 
-        df["flat_power_ratio"] = (
-            RHO_AIR * df["kite_c_force"] * self.kite.projected_area()
-        ) / (RHO_WATER * df["fish_c_force"] * self.fish.projected_area())
+        # df["flat_power_ratio"] = (
+        #     RHO_AIR * df["kite_c_force"] * self.kite.projected_area()
+        # ) / (RHO_WATER * df["fish_c_force"] * self.fish.projected_area())
 
-        df["projected_power_ratio"] = (
-            df["flat_power_ratio"]
-            * (np.cos(df[f"kite_roll_angle_rad"]))
-            / (np.cos(df[f"rising_angle_rad"]))
-        )
+        # df["projected_power_ratio"] = (
+        #     df["flat_power_ratio"]
+        #     * (np.cos(df[f"kite_roll_angle_rad"]))
+        #     / (np.cos(df[f"rising_angle_rad"]))
+        # )
 
         # position ( pilot , kite)
 

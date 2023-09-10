@@ -553,6 +553,7 @@ def plot_3d_cases_risingangle(
     fig.update_layout(coloraxis_colorbar_x=0.9)
 
     fig.update_layout(clickmode="event+select")
+
     return fig
 
 
