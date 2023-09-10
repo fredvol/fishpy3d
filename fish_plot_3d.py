@@ -449,6 +449,10 @@ def plot_3d_cases_risingangle(
             pad=3,
         ),
         shapes=shape_list,
+        modebar_remove=[  # because of bug if zoom out
+            "resetScale",
+            "autoScale",
+        ],
     )
 
     # add wind
@@ -558,6 +562,7 @@ def plot_3d_cases_risingangle(
 
 
 def plot_3d_cases(df, target_wind=30, what="rising_angle", height_size=850):
+    ## curently not used
     dfs = df[df["true_wind_calculated_kt_rounded"] == target_wind]
     fig = go.Figure(
         data=go.Scattergl(
