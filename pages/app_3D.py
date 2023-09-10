@@ -34,7 +34,7 @@ import os
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.1.0"
+__version__ = "2.1.3"
 print("Version: ", __version__)
 print("The browser will try to start automatically.")
 print("(few seconds for the initialisation of the browser can be needed)")
@@ -81,10 +81,33 @@ layout = dbc.Container(
             [
                 dbc.Col(
                     [
-                        dbc.Button(
-                            "Modify Operating Conditions",
-                            color="danger",
-                            id="operating_button_3d",
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    dbc.Button(
+                                        "Modify Operating Conditions",
+                                        color="danger",
+                                        id="operating_button_3d",
+                                    )
+                                ),
+                                dbc.Col(
+                                    dcc.Loading(
+                                        id="loading-1",
+                                        type="default",
+                                        children=[
+                                            html.Br(),
+                                            html.Div(
+                                                "State: ready ",
+                                                id="load",
+                                                className="loading-labels",
+                                            ),
+                                            html.Div(" ", id="load_model"),
+                                            html.Div(" ", id="load_graph"),
+                                        ],
+                                    ),
+                                    width={"size": 3, "order": 5},
+                                ),
+                            ]
                         ),
                         dbc.Collapse(
                             dbc.Card(
@@ -196,7 +219,7 @@ layout = dbc.Container(
                         dcc.Tabs(
                             [
                                 dcc.Tab(
-                                    label="selected Rising angle",
+                                    label="selected Rising angle(s)",
                                     children=[
                                         dbc.Row(
                                             [
@@ -242,6 +265,14 @@ layout = dbc.Container(
                                                                     id="click_data_table",
                                                                     export_format="csv",
                                                                     editable=True,
+                                                                    style_cell_conditional=[
+                                                                        {
+                                                                            "if": {
+                                                                                "column_id": "Unit"
+                                                                            },
+                                                                            "textAlign": "left",
+                                                                        }
+                                                                    ],
                                                                     style_data={
                                                                         "color": "black",
                                                                         "backgroundColor": "white",
@@ -290,39 +321,39 @@ layout = dbc.Container(
                                     className="custom-tab",
                                     selected_className="custom-tab--selected",
                                 ),
-                                dcc.Tab(
-                                    label="All Rising angle",
-                                    children=[
-                                        dbc.Row(
-                                            [
-                                                dbc.Col(
-                                                    [
-                                                        dbc.CardBody(
-                                                            create_polar_all_pts_sliders(),
-                                                            # dcc.Markdown("bidon")
-                                                        ),
-                                                        dcc.Graph(
-                                                            id="fig1_3d_all_pts",
-                                                            figure=fig_all_pts,
-                                                            # style={
-                                                            #     "position": "fixed",  # that imobilised the graph
-                                                            # },
-                                                        ),
-                                                    ]
-                                                ),
-                                                dbc.Col(
-                                                    [
-                                                        html.Div(
-                                                            "One of three columns"
-                                                        ),
-                                                    ]
-                                                ),
-                                            ]
-                                        )
-                                    ],
-                                    className="custom-tab",
-                                    selected_className="custom-tab--selected",
-                                ),
+                                # dcc.Tab(   # extra tabs for all rising angles
+                                #     label="All Rising angle",
+                                #     children=[
+                                #         dbc.Row(
+                                #             [
+                                #                 dbc.Col(
+                                #                     [
+                                #                         dbc.CardBody(
+                                #                             create_polar_all_pts_sliders(),
+                                #                             # dcc.Markdown("bidon")
+                                #                         ),
+                                #                         dcc.Graph(
+                                #                             id="fig1_3d_all_pts",
+                                #                             figure=fig_all_pts,
+                                #                             # style={
+                                #                             #     "position": "fixed",  # that imobilised the graph
+                                #                             # },
+                                #                         ),
+                                #                     ]
+                                #                 ),
+                                #                 dbc.Col(
+                                #                     [
+                                #                         html.Div(
+                                #                             "One of three columns"
+                                #                         ),
+                                #                     ]
+                                #                 ),
+                                #             ]
+                                #         )
+                                #     ],
+                                #     className="custom-tab",
+                                #     selected_className="custom-tab--selected",
+                                # ),
                             ],
                             parent_className="custom-tabs",
                             className="custom-tabs-container",
@@ -356,7 +387,7 @@ layout = dbc.Container(
 ## callback
 
 
-### Callback to make shape parameters menu expand
+### Callback to parameters menus expand
 @callback(
     Output("shape1_collapse_3d", "is_open"),
     [Input("shape1_button_3d", "n_clicks")],
@@ -368,7 +399,6 @@ def toggle_shape_collapse(n_clicks, is_open):
     return is_open
 
 
-### Callback to make shape parameters menu expand
 @callback(
     Output("shape2_collapse_3d", "is_open"),
     [Input("shape2_button_3d", "n_clicks")],
@@ -380,7 +410,6 @@ def toggle_shape_collapse(n_clicks, is_open):
     return is_open
 
 
-### Callback to make operating parameters menu expand
 @callback(
     Output("operating_collapse_3d", "is_open"),
     [Input("operating_button_3d", "n_clicks")],
@@ -392,7 +421,6 @@ def toggle_shape_collapse(n_clicks, is_open):
     return is_open
 
 
-### Callback to make coordinates menu expand
 @callback(
     Output("coordinates_collapse_3d", "is_open"),
     [Input("coordinates_button_3d", "n_clicks")],
@@ -422,44 +450,55 @@ def update_possible_rising_angle(target_wind):
 
 
 ###################################################### Click reaction
-summary_table_fields = [
-    "kite_cl",
-    "fish_cl",
-    "rising_angle",
-    "extra_angle",
-    "simplify",
-    "fish_center_depth",
-    "cable_length_in_water",
-    "cable_length_in_water_streamline",
-    "cable_length_in_water_unstreamline",
-    "cable_water_drag",
-    "cable_length_in_air",
-    "cable_air_drag",
-    "fish_lift",
-    "kite_lift",
-    "fish_induced_drag",
-    "kite_induced_drag",
-    "total_water_drag",
-    "total_air_drag",
-    "fish_total_force",
-    "kite_total_force",
-    "proj_efficiency_water_LD",
-    "proj_efficiency_air_LD",
-    "y_pilot",
-    "z_pilot",
-    "y_kite",
-    "z_kite",
-    "apparent_water_kt",
-    "apparent_wind_kt",
-    "true_wind_calculated_kt",
-    "vmg_x_kt",
-    "vmg_y_kt",
-    "cable_strength_margin",
-    "cavitation",
-    "fk_name",
-    "failure",
-    "indexG",
-]
+
+
+def to_camel_case(snake_str):
+    return "".join(x.capitalize() for x in snake_str.lower().split("_"))
+
+
+summary_table_fields = {
+    "kite_cl": " ",
+    "fish_cl": " ",
+    "rising_angle": "°",
+    "extra_angle": "°",
+    "simplify": " ",
+    "fish_center_depth": "m",
+    "cable_length_in_water": "m",
+    "cable_length_in_water_streamline": "m",
+    "cable_length_in_water_unstreamline": "m",
+    "cable_water_drag": "m²",
+    "cable_length_in_air": "m",
+    "cable_air_drag": "m²",
+    "fish_lift": "N",
+    "kite_lift": "N",
+    "fish_induced_drag": "m²",
+    "kite_induced_drag": "m²",
+    "total_water_drag": "m²",
+    "total_air_drag": "m²",
+    "fish_total_force": "N",
+    "kite_total_force": "N",
+    "proj_efficiency_water_LD": " ",
+    "proj_efficiency_air_LD": " ",
+    "y_pilot": "m",
+    "z_pilot": "m",
+    "y_kite": "m",
+    "z_kite": "m",
+    "apparent_water_kt": "kt",
+    "apparent_wind_kt": "kt",
+    "true_wind_calculated_kt": "kt",
+    "vmg_x_kt": "kt",
+    "vmg_y_kt": "kt",
+    "cable_strength_margin": " ",
+    "cavitation": " ",
+    "fk_name": " ",
+    "failure": " ",
+    "indexG": " ",
+}
+
+shorter_name = {
+    "cable_length_in_water_streamline": "cable_lngth_water_stream",
+    "cable_length_in_water_unstreamline": "cable_lngth_water_unstream",
+}
 
 
 @callback(
@@ -474,7 +513,7 @@ summary_table_fields = [
 def display_click_data(clickData):
     df_index = clickData["points"][0]["customdata"][-1]
     df_OP = dfG[(dfG["indexG"] == df_index)]
-    df_click_select = df_OP[summary_table_fields]
+    df_click_select = df_OP[summary_table_fields.keys()]
     # Identify numeric columns
     numeric_cols = df_click_select.select_dtypes(include=[float, int]).columns
 
@@ -482,6 +521,16 @@ def display_click_data(clickData):
     df_click_select[numeric_cols] = df_click_select[numeric_cols].round(4)
 
     df_click = df_click_select.reset_index().T.reset_index()
+
+    # rename
+    df_click["index"] = df_click["index"].replace(
+        shorter_name
+    )  # map wouldbe much faster,less lisible: df_click["index"] = df_click["index"].map(shorter_name).fillna( df_click["index"])
+
+    # add units:
+    df_click["Unit"] = df_click["index"].map(summary_table_fields)
+
+    # conver to dash format
     columns = [{"name": str(col), "id": str(col)} for col in df_click.columns]
     data = df_click.to_dict(orient="records")
 
@@ -635,6 +684,7 @@ def Startup_call_back(data):
 ### Callback to update polar selected  rising angle
 @callback(
     Output("fig1_3d_rising_angle", "figure"),
+    Output("load_graph", "children"),
     [
         Input("slider-rising_angle_polar", "value"),
         Input("bool_rising_angle_use_range", "value"),
@@ -676,38 +726,43 @@ def update_polar_rising_angle(
     else:
         df_rising_angle = dfG
 
-    return plot_3d_cases_risingangle(
-        df_rising_angle,
-        target_rising_angle_low=rising_low,
-        target_rising_angle_upper=rising_upper,
-        target_wind=target_wind,
-        what=color_data,
-        symbol=symbol_data,
-        draw_ortho_grid=bool_orthogrid,
-        draw_iso_speed=bool_isospeed,
-        draw_iso_eft=bool_isoeft,
-        draw_iso_fluid=bool_isofluid,
-        height_size=graph_size,
+    empty_for_load = " "
+
+    return (
+        plot_3d_cases_risingangle(
+            df_rising_angle,
+            target_rising_angle_low=rising_low,
+            target_rising_angle_upper=rising_upper,
+            target_wind=target_wind,
+            what=color_data,
+            symbol=symbol_data,
+            draw_ortho_grid=bool_orthogrid,
+            draw_iso_speed=bool_isospeed,
+            draw_iso_eft=bool_isoeft,
+            draw_iso_fluid=bool_isofluid,
+            height_size=graph_size,
+        ),
+        empty_for_load,
     )
 
 
 ### Callback to update polar all  rising angle
-@callback(
-    Output("fig1_3d_all_pts", "figure"),
-    [
-        Input("3d_slider-wind_speed", "value"),
-        Input("data_color_polar_all_pts", "value"),
-        Input("graph_need_update", "data"),
-    ],
-)
-def update_polar_all_pts(target_wind, color_data, jsonified_data):
-    c = jsonified_data
+# @callback(
+#     Output("fig1_3d_all_pts", "figure"),
+#     [
+#         Input("3d_slider-wind_speed", "value"),
+#         Input("data_color_polar_all_pts", "value"),
+#         Input("graph_need_update", "data"),
+#     ],
+# )
+# def update_polar_all_pts(target_wind, color_data, jsonified_data):
+#     c = jsonified_data
 
-    return plot_3d_cases(
-        dfG,
-        target_wind=target_wind,
-        what=color_data,
-    )
+#     return plot_3d_cases(
+#         dfG,
+#         target_wind=target_wind,
+#         what=color_data,
+#     )
 
 
 ######################################################  DEBUG
@@ -775,6 +830,7 @@ for id in [0, 1]:
         Output("perf_table_3d_selectedW", "data"),
         Output("perf_table_3d_allW", "columns"),
         Output("perf_table_3d_allW", "data"),
+        Output("load_model", "children"),
     ],
     inputs=dict_input_update_model
     # {
@@ -876,6 +932,7 @@ def update(all_inputs):
         {"name": str(i), "id": str(i)} for i in df_perf_general.columns
     ]
     perf_data_general = df_perf_general.to_dict("records")
+    empty_for_loading = " "
     return (
         True,
         info_df,
@@ -884,6 +941,7 @@ def update(all_inputs):
         perf_data_selectedWind,
         perf_columns_general,
         perf_data_general,
+        empty_for_loading,
     )  # perf_columns, perf_data
 
 

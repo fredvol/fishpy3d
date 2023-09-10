@@ -6,21 +6,22 @@
 # Notes:
 #     All angles are store in degrees and convert in rad inside the functions.
 # %%  impot librairies
-#from bdb import effective
+# from bdb import effective
 import os
 import numpy as np
 import pandas as pd
 
 import plotly.express as px
-#import plotly.figure_factory as ff
-#import plotly.offline as po
+
+# import plotly.figure_factory as ff
+# import plotly.offline as po
 import plotly.graph_objects as go
 
 import jsonpickle
 
 from fish_plot_3d import plot_3d_cases, plot_3d_cases_risingangle, plot_side_view
 
-#import scipy.optimize as opt
+# import scipy.optimize as opt
 
 # %% constants
 GRAVITY = 9.81  # m/s-2
@@ -425,8 +426,10 @@ class FishKite:
         return self._extra_angle
 
     def position_pilot(self):
-        x_pilot = self.cable_length_fish() * np.cos(np.radians(self.rising_angle))
-        y_pilot = self.cable_length_fish() * np.sin(np.radians(self.rising_angle))
+        x_pilot = 0 + self.cable_length_fish() * np.cos(np.radians(self.rising_angle))
+        y_pilot = -self.fish_center_depth + self.cable_length_fish() * np.sin(
+            np.radians(self.rising_angle)
+        )
         return (x_pilot, y_pilot)
 
     def position_kite(self):
@@ -536,13 +539,6 @@ class FishKite:
             * self.apparent_wind_ms()
             * np.cos(np.radians(self.total_efficiency()))
         )
-
-    def speed_gap_modified_extra_angle(self, angle, debug=True):
-        self._extra_angle = angle
-        if debug:
-            print(angle)
-
-        return self.true_wind_calculated() - self.wind_speed
 
     # def find_raising_angle(self):
     #     fun = lambda x: ((self.modified_extra_angle(x) - self.wind_speed) ** 2) ** 0.5
@@ -736,20 +732,22 @@ class FishKite:
             / np.sin(df[f"extra_angle_rad"])
         )  # N
 
-        df["flat_power_ratio"] = (
-            RHO_AIR * df["kite_c_force"] * self.kite.projected_area()
-        ) / (RHO_WATER * df["fish_c_force"] * self.fish.projected_area())
+        # df["flat_power_ratio"] = (
+        #     RHO_AIR * df["kite_c_force"] * self.kite.projected_area()
+        # ) / (RHO_WATER * df["fish_c_force"] * self.fish.projected_area())
 
-        df["projected_power_ratio"] = (
-            df["flat_power_ratio"]
-            * (np.cos(df[f"kite_roll_angle_rad"]))
-            / (np.cos(df[f"rising_angle_rad"]))
-        )
+        # df["projected_power_ratio"] = (
+        #     df["flat_power_ratio"]
+        #     * (np.cos(df[f"kite_roll_angle_rad"]))
+        #     / (np.cos(df[f"rising_angle_rad"]))
+        # )
 
         # position ( pilot , kite)
 
-        df["y_pilot"] = self.cable_length_fish() * np.cos(df["rising_angle_rad"])
-        df["z_pilot"] = self.cable_length_fish() * np.sin(df["rising_angle_rad"])
+        df["y_pilot"] = 0 + self.cable_length_fish() * np.cos(df["rising_angle_rad"])
+        df["z_pilot"] = -df["fish_center_depth"] + self.cable_length_fish() * np.sin(
+            df["rising_angle_rad"]
+        )
 
         df["y_kite"] = df["y_pilot"] + self.cable_length_kite * np.cos(
             df["kite_roll_angle_rad"]
@@ -955,7 +953,6 @@ if __name__ == "__main__":
         "add_plot_elements",
         "plot",
         "compute_polar",
-        "speed_gap_modified_extra_angle",
         "find_raising_angle",
         "data_to_plot_polar",
         "perf_table",

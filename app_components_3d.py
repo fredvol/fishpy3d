@@ -262,7 +262,7 @@ def create_fk_sliders(id):
                                                     className="custom-inputs",
                                                 ),
                                             ],
-                                            style={"width": "130%"},
+                                            style={"min-width": "12em"},
                                         ),
                                         dbc.Stack(
                                             [
@@ -283,7 +283,8 @@ def create_fk_sliders(id):
                                                     "unit: kg ",
                                                     target=f"input_pilot_mass_{id}",
                                                 ),
-                                            ]
+                                            ],
+                                            style={"min-width": "5em"},
                                         ),
                                         dbc.Stack(
                                             [
@@ -304,7 +305,8 @@ def create_fk_sliders(id):
                                                     "unit: m² ",
                                                     target=f"input_pilot_drag_{id}",
                                                 ),
-                                            ]
+                                            ],
+                                            style={"min-width": "5em"},
                                         ),
                                     ],
                                     direction="horizontal",
@@ -602,7 +604,7 @@ def create_fk_sliders(id):
                                             type="number",
                                             id=f"input_fish_cable_length_streamline_{id}",
                                             min=0,
-                                            max=5,
+                                            max=30,
                                             step=0.5,
                                             debounce=True,
                                             className="custom-inputs",
