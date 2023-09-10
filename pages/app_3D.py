@@ -500,7 +500,9 @@ def display_click_data(clickData):
     df_click = df_click_select.reset_index().T.reset_index()
 
     # rename
-    df_click["index"] = df_click["index"].replace(shorter_name)
+    df_click["index"] = df_click["index"].replace(
+        shorter_name
+    )  # map wouldbe much faster,less lisible: df_click["index"] = df_click["index"].map(shorter_name).fillna( df_click["index"])
 
     # add units:
     df_click["Unit"] = df_click["index"].map(summary_table_fields)
