@@ -423,7 +423,7 @@ def plot_3d_cases_risingangle(
     # UPdate layout
     fig.update_layout(
         title=go.layout.Title(
-            text=f"Rising angle: [{target_rising_angle_low},{target_rising_angle_upper}] , TrueWind = {target_wind} kt"
+            text=f"Rising angle: [{target_rising_angle_low},{target_rising_angle_upper}], TrueWind = {target_wind} +/-1 kt"
         ),
         autosize=True,
         plot_bgcolor="rgba(240,240,240,0.7)",

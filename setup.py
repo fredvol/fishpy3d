@@ -30,9 +30,9 @@ options = {
             "dash_daq",
             "jsonpickle",
             "openpyxl",
-            "pandas"
+            "pandas",
         ],
-        "excludes": ["tkinter","scipy"],
+        "excludes": ["tkinter", "scipy"],
     }
 }
 
@@ -46,7 +46,7 @@ executables = [
 setup(
     name="fishpy3d_app",
     packages=find_packages(),
-    version="2.1.0",
+    version="2.1.4",
     description="fishpy_app",
     executables=executables,
     options=options,

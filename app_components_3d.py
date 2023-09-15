@@ -29,7 +29,7 @@ operating_slider_components = [
         min=0,
         max=40,
         step=2,
-        value=20,
+        value=14,
         marks={i: str(i) for i in range(0, 40, 4)},
         tooltip={
             "placement": "bottom",
@@ -319,15 +319,15 @@ def create_fk_sliders(id):
                 dbc.Stack(  # start Kite stack
                     [
                         html.H6(html.B(f"Kite:")),
-                        html.Label("Kite Force Coeficient range and OP"),
+                        html.Label("Kite Lift Coeficient range (on projected area)"),
                         dcc.RangeSlider(
                             id=f"3d_slider-kite_cl_{id}",
-                            min=0,
-                            max=1.5,
+                            min=0.2,
+                            max=2.2,
                             step=0.05,
                             value=[0.5, 1],
                             updatemode="mouseup",
-                            marks={i: str(i) for i in [0, 0.5, 1, 1.5]},
+                            marks={i: str(i) for i in [0, 0.5, 1, 1.5, 2]},
                             pushable=0,
                             tooltip={
                                 "placement": "bottom",
@@ -420,7 +420,7 @@ def create_fk_sliders(id):
                                 dbc.Stack(
                                     [
                                         dbc.Label(
-                                            "Parasite drag pct:",
+                                            "Parasite Drag Ratio:",
                                             className="custom-labels",
                                         ),
                                         dbc.Input(
@@ -433,7 +433,7 @@ def create_fk_sliders(id):
                                             className="custom-inputs",
                                         ),
                                         dbc.Tooltip(
-                                            "unit: percentage of flat area ",
+                                            "unit: Ratio of flat area ",
                                             target=f"input_kite_parasitedrag_{id}",
                                         ),
                                     ]
@@ -448,7 +448,7 @@ def create_fk_sliders(id):
                 dbc.Stack(  # start Fish stack
                     [
                         html.H6(html.B(f"Fish:")),
-                        html.Label("Fish Force Coeficient range and OP"),
+                        html.Label("Fish Lift Coeficient range (on projected area)"),
                         dcc.RangeSlider(
                             id=f"3d_slider-fish_cl_{id}",
                             min=0.1,

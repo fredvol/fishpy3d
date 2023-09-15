@@ -34,7 +34,7 @@ import os
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.1.3"
+__version__ = "2.1.4"
 print("Version: ", __version__)
 print("The browser will try to start automatically.")
 print("(few seconds for the initialisation of the browser can be needed)")
