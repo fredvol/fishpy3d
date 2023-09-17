@@ -897,6 +897,57 @@ if __name__ == "__main__":
     # %%
     df1 = dfM[dfM["fk_name"] == "fk1"]
 
+    # %% performance compare
+    dfx = (
+        dfM[dfM["isValid"]]
+        .groupby(["fk_name", "true_wind_calculated_kt_rounded"])
+        .agg({"vmg_y_kt": ["min", "max"]})
+        .reset_index()
+    )
+    dfx.columns = [" ".join(col).strip() for col in dfx.columns.values]
+
+    # %% Display maneuvrability graph
+    colors = ["rgba(26,150,65,0.5)", "rgba(100,149,237,0.6)"]
+
+    fig = go.Figure()
+
+    fig.update_layout(
+        title="Maneuvrability",
+        xaxis_title="True wind",
+        yaxis_title="VMG_Y",
+        legend_title="Fishkite",
+        font=dict(family="Courier New, monospace", size=12, color="RebeccaPurple"),
+    )
+    for (
+        i,
+        f,
+    ) in enumerate(dfx["fk_name"].unique()):
+        print(f"{f=}")
+
+        dfxi = dfx[dfx["fk_name"] == f]
+        fig.add_trace(
+            go.Scatter(
+                x=dfxi["true_wind_calculated_kt_rounded"],
+                y=dfxi["vmg_y_kt min"],
+                fill=None,
+                mode="lines",
+                line_color=colors[i],
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=dfxi["true_wind_calculated_kt_rounded"],
+                y=dfxi["vmg_y_kt max"],
+                fill="tonexty",  # fill area between trace0 and trace1
+                fillcolor=colors[i],
+                legendgroup=f,
+                mode="lines",
+                line_color=colors[i],
+            )
+        )
+
+    fig.show()
+
     # %%
     what = "fk_name"
     height_size = 700
