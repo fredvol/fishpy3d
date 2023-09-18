@@ -7,6 +7,7 @@
 
 # imports
 import base64
+from copy import deepcopy
 import io
 from model_3d import (
     Deflector,
@@ -34,7 +35,7 @@ import os
 from app_components_3d import *
 from dash import ctx, dash_table, callback
 
-__version__ = "2.1.4"
+__version__ = "2.1.5"
 print("Version: ", __version__)
 print("The browser will try to start automatically.")
 print("(few seconds for the initialisation of the browser can be needed)")
@@ -619,6 +620,31 @@ def download_fk(btn_fk0, btn_fk1):
     else:
         print("Impossible to export : button_clicked", button_clicked)
         raise PreventUpdate
+
+
+####### copy other
+# @callback(
+#     Output("model_state", "data"),
+#     Input("copy_fk0", "n_clicks"),
+#     Input("copy_fk1", "n_clicks"),
+#     prevent_initial_call=True,
+# )
+# def download_fk(btn_fk0, btn_fk1):
+#     button_clicked = ctx.triggered_id
+#     if button_clicked == "copy_fk0":
+#         old_name = proj.lst_fishkite[0].name
+
+#         proj.lst_fishkite[1] = deepcopy(proj.lst_fishkite[0])
+#         proj.lst_fishkite[1].name = old_name
+#         return {"need_update_sliders": True}
+#     elif button_clicked == "copy_fk1":
+#         old_name = proj.lst_fishkite[1].name
+
+#         proj.lst_fishkite[0] = deepcopy(proj.lst_fishkite[1])
+#         proj.lst_fishkite[0].name = old_name
+#     else:
+#         print("Impossible to copy : button_clicked", button_clicked)
+#         raise PreventUpdate
 
 
 ######################################################  GUI
