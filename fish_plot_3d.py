@@ -364,6 +364,7 @@ def plot_3d_cases_risingangle(
     draw_iso_speed=True,
     draw_iso_eft=True,
     draw_iso_fluid=True,
+    draw_simplify_OP=True,
 ):
     shape_list = []
 
@@ -467,23 +468,23 @@ def plot_3d_cases_risingangle(
         )
     )
 
-    # add simplify
+    # add simplify operational point
+    if draw_simplify_OP:
+        dfsimplify = dfs[dfs["simplify"]]
 
-    dfsimplify = dfs[dfs["simplify"]]
-
-    fig.add_trace(
-        go.Scatter(
-            x=dfsimplify["vmg_x_kt"],
-            y=dfsimplify["vmg_y_kt"],
-            mode="markers",
-            name="simplify",
-            marker=dict(
-                size=12,
-                color="black",
-            ),
-            hoverinfo="skip",
+        fig.add_trace(
+            go.Scatter(
+                x=dfsimplify["vmg_x_kt"],
+                y=dfsimplify["vmg_y_kt"],
+                mode="markers",
+                name="simplify",
+                marker=dict(
+                    size=12,
+                    color="black",
+                ),
+                hoverinfo="skip",
+            )
         )
-    )
 
     fig.update_yaxes(  # make suare ratio
         scaleanchor="x",

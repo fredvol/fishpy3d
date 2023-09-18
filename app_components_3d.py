@@ -6,9 +6,23 @@ import dash_bootstrap_components as dbc
 
 ### Operating things
 operating_slider_components = [
+    html.Label("Wind speed [knots]"),
+    dcc.Slider(
+        id=f"3d_slider-wind_speed",
+        min=0,
+        max=40,
+        step=2,
+        value=14,
+        marks={i: str(i) for i in range(0, 40, 4)},
+        tooltip={
+            "placement": "bottom",
+            "always_visible": True,
+        },
+    ),
+    html.Br(),
+    html.Label("Graph details:"),
     html.Div(
         [
-            html.Label("Graph size:"),
             dcc.Slider(
                 id=f"3d_slider-graph_size",
                 min=500,
@@ -22,19 +36,6 @@ operating_slider_components = [
                 },
             ),
         ],
-    ),
-    html.Label("Wind speed [knots]"),
-    dcc.Slider(
-        id=f"3d_slider-wind_speed",
-        min=0,
-        max=40,
-        step=2,
-        value=14,
-        marks={i: str(i) for i in range(0, 40, 4)},
-        tooltip={
-            "placement": "bottom",
-            "always_visible": True,
-        },
     ),
     daq.BooleanSwitch(
         id="3d_bool_orthogrid", on=True, label="Ortho grid", labelPosition="right"
@@ -53,6 +54,12 @@ operating_slider_components = [
     ),
     daq.BooleanSwitch(
         id="3d_bool_isofluid", on=True, label="Iso fluid ratio", labelPosition="right"
+    ),
+    daq.BooleanSwitch(
+        id="bool_draw_simplify_OP",
+        on=False,
+        label="draw simplified OP",
+        labelPosition="right",
     ),
     # dbc.Button(
     #     "copy parameters : Fk1 -> Fk2",
@@ -114,10 +121,10 @@ def create_polar_rising_sliders():
                                         "fish_cl",
                                         "rising_angle",
                                         "extra_angle",
-                                        "fish_center_depth",
-                                        "cable_length_in_water",
-                                        "cable_water_drag",
-                                        "cable_air_drag",
+                                        # "fish_center_depth",
+                                        # "cable_length_in_water",
+                                        # "cable_water_drag",
+                                        # "cable_air_drag",
                                         "fish_lift",
                                         "kite_lift",
                                         "total_water_drag",

@@ -364,19 +364,58 @@ layout = dbc.Container(
                 ),
             ]
         ),
+        html.Div(
+            [
+                dbc.Button(
+                    "Hypothesis and legend",
+                    id="open-offcanvas",
+                    n_clicks=0,
+                    color="info",
+                ),
+                dbc.Offcanvas(
+                    dcc.Markdown(
+                        """
+        **Hypothesis:**
+
+            * Extra angle > 1 deg
+            * Wind Speed input, limited to even integers. Polar graph winds = Wind speed input +/-1kt.
+            * Cable drag coeficient (air or water) independant from speed. 
+            * Induced drag calculation with Oswald efficency = 1
+            * fish cavitated if water speed > 40kt or Water pressure > 5000daN/m²
+            * cable break if fish_total_force > cable_strength
+            * Aspect Ratio input: Wing Aspect Ratio if it was unroll on a flat surface. Span*Span/Aera. 
+            * Pilot Mass: mass of everything standing in the air (pilot, harness, lines, paraglider)
+
+        **Legend:**
+
+            * OP = Operation point
+            * fk = Fish-Kite.  Fk name: do not put same name for fk1 and fk2. 
+            * Fluid ratio = Apparent Water Speed / Apparent wind Speed
+            * efficiency in angle = ATAN (Drag/Lift)
+            * Total efficiency (degrees) = fish efficiency + kite effiency
+            * positive VMG_y = VMG upwind. Negative VMG_y = VMG downwind. 
+            * Flat area input = aera if the wing is unrolled on a flat surface. 
+            * parasite drag (fish or kite) input: in m² as ratio of flat area. This drag include anything that is not profile drag or induced drag, for exemple all fish or kite extra structures, like load bearing distribution lines or struts. 
+            * cables: 
+                - streamline and unstreamline = cable between fish and pilot
+                - length kite = cable between pilot and kite. 
+            * Lift Ceoficient range input = maximum and minimum reachable Cl for a given fish or kite. Should be set to identical values if not steerable. 
+            * Valid Points = point of sail with no cavitation and no cable break. 
+            * Data scroll menu = data type specifically displayed on polar graph with color code and hover legend.
+            * Symbol scroll menu = differentiation for OP with câble break, cavitation, etc. 
+            * Simplify OP: OP along a linear progressive change of Cl for both kite and fish. """
+                    ),
+                    id="offcanvas",
+                    title="Hypothesis and legend",
+                    placement="bottom",
+                    is_open=False,
+                    style={"height": 450},
+                ),
+            ]
+        ),
         dcc.Markdown(
             f"""
         ......................................  
-
-        **Hypothesis:**
-         * Extra angle > 1 deg
-
-
-        **Legend:**
-         * OP = Operation point
-         * fk = Fish-Kite
-         * Fluid ratio = Apparent Water Speed / Apparent wind Speed
-
         **Version:** {__version__}
         """
         ),
@@ -385,6 +424,17 @@ layout = dbc.Container(
 )
 
 ## callback
+
+
+@callback(
+    Output("offcanvas", "is_open"),
+    Input("open-offcanvas", "n_clicks"),
+    [State("offcanvas", "is_open")],
+)
+def toggle_offcanvas(n1, is_open):
+    if n1:
+        return not is_open
+    return is_open
 
 
 ### Callback to parameters menus expand
@@ -698,6 +748,7 @@ def Startup_call_back(data):
         Input("3d_bool_isofluid", "on"),
         Input("3d_slider-graph_size", "value"),
         Input("bool_validOP_only", "value"),
+        Input("bool_draw_simplify_OP", "on"),
     ],
 )
 def update_polar_rising_angle(
@@ -713,6 +764,7 @@ def update_polar_rising_angle(
     bool_isofluid,
     graph_size,
     bool_ValidOP_only,
+    bool_SimplifiedOP,
 ):
     if symbol_data == "None":
         symbol_data = None
@@ -741,6 +793,7 @@ def update_polar_rising_angle(
             draw_iso_eft=bool_isoeft,
             draw_iso_fluid=bool_isofluid,
             height_size=graph_size,
+            draw_simplify_OP=bool_SimplifiedOP,
         ),
         empty_for_load,
     )

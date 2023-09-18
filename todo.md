@@ -22,11 +22,11 @@
  V* APP: move graph control on right
  V* APP: adjust X range 
  V* APP: update test suite
- * APP: clean env 
- * APP: auto open browser
+ V* APP: clean env 
+ V* APP: auto open browser
  * APP:make msi file 
  * GENERAL : implement TOML config file
- * APP:add icon 
+ V* APP:add icon 
  
 
 ## Luc's list 
