@@ -44,25 +44,57 @@ dfM = proj.create_df()
 df1 = dfM[dfM["fk_name"] == "fk1"]
 
 
+wind_min = 13
+wind_max = 15
 # %% loop kite
 list_result = []
-for k_area in [10, 20, 25, 30, 40]:
+for k_area in [10, 15, 20, 25, 30, 40]:
+    print(f"compute {k_area}")
     fk1.kite._flat_area = k_area
     dfi = fk1.create_df()
-    dfvalid = dfi[dfi["isValid"]]
+    dfvalid = dfi[
+        (dfi["isValid"])
+        & (dfi["true_wind_calculated_kt"].between(wind_min, wind_max, inclusive="both"))
+    ]
     lst_pt_i = dfvalid[["vmg_x_kt", "vmg_y_kt"]].to_numpy()
     alpha_shape_i = alphashape.alphashape(lst_pt_i, 0.2)
     list_result.append({"area": k_area, "shape": alpha_shape_i})
 
 print("end loop")
 
+
+# %%  plot kite
+for r in list_result:
+    k_area = r["area"]
+    ctn = r["shape"]
+    x, y = ctn.exterior.xy
+    area_score = ctn.area
+    plt.plot(x, y, label=f"{k_area} m², ({int(area_score)})")
+
+# ax = plt.gca()
+# ax.set_aspect('equal', adjustable='box')
+plt.rcParams["figure.figsize"] = [10, 10]
+plt.axis("equal")
+plt.grid()
+plt.legend()
+plt.xlabel("VMG_x_kt")
+plt.ylabel("VMG_y_kt")
+plt.title(f"Kite area sensibility: TrueWind range:[{wind_min}:{wind_max}] kt")
+plt.show()
+
 # %% loop fish
+
+fk1 = FishKite.from_json(fk1_file)
+print(f"{fk1 =}")
 list_result_fish = []
 for k_area in [0.03, 0.06, 0.08, 0.1, 0.2]:
     print(f"compute {k_area}")
     fk1.fish._flat_area = k_area
     dfi = fk1.create_df()
-    dfvalid = dfi[dfi["isValid"]]
+    dfvalid = dfi[
+        (dfi["isValid"])
+        & (dfi["true_wind_calculated_kt"].between(wind_min, wind_max, inclusive="both"))
+    ]
     lst_pt_i = dfvalid[["vmg_x_kt", "vmg_y_kt"]].to_numpy()
     alpha_shape_i = alphashape.alphashape(lst_pt_i, 0.2)
     list_result_fish.append({"area": k_area, "shape": alpha_shape_i})
@@ -86,7 +118,7 @@ plt.grid()
 plt.legend()
 plt.xlabel("VMG_x_kt")
 plt.ylabel("VMG_y_kt")
-plt.title("Fish area sensibility")
+plt.title(f"Fish area sensibility: TrueWind range:[{wind_min}:{wind_max}] kt")
 plt.show()
 
 
