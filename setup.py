@@ -17,7 +17,6 @@ options = {
             "app_components.py",
         ],
         "includes": [
-            "cx_Logging",
             "idna",
         ],
         "packages": [

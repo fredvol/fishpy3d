@@ -1,5 +1,6 @@
 cx-Freeze
-cx-Logging
+cx-Logging ; platform_system == "Windows"
+scipy
 dash
 dash-bootstrap-components
 dash-core-components
