@@ -6,4 +6,4 @@ build:
       - pip install -r requirements_aws.txt
 
 run: 
-  command: python gunicorn app:server
+  command: python server.py

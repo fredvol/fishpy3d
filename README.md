@@ -37,3 +37,8 @@ run
 the test suite is done with pytest , just run in the devellopement environement: 
     pytest
 
+# AWS
+https://3wcazhhsme.eu-west-2.awsapprunner.com/
+
+links:
+ * https://docs.aws.amazon.com/apprunner/latest/dg/service-source-code-python.html#service-source-code-python.examples
