@@ -10,15 +10,26 @@ import webbrowser
 
 # for build
 # pages_folder = os.getcwd() + "/pages/"  # for exe
-# print("cwd:", os.getcwd())
+print("cwd:", os.getcwd())
+dirname = os.path.dirname(__file__)
+print('basename:    ', dirname)
 
+if "lib/library" in dirname:
+    dirname = dirname.split('lib')[0]
+    os.chdir(dirname)
+    dirname = os.getcwd()
+
+
+    #/Users/fred/Documents/code/fishpy3d/build/exe.macosx-10.9-universal2-3.10/lib/library.zip/pages/
 
 app = dash.Dash(
     __name__,
     use_pages=True,
-    pages_folder=os.getcwd() + "/pages/",
+    pages_folder=dirname + "/pages/",
+    #pages_folder=os.getcwd() + "/pages/",
     external_stylesheets=[dbc.themes.BOOTSTRAP],
-    assets_folder=os.getcwd() + "/assets/",
+    assets_folder=dirname+ "/assets/",
+    #assets_folder=os.getcwd() + "/assets/",
 )
 server = app.server
 
